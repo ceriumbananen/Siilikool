@@ -3330,7 +3330,31 @@
         "pilv": '<ellipse cx="42" cy="56" rx="26" ry="18" fill="#FFFFFF"/>' +
             '<ellipse cx="64" cy="50" rx="20" ry="16" fill="#F4F8FB"/>' +
             '<ellipse cx="30" cy="48" rx="16" ry="13" fill="#FFFFFF"/>' +
-            '<ellipse cx="50" cy="66" rx="34" ry="10" fill="#E2EAF0"/>'
+            '<ellipse cx="50" cy="66" rx="34" ry="10" fill="#E2EAF0"/>',
+        /* seelik vs kleit (👗) delar emoji – kjolen får en egen siluett */
+        "seelik": '<path d="M34 18 h32 l4 14 h-40 z" fill="#E8B62C"/>' +
+            '<path d="M30 32 h40 l12 48 q-32 14 -64 0 z" fill="#3A72C8"/>' +
+            '<path d="M30 32 h40" stroke="#2A5A9A" stroke-width="2.4" fill="none"/>',
+        /* padi vs voodi (🛏️) delar emoji – kudden får en egen bild */
+        "padi": '<rect x="14" y="34" width="72" height="40" rx="18" fill="#FFFDF6"/>' +
+            '<rect x="14" y="34" width="72" height="40" rx="18" fill="none" stroke="#E2D8C0" stroke-width="2.6"/>' +
+            '<path d="M50 40 v28" stroke="#E2D8C0" stroke-width="2" stroke-dasharray="4 4"/>',
+        /* ploom vs mustikas (🫐) delar emoji – plommonet får en egen bild */
+        "ploom": '<ellipse cx="50" cy="56" rx="26" ry="30" fill="#734184"/>' +
+            '<ellipse cx="40" cy="44" rx="8" ry="10" fill="#9A6BBE" opacity=".55"/>' +
+            '<path d="M50 26 q2 -10 10 -12" stroke="#5C9A5E" stroke-width="4" fill="none" stroke-linecap="round"/>' +
+            '<ellipse cx="60" cy="16" rx="9" ry="5" fill="#5C9A5E" transform="rotate(30 60 16)"/>',
+        /* kiik vs liumägi (🛝) delar emoji – gungan får en egen bild */
+        "kiik": '<path d="M10 16 h80" stroke="#8A5E30" stroke-width="7" stroke-linecap="round" fill="none"/>' +
+            '<path d="M18 16 l10 54" stroke="#6E6E6E" stroke-width="3" fill="none"/>' +
+            '<path d="M82 16 l-10 54" stroke="#6E6E6E" stroke-width="3" fill="none"/>' +
+            '<rect x="22" y="70" width="56" height="12" rx="5" fill="#D6453F"/>',
+        /* kõrval vs vahel delar emoji (↔️) – två positionsdiagram i stället */
+        "kõrval": '<circle cx="34" cy="50" r="20" fill="#3A72C8"/>' +
+            '<circle cx="74" cy="50" r="20" fill="#E6EAF0" stroke="#B9C2CC" stroke-width="2.4"/>',
+        "vahel": '<circle cx="18" cy="50" r="15" fill="#E6EAF0" stroke="#B9C2CC" stroke-width="2.4"/>' +
+            '<circle cx="50" cy="50" r="18" fill="#D6453F"/>' +
+            '<circle cx="82" cy="50" r="15" fill="#E6EAF0" stroke="#B9C2CC" stroke-width="2.4"/>'
     };
     function wArt(et) {
         var a = WORDART[et];
