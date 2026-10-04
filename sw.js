@@ -3,7 +3,9 @@
    från cachen när man är offline. Ljudklippen ändras aldrig och tas från cachen först.
    Cachenamnet behöver därför inte bytas vid nya versioner. */
 var CACHE = "siilikool";
-var SHELL = ["./", "./index.html", "./app.js", "./style.css"];
+/* inte "./index.html": Cloudflare Pages skickar den vidare till "./" (308), och ett
+   omdirigerat svar vägrar webbläsaren visa som sida */
+var SHELL = ["./", "./app.js", "./style.css"];
 var TIMEOUT = 3000;   /* så länge väntar vi på nätet innan cachen får svara */
 
 self.addEventListener("install", function (e) {
@@ -11,9 +13,11 @@ self.addEventListener("install", function (e) {
   e.waitUntil(caches.open(CACHE).then(function (c) { return c.addAll(SHELL).catch(function () { }) }));
 });
 self.addEventListener("activate", function (e) {
-  /* rensar bort gamla cacher med tidsstämpel i namnet */
+  /* rensar bort gamla cacher med tidsstämpel i namnet, och en omdirigerad index.html från förr */
   e.waitUntil(caches.keys().then(function (keys) {
     return Promise.all(keys.map(function (k) { if (k !== CACHE) return caches.delete(k) }));
+  }).then(function () {
+    return caches.open(CACHE).then(function (c) { return c.delete("./index.html") });
   }).then(function () { return self.clients.claim() }));
 });
 
@@ -35,7 +39,7 @@ self.addEventListener("message", function (e) {
 });
 
 function store(req, res) {
-  if (res && res.status === 200) {
+  if (res && res.status === 200 && !res.redirected) {
     var copy = res.clone();
     caches.open(CACHE).then(function (c) { c.put(req, copy) });
   }
@@ -76,11 +80,15 @@ function cacheFirst(req) {
 function networkFirst(req) {
   var key = req.url;
   var net = fetch(key, { cache: "no-cache", credentials: "same-origin" })
-    .then(function (res) { return store(key, res) });
+    .then(function (res) {
+      /* t.ex. /index.html -> / : låt webbläsaren själv följa omdirigeringen */
+      if (res.redirected && req.mode === "navigate") return Response.redirect(res.url, 301);
+      return store(key, res);
+    });
   var fromCache = function () {
     return caches.match(key).then(function (hit) {
       if (hit) return hit;
-      if (req.mode === "navigate") return caches.match("./index.html");
+      if (req.mode === "navigate") return caches.match("./");
     });
   };
   return new Promise(function (resolve) {
