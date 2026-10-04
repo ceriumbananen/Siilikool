@@ -3,8 +3,6 @@
    från cachen när man är offline. Ljudklippen ändras aldrig och tas från cachen först.
    Cachenamnet behöver därför inte bytas vid nya versioner. */
 var CACHE = "siilikool";
-/* inte "./index.html": Cloudflare Pages skickar den vidare till "./" (308), och ett
-   omdirigerat svar vägrar webbläsaren visa som sida */
 var SHELL = ["./", "./app.js", "./style.css"];
 var TIMEOUT = 3000;   /* så länge väntar vi på nätet innan cachen får svara */
 
