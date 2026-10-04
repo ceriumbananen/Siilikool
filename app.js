@@ -1527,9 +1527,16 @@
             el.className = "feedback " + (ok ? "ok" : "no");
             el.innerHTML = esc(p.et) + ' <span style="font-weight:500;color:var(--muted);font-size:var(--fs-sm)">' + esc(p.sv) + '</span>'
         }
-        if (ok && (combo >= 3 || Math.random() < 0.45)) speak(p.et);
-        else if (!ok && Math.random() < 0.5) speak(p.et);
+        if (ok && (combo >= 3 || Math.random() < 0.45)) queuePraise(p.et);
+        else if (!ok && Math.random() < 0.5) queuePraise(p.et);
         return p;
+    }
+    /* berömmet sägs efter det rätta ordet när svaret visas (showAnswer), annars ensamt –
+       så att Siiri aldrig pratar i mun på sig själv ("Usku-lehm") */
+    var pendingPraise = null;
+    function queuePraise(et) {
+        pendingPraise = et;
+        setTimeout(function () { if (pendingPraise === et) { pendingPraise = null; speak(et) } }, 150);
     }
 
     var SECRETS = [
@@ -8335,7 +8342,8 @@
                 var mm = (S.wordmem || {})[mkey(rw.et, rw.sv)];
                 if (mm && mm.m >= 2 && mm.r >= 2 && !L.saidFix) {
                     L.saidFix = true;
-                    setTimeout(function () { speak("Nüüd sa oskad!"); siiriClass("wob", 900) }, 700);
+                    queuePraise("Nüüd sa oskad!");
+                    setTimeout(function () { siiriClass("wob", 900) }, 700);
                 }
             }
         } catch (e) { }
@@ -8443,7 +8451,11 @@
         var b = document.getElementById("ansay"); if (b && w) b.onclick = function () { speak(w.et) };
         b = document.getElementById("anslow"); if (b && w) b.onclick = function () { speak(w.et, true) };
         b = document.getElementById("goon"); if (b) b.onclick = goNext;
-        if (w) setTimeout(function () { speak(w.et) }, 200);
+        if (w) {
+            /* först ordet, sedan berömmet om det finns ett i kö */
+            var after = pendingPraise; pendingPraise = null;
+            setTimeout(function () { if (after) speakSeq([w.et, after]); else speak(w.et) }, 200);
+        }
         try { slot.scrollIntoView({ block: "nearest", behavior: "smooth" }) } catch (e) { }
     }
     /* att hoppa över är inte ett fel – prick och serie lämnas i fred */
