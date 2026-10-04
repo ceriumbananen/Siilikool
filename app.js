@@ -3571,6 +3571,10 @@
         var i, t, html = "", n = nextUp(), p = questProgress(), se = seasonNow(), hol = holidayNow();
         var ri = rankIndex(S.xp), nxt = RANKS[ri + 1];
 
+        /* säsong allra överst – det första man ser */
+        html += '<div class="seasonbar">' + (hol ? hol.em : se.em) + ' <b>' + esc(hol ? hol.et : se.et) + '</b>' +
+            '<span>' + (hol ? esc(hol.sv) : esc(se.sv) + ' · ' + esc(se.word.et) + ' = ' + esc(se.word.sv)) + '</span></div>';
+
         html += '<div class="zone play"><span class="zem">🎮</span><span><b>Mängime</b>' +
             '<span>' + (S.name ? esc(S.name) + ' · ' : '') + esc(RANKS[ri].et) + ' · ⭐ ' + S.stars.toLocaleString("sv-SE") + '</span></span></div>';
         html += '<div class="hero"><div class="herorow">' +
@@ -3682,10 +3686,6 @@
         }
         html += '</div>';
         if (lim > 6) html += '<button class="morebtn" id="more">' + (showAll ? 'Näita vähem · Visa färre teman' : 'Näita kõiki · Visa alla ' + Math.min(THEMES.length, lim) + ' öppna teman') + '</button>';
-
-        /* säsong sist, som en liten krydda */
-        html += '<div class="seasonbar">' + (hol ? hol.em : se.em) + ' <b>' + esc(hol ? hol.et : se.et) + '</b>' +
-            '<span>' + (hol ? esc(hol.sv) : esc(se.sv) + ' · ' + esc(se.word.et) + ' = ' + esc(se.word.sv)) + '</span></div>';
 
         app.innerHTML = html;
         document.getElementById("play").onclick = startNext;
