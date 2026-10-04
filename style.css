@@ -5721,8 +5721,12 @@ input.type.wrong {
 }
 
 .schoolrow .sa {
-    width: 22px;
-    text-align: right
+    min-width: 22px;
+    flex: none;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 4px
 }
 
 .schoolrow.done {

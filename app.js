@@ -3524,7 +3524,10 @@
                 var w = s.words[i], ok = schoolKnows(w);
                 html += '<div class="schoolrow' + (ok ? ' done' : '') + '"><span class="sw">' + esc(w.et) + '</span>' +
                     '<span class="ss">' + esc(w.sv) + '</span>' +
-                    '<span class="sa">' + (ok ? '✓' : (schoolHasAudio(w.et) ? '🔊' : '—')) + '</span></div>';
+                    '<span class="sa">' + (ok ? '✓ ' : '') + (schoolHasAudio(w.et)
+                        ? '<button class="speakbtn sm" data-say="' + esc(w.et) + '" aria-label="Hör ordet">🔊</button>' +
+                        '<button class="speakbtn sm" data-slow="' + esc(w.et) + '" aria-label="Hör ordet långsamt">🐢</button>'
+                        : (ok ? '' : '—')) + '</span></div>';
             }
             html += '</div><button class="btn ghost wide" id="schoolclear" style="margin-top:10px">Ta bort listan</button></div>';
         }
@@ -3539,6 +3542,15 @@
         app.innerHTML = html;
         var cl = document.getElementById("schoolclear");
         if (cl) cl.onclick = function () { S.school = null; save(); schoolAudio(); schoolImport() };
+        var ssay = app.querySelectorAll("[data-say],[data-slow]"), si;
+        for (si = 0; si < ssay.length; si++) {
+            (function (el) {
+                el.onclick = function () {
+                    var w = el.getAttribute("data-say");
+                    if (w) speak(w); else speak(el.getAttribute("data-slow"), true);
+                }
+            })(ssay[si]);
+        }
         document.getElementById("schoolsave").onclick = function () {
             var txt = document.getElementById("schooltxt").value;
             var r = schoolParse(txt), msg = document.getElementById("schoolmsg");
