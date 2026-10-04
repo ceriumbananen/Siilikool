@@ -1949,6 +1949,22 @@
     if (!BANKS.normal) BANKS.normal = {}; if (!BANKS.slow) BANKS.slow = {}; if (!BANKS.names) BANKS.names = {};
     function bank(slow) { return (slow ? BANKS.slow : BANKS.normal) || BANKS.normal || {}; }
 
+    /* --- offline: be service workern hämta en dels alla klipp i förväg,
+       så att hela temat fungerar utan nät när det väl har öppnats --- */
+    function precacheClips(banks) {
+        if (!("serviceWorker" in navigator) || location.protocol.indexOf("http") !== 0) return;
+        var urls = [], b, k, v;
+        for (b in banks) {
+            if (!banks[b] || typeof banks[b] !== "object") continue;
+            for (k in banks[b]) { v = banks[b][k]; if (typeof v === "string" && v.indexOf("data:") !== 0) urls.push(v) }
+        }
+        if (!urls.length) return;
+        navigator.serviceWorker.ready.then(function (reg) {
+            if (reg.active) reg.active.postMessage({ type: "precache", urls: urls });
+        }).catch(function () { });
+    }
+    precacheClips(BANKS);   /* orden i startfilen */
+
     /* --- ljuddelar: hämtas först när de behövs --- */
     window.AUDIO_PARTS = window.AUDIO_PARTS || { loaded: {}, pending: {} };
     window.addAudio = function (part, data) {
@@ -1956,6 +1972,7 @@
         if (data.normal) for (k in data.normal) BANKS.normal[k] = data.normal[k];
         if (data.slow) for (k in data.slow) BANKS.slow[k] = data.slow[k];
         if (data.names) for (k in data.names) BANKS.names[k] = data.names[k];
+        precacheClips(data);
         window.AUDIO_PARTS.loaded[part] = 1;
         var q = window.AUDIO_PARTS.pending[part] || [];
         delete window.AUDIO_PARTS.pending[part];
@@ -3553,7 +3570,7 @@
 
         if (!S.correct || S.correct < 3) {
             html += '<div class="emptytip"><span class="arrow">☝️</span><span><b>Börja här!</b>' +
-                '<span>Tryck på den gröna knappen — Siiri visar vägen.</span></span></div>';
+                '<span>Tryck på den gröna knappen — Siiri visar vägen. Allt du klarar ger stjärnor att handla för på marknaden!</span></span></div>';
         }
 
         /* dagens överraskning */
@@ -3633,11 +3650,6 @@
         /* teman */
         var lim = themesUnlocked(), showAll = !!S.showAll;
         var visible = showAll ? lim : Math.min(lim, 6);
-        if (!S.correct) {
-            html += '<div class="card empty"><p><b>Så här funkar det:</b> tryck på den gröna knappen, ' +
-                'så väljer Siiri vad ni ska öva. Allt du klarar ger stjärnor att handla för på marknaden.</p>' +
-                '<span class="pointer">👆</span></div>';
-        }
         html += '<h2 class="sec">' + esc(UI.themes.et) + ' <span style="font-weight:500;color:var(--muted);font-size:15.5px">' + esc(UI.themes.sv) + '</span></h2><div class="grid">';
         for (i = 0; i < THEMES.length; i++) {
             t = THEMES[i];
@@ -7397,7 +7409,7 @@
     /* ---------- GARDEROBEN ---------- */
     function furnBuy(id) {
         var f = furnById(id); if (!f) return;
-        if (furnOwned(id)) { S.room[f.slot] = id; save(); shopScreen(); return }
+        if (furnOwned(id)) { S.room[f.slot] = id; save(); shopScreen(); speak(f.et); return }
         if ((S.stars || 0) < f.price) { tone(220, .2, 0, "triangle"); return }
         S.stars -= f.price;
         if (!S.furnOwned) S.furnOwned = [];
@@ -7417,9 +7429,10 @@
             s += '<p class="q" style="text-align:left;margin-top:10px">' + FURNSLOTS[i][2] + ' ' + FURNSLOTS[i][1] + '</p>';
             for (j = 0; j < list.length; j++) {
                 var f = list[j], own = furnOwned(f.id), on = furnOf(slot) === f.id;
-                s += '<div class="shoprow' + (own ? " owned" : "") + (on ? " on" : "") + '">' +
+                /* hela raden köper/sätter in – knappen i mitten finns kvar för tangentbordet, 🔊 stoppar klicket själv */
+                s += '<div class="shoprow' + (own ? " owned" : "") + (on ? " on" : "") + '" data-furnbuy="' + f.id + '" style="cursor:pointer">' +
                     '<button class="speakbtn sm" data-say="' + esc(f.et) + '" aria-label="Hör namnet på estniska">🔊</button>' +
-                    '<button class="btn-plain t" data-furnbuy="' + f.id + '"><b lang="et">' + esc(f.et) + '</b><span>' + esc(f.sv) + '</span></button>' +
+                    '<button class="btn-plain t"><b lang="et">' + esc(f.et) + '</b><span>' + esc(f.sv) + '</span></button>' +
                     '<span class="p">' + (own ? (on ? "bärs nu" : "ägd — sätt in") : "⭐ " + f.price) + '</span></div>';
             }
         }
@@ -7503,6 +7516,10 @@
         var fbb = app.querySelectorAll("[data-furnbuy]"), fk;
         for (fk = 0; fk < fbb.length; fk++) {
             (function (el) { el.onclick = function () { furnBuy(el.getAttribute("data-furnbuy")) } })(fbb[fk]);
+        }
+        var fsay = app.querySelectorAll("[data-say]"), fs;
+        for (fs = 0; fs < fsay.length; fs++) {
+            (function (el) { el.onclick = function (e) { e.stopPropagation(); speak(el.getAttribute("data-say")) } })(fsay[fs]);
         }
         var rb = document.getElementById("toroom");
         if (rb) rb.onclick = function () { speak("Siiri tuba"); go(roomScreen, true) };
