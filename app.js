@@ -385,7 +385,7 @@
                 { et: "korvpall", sv: "basket", em: "🏀", hint: "KORV-pall" },
                 { et: "tennis", sv: "tennis", em: "🎾", hint: "TEN-nis" },
                 { et: "male", sv: "schack", em: "♟️", hint: "MA-le" },
-                { et: "kaardid", sv: "kort", em: "🃏", hint: "KAAR-did" },
+                { et: "kaardid", sv: "spelkort", em: "🃏", hint: "KAAR-did" },
                 { et: "pusle", sv: "pussel", em: "🧩", hint: "PUS-le" },
                 { et: "võimlema", sv: "gympa", em: "🤸", hint: "VÕIM-le-ma" },
                 { et: "kelgutama", sv: "åka pulka", em: "🛷", hint: "KEL-gu-ta-ma" },
@@ -984,7 +984,7 @@
         if (typeof S.tripDone !== "number") { S.tripDone = Math.max(0, Math.min(TRIP.length - 1, themesDone())); save() }
         return S.tripDone;
     }
-    var STORY = { "tallinn": "Siiri har fått ett brev. Om tolv veckor är det **laulupidu**, den stora sångfesten på Tallinns sångarfält, där hundratusen människor sjunger tillsammans. Men Siiri kan bara första raden i sången. Resten måste hon samla ihop — en rad i varje ort.", "lahemaa": "I mossen sjunger tranorna en rad som ingen skrivit ner. Siiri lär sig den av dem.", "narva": "Vid borgen vid floden sjunger en gammal man en rad på andra sidan vattnet. Siiri ropar tillbaka den.", "tartu": "På universitetsbiblioteket finns en dammig bok med en bortglömd vers. Siiri läser den högt.", "polva": "Kyrkklockan i Põlva slår en melodi. Siiri skriver ner tonerna med en pinne i åkerjorden.", "setomaa": "Seto-kvinnorna sjunger leelo, där en börjar och alla andra svarar. De lär Siiri en rad som är äldre än alla hus i byn.", "otepaa": "Uppe på kullen i vinterluften ekar en rad tillbaka från skogen. Siiri tar med sig ekot.", "viljandi": "På folkmusikfestivalen vid slottsruinen spelar någon precis rätt melodi på en kannel. Siiri lär sig raden på ett kvällspass.", "parnu": "Vågorna vid Pärnu strand sjunger samma rad om och om igen. Siiri sitter i sanden tills hon kan den.", "haapsalu": "I borgens fönster sjunger Vita damen en rad så vacker att Siiri glömmer att bli rädd.", "kuressaare": "Väderkvarnarna på Saaremaa gnisslar i takt. Siiri hör en rad i vinden mellan vingarna.", "salme": "I sanden vid Salme, där vikingaskeppen låg, ligger den sista raden begravd i tusen år. Siiri gräver fram den — och nu kan hon hela sången." };
+    var STORY = { "tallinn": "Siiri har fått ett brev. Om tolv veckor är det **laulupidu**, den stora sångfesten på Tallinns sångarfält, där hundratusen människor sjunger tillsammans. Men Siiri kan bara första raden i sången. Resten måste hon samla ihop — en rad i varje ort.", "lahemaa": "I mossen sjunger tranorna en rad som ingen skrivit ner. Siiri lär sig den av dem.", "narva": "Vid borgen vid floden sjunger en gammal man en rad på andra sidan vattnet. Siiri ropar tillbaka den.", "tartu": "På universitetsbiblioteket finns en dammig bok med en bortglömd vers. Siiri läser den högt.", "polva": "Kyrkklockan i Põlva slår en melodi. Siiri skriver ner tonerna med en pinne i åkerjorden.", "setomaa": "Seto-kvinnorna sjunger leelo, där en börjar och alla andra svarar. De lär Siiri en rad som är äldre än alla hus i byn.", "otepaa": "Uppe på kullen i vinterluften ekar en rad tillbaka från skogen. Siiri tar med sig ekot.", "viljandi": "På folkmusikfestivalen vid slottsruinen spelar någon precis rätt melodi på en kannel. Siiri lär sig raden på ett kvällspass.", "parnu": "Vågorna vid Pärnu strand sjunger samma rad om och om igen. Siiri sitter i sanden tills hon kan den.", "haapsalu": "I borgens fönster sjunger Vita damen en rad så vacker att Siiri glömmer att bli rädd.", "kuressaare": "Väderkvarnarna på Saaremaa gnisslar i takt. Siiri hör en rad i vinden mellan vingarna.", "rakvere": "Vid borgen i Rakvere råmar bronsoxen en rad så djup att marken skakar. Siiri känner den genom fötterna och lär sig den utantill.", "johvi": "Djupt nere i gruvgången under Jõhvi ekar en rad mellan stenväggarna. Siiri lyssnar tills ekot blir till ord hon kan ta med sig upp.", "peipsi": "Ute på Peipsi sjö gungar en fiskebåt i takt med en rad som vinden för med sig över vattnet. Siiri ror ut och fångar den i håven.", "voru": "Uppe i tornet på Suur Munamägi ser Siiri tre länder på en gång — och en rad som svävar mellan dem och bara väntar på att plockas ner.", "valga": "Mitt på gränsen mellan Valga och Valka möts en estnisk och en lettisk röst och sjunger varsin halva av samma rad. Siiri lägger ihop dem till en.", "paide": "Från det åttkantiga tornet mitt i Estland hörs en rad lika starkt åt alla håll. Siiri klättrar upp och hämtar den där den ekar som mest.", "hiiumaa": "Kõpu fyr har blinkat samma rad i femhundra år, en gång mörkt och en gång ljust. Siiri räknar blinkningarna tills hon kan sjunga dem.", "muhu": "På Muhu broderar mormödrarna en rad rakt in i tygets mönster, i orange, rosa och gult. Siiri drar ett finger längs trådarna och känner orden.", "salme": "I sanden vid Salme, där vikingaskeppen låg, ligger den sista raden begravd i tusen år. Siiri gräver fram den — och nu kan hon hela sången." };
     function tripReached() { return Math.max(1, Math.min(TRIP.length, tripDone() + 1)) }
     function tripCur() { return TRIP[tripReached() - 1] }
     function tripProg() {
@@ -999,7 +999,7 @@
             /* ordet räknas när det både hörts och sitter i minnet */
             var w = tripCur().words || [], n = 0, i, mm;
             for (i = 0; i < w.length; i++) {
-                mm = (S.wordmem || {})[w[i].et];
+                mm = (S.wordmem || {})[mkey(w[i].et, w[i].sv)];
                 if (p.words.indexOf(w[i].et) >= 0 && mm && ((mm.r || 0) >= 1 || (mm.s || 0) >= 1)) n++;
             }
             return n;
@@ -3301,7 +3301,7 @@
         return end - today0();
     }
     function schoolKnows(w) {
-        var mm = (S.wordmem || {})[w.et];
+        var mm = (S.wordmem || {})[mkey(w.et, w.sv)];
         return !!(mm && (mm.s || 0) >= 2 && (mm.r || 0) >= 3);
     }
     function schoolLeft() {
@@ -3388,15 +3388,32 @@
     /* ============ ORDMINNE ============ */
     /* varje ord får en vikt: fel höjer den, rätt sänker den. Tunga ord dyker upp oftare. */
     function today0() { return Math.floor(Date.now() / 86400000) }
-    function wmem(et) {
+    /* samma estniska ord kan betyda två olika saker (t.ex. "must" = svart/smutsig).
+       sådana ord nycklas på et+sv så att den ena betydelsen inte räknas som kunskap om den andra. */
+    var AMBIG_ET = (function () {
+        var seen = {}, dup = {}, i, j, w, lists = [];
+        for (i = 0; i < THEMES.length; i++)lists.push(THEMES[i].words);
+        for (i = 0; i < TRIP.length; i++)lists.push(TRIP[i].words);
+        for (i = 0; i < lists.length; i++) {
+            for (j = 0; j < lists[i].length; j++) {
+                w = lists[i][j];
+                if (seen.hasOwnProperty(w.et) && seen[w.et] !== w.sv) dup[w.et] = true;
+                seen[w.et] = w.sv;
+            }
+        }
+        return dup;
+    })();
+    function mkey(et, sv) { return AMBIG_ET[et] ? et + "" + sv : et }
+    function wmem(et, sv) {
         if (!S.wordmem) S.wordmem = {};
-        if (!S.wordmem[et]) S.wordmem[et] = { w: 1, r: 0, m: 0, d: today0(), s: 0 };
-        return S.wordmem[et];
+        var k = mkey(et, sv);
+        if (!S.wordmem[k]) S.wordmem[k] = { w: 1, r: 0, m: 0, d: today0(), s: 0 };
+        return S.wordmem[k];
     }
     /* rätt svar skjuter fram nästa repetition: 1, 2, 4, 8, 16, 30 dagar.
        Fel nollställer intervallet. Att skriva eller säga ordet väger tyngre än att peka ut det. */
-    function wmemHit(et, ok, mode) {
-        var m = wmem(et);
+    function wmemHit(et, ok, mode, sv) {
+        var m = wmem(et, sv);
         m.d = today0();
         if (ok) {
             m.r++;
@@ -3406,22 +3423,22 @@
         } else { m.m++; m.s = 0; m.w = Math.min(9, m.w + 2.2) }
         save();
     }
-    function wmemDue(et) {
-        var m = (S.wordmem || {})[et];
+    function wmemDue(et, sv) {
+        var m = (S.wordmem || {})[mkey(et, sv)];
         if (!m) return 0;
         var gaps = [1, 1, 2, 4, 8, 16, 30];
         var gap = gaps[Math.min(6, Math.round(m.s || 0))] || 1;
         return (today0() - (m.d || today0())) - gap;
     }
-    function wordWeight(et) {
+    function wordWeight(et, sv) {
         var sc = schoolSet(), i;
         if (sc) for (i = 0; i < sc.words.length; i++)
             if (sc.words[i].et === et && !schoolKnows(sc.words[i])) return 6.5;   /* skolans ord först */
-        var m = (S.wordmem || {})[et];
+        var m = (S.wordmem || {})[mkey(et, sv)];
         if (!m) return 2.2;
         /* en gammal eller trasig minnespost får inte göra vikten till NaN */
         var base = (typeof m.w === "number" && isFinite(m.w)) ? m.w : 1;
-        var w = Math.max(0.3, base), due = wmemDue(et);
+        var w = Math.max(0.3, base), due = wmemDue(et, sv);
         if (isFinite(due) && due >= 0) w += 2.6 + Math.min(5, due * 0.5);   /* förfallna ord går före */
         else w *= 0.35;
         return isFinite(w) ? w : 1;
@@ -3433,14 +3450,14 @@
         var guard = 0;
         while (out.length < n && left.length && guard++ < 400) {
             tot = 0;
-            for (i = 0; i < left.length; i++)tot += wordWeight(left[i].et);
+            for (i = 0; i < left.length; i++)tot += wordWeight(left[i].et, left[i].sv);
             if (!isFinite(tot) || tot <= 0) {            /* kan inte vikta – ta dem i ordning */
                 out.push(left.shift()); continue;
             }
             r = Math.random() * tot; acc = 0;
             var took = false;
             for (i = 0; i < left.length; i++) {
-                acc += wordWeight(left[i].et);
+                acc += wordWeight(left[i].et, left[i].sv);
                 if (r <= acc) { out.push(left[i]); left.splice(i, 1); took = true; break }
             }
             if (!took) out.push(left.shift());       /* avrundning kan missa – ta första */
@@ -3450,8 +3467,8 @@
     function hardWords(limit) {
         var all = allWords(), out = [], i;
         for (i = 0; i < all.length; i++) {
-            var m = (S.wordmem || {})[all[i].et];
-            if (m && (m.w > 1.6 || wmemDue(all[i].et) >= 0)) out.push({ w: all[i], m: m });
+            var m = (S.wordmem || {})[mkey(all[i].et, all[i].sv)];
+            if (m && (m.w > 1.6 || wmemDue(all[i].et, all[i].sv) >= 0)) out.push({ w: all[i], m: m });
         }
         out.sort(function (a, b) { return b.m.w - a.m.w });
         return out.slice(0, limit || 8);
@@ -3510,7 +3527,7 @@
 
     function themeMastery(t) {
         var i, strong = 0, m;
-        for (i = 0; i < t.words.length; i++) { m = (S.wordmem || {})[t.words[i].et]; if (m && (m.s || 0) >= 2) strong++ }
+        for (i = 0; i < t.words.length; i++) { m = (S.wordmem || {})[mkey(t.words[i].et, t.words[i].sv)]; if (m && (m.s || 0) >= 2) strong++ }
         var p = strong / t.words.length;
         return {
             pct: Math.round(p * 100), strong: strong, total: t.words.length,
@@ -3727,7 +3744,7 @@
         screen = "parent"; setNav("me");
         var all = allWords(), i, strong = 0, weak = 0, unseen = 0, m;
         for (i = 0; i < all.length; i++) {
-            m = (S.wordmem || {})[all[i].et];
+            m = (S.wordmem || {})[mkey(all[i].et, all[i].sv)];
             if (!m) unseen++;
             else if ((m.s || 0) >= 2) strong++;
             else weak++;
@@ -4500,7 +4517,7 @@
                     var fb = document.getElementById("tpfb");
                     if (ok) { TP.right++; sndOk(); if (fb) fb.innerHTML = '<b style="color:var(--moss)">Õige!</b>' }
                     else { sndNo(); if (fb) fb.innerHTML = '<b>' + esc(w.et) + ' = ' + esc(w.sv) + '</b>' }
-                    wmemHit(w.et, ok, "choose");
+                    wmemHit(w.et, ok, "choose", w.sv);
                     tripBump("words", 1, w.et);
                     speak(w.et);
                     setTimeout(function () { TP.i++; TP.lock = false; tpRound() }, ok ? 850 : 1600);
@@ -5389,7 +5406,7 @@
             var t = THEMES[i], ws = stepWords(t);
             n = 0;
             for (j = 0; j < ws.length; j++) {
-                m = (S.wordmem || {})[ws[j].et] || {};
+                m = (S.wordmem || {})[mkey(ws[j].et, ws[j].sv)] || {};
                 if (kind === "type") { if ((m.r || 0) >= 2) n++ }
                 else { if (!m.r) n++ }                       /* tema: flest ord kvar att möta */
             }
@@ -6201,7 +6218,7 @@
                     var fb = document.getElementById("dfb");
                     if (ok) { DP.right++; sndOk(); if (fb) fb.innerHTML = '<b style="color:var(--moss)">Õige!</b>' }
                     else { sndNo(); if (fb) fb.innerHTML = '<b>' + esc(w.et) + ' = ' + esc(w.sv) + '</b>' }
-                    wmemHit(w.et, ok, "choose");
+                    wmemHit(w.et, ok, "choose", w.sv);
                     speak(w.et);
                     setTimeout(function () { DP.i++; DP.lock = false; dipRound() }, ok ? 900 : 1700);
                 }
@@ -7064,7 +7081,7 @@
     /* motståndarens chans att svara rätt: sämre på ord du kan, bättre på ord som vacklar,
        och hon skärper sig när hon halkar efter – men kan aldrig springa ifrån på slutet */
     function rivalChance(w) {
-        var base = DU.r.skill, m = (S.wordmem || {})[w.et], strong = m ? Math.min(1, (m.s || 0) / 4) : 0;
+        var base = DU.r.skill, m = (S.wordmem || {})[mkey(w.et, w.sv)], strong = m ? Math.min(1, (m.s || 0) / 4) : 0;
         base -= strong * 0.22;                       /* ord du är stark på klarar hon sämre */
         base += (m && m.w > 2 ? 0.10 : 0);                 /* ord som vacklar kan hon bättre */
         var diff = DU.me - DU.you;
@@ -7089,7 +7106,7 @@
         var listen = (DU.i % 3 === 2);   /* var tredje fråga hörs i stället för att synas */
         while (opts.length < 4 && tries < 90) {
             var c = all[(Math.random() * all.length) | 0]; tries++;
-            var dup = false; for (i = 0; i < opts.length; i++)if (opts[i].et === c.et) dup = true;
+            var dup = false; for (i = 0; i < opts.length; i++)if (opts[i].et === c.et || opts[i].sv === c.sv) dup = true;
             if (!dup) opts.push(c);
         }
         opts = shuffle(opts);
@@ -7147,7 +7164,7 @@
                     var b2 = app.querySelectorAll(".opt"), q;
                     for (q = 0; q < b2.length; q++) { b2[q].disabled = true; if (b2[q].getAttribute("data-et") === w.et) b2[q].className = "opt right" }
                     if (!ok) el.className = "opt wrong";
-                    wmemHit(w.et, ok, "choose");
+                    wmemHit(w.et, ok, "choose", w.sv);
                     var gained = 0;
                     if (ok) { gained = DU.dblNow ? 2 : 1; DU.me += gained; sndOk(); buzz(18) }
                     else { DU.myMiss++; sndNo(); if (DU.dblNow) { DU.you += 1 } }
@@ -7304,7 +7321,7 @@
             MM.done[a.id] = 1; MM.open = []; MM.lock = false;
             MM.streak++; if (MM.streak > MM.best) MM.best = MM.streak;
             var bonus = 2 + (MM.streak >= 3 ? 2 : MM.streak >= 2 ? 1 : 0);
-            S.correct++; earnStars(bonus); addXp(12 + MM.streak * 2); wmemHit(a.w.et, true, "choose");
+            S.correct++; earnStars(bonus); addXp(12 + MM.streak * 2); wmemHit(a.w.et, true, "choose", a.w.sv);
             sndOk(); buzz(18); save(); refreshTop();
             MM.flash = { em: wIcon(a.w), et: a.w.et, sv: a.w.sv };
             if (MM.streak >= 3) { tone(1180, .1, 0); tone(1560, .16, .1) }
@@ -7312,7 +7329,7 @@
             setTimeout(memDraw, 260);
         } else {
             MM.streak = 0;
-            wmemHit(a.w.et, false); sndNo();
+            wmemHit(a.w.et, false, undefined, a.w.sv); sndNo();
             setTimeout(function () { if (!MM) return; MM.open = []; MM.lock = false; MM.flash = null; memDraw() }, 1000);
         }
     }
@@ -7357,7 +7374,7 @@
         var target = RN.pool[RN.i % RN.pool.length], all = allWords(), opts = [target], i, tries = 0;
         while (opts.length < 4 && tries < 80) {
             var c = all[(Math.random() * all.length) | 0]; tries++;
-            var dup = false; for (i = 0; i < opts.length; i++)if (opts[i].et === c.et) dup = true;
+            var dup = false; for (i = 0; i < opts.length; i++)if (opts[i].et === c.et || opts[i].sv === c.sv) dup = true;
             if (!dup) opts.push(c);
         }
         opts = shuffle(opts);
@@ -7382,7 +7399,7 @@
                     var ok = el.getAttribute("data-et") === target.et;
                     el.style.animationPlayState = "paused";
                     el.classList.add(ok ? "hit" : "miss");
-                    wmemHit(target.et, ok, "choose");
+                    wmemHit(target.et, ok, "choose", target.sv);
                     praiseSay(ok ? RN.right + 1 : 0, ok, document.getElementById("fb"));
                     if (ok) { RN.right++; S.correct++; earnStars(2); addXp(10); sndOk(); buzz(18); save(); refreshTop() }
                     else { sndNo() }
@@ -7690,8 +7707,8 @@
         var w = SP.pool[SP.i], all = allWords(), opts = [], i, tries = 0;
         while (opts.length < diff().opts - 1 && tries < 160) {
             var c = all[(Math.random() * all.length) | 0]; tries++;
-            if (c.et === w.et) continue;
-            var dup = false; for (i = 0; i < opts.length; i++)if (opts[i].et === c.et) dup = true;
+            if (c.et === w.et || c.sv === w.sv) continue;
+            var dup = false; for (i = 0; i < opts.length; i++)if (opts[i].et === c.et || opts[i].sv === c.sv) dup = true;
             if (!dup) opts.push(c);
         }
         opts = shuffle(opts.concat([w]));
@@ -7735,7 +7752,7 @@
                         if (btns[j].getAttribute("data-et") === w.et) btns[j].classList.add("right")
                     }
                     if (!ok) el.classList.add("wrong");
-                    SP.results[SP.i] = ok; SP.i++; wmemHit(w.et, ok);
+                    SP.results[SP.i] = ok; SP.i++; wmemHit(w.et, ok, undefined, w.sv);
                     var fb = document.getElementById("fb");
                     if (ok) {
                         SP.combo++; if (SP.combo > SP.best) SP.best = SP.combo;
@@ -7877,9 +7894,9 @@
         /* högst fem nya ord åt gången – arbetsminnet rymmer inte fler */
         var pool = stepWords(t), fresh = [], shaky = [], i2, mm2;
         for (i2 = 0; i2 < pool.length; i2++) {
-            mm2 = (S.wordmem || {})[pool[i2].et];
+            mm2 = (S.wordmem || {})[mkey(pool[i2].et, pool[i2].sv)];
             if (!mm2 || (mm2.r || 0) === 0) fresh.push(pool[i2]);
-            else if ((mm2.s || 0) < 2 || wmemDue(pool[i2].et) >= 0) shaky.push(pool[i2]);
+            else if ((mm2.s || 0) < 2 || wmemDue(pool[i2].et, pool[i2].sv) >= 0) shaky.push(pool[i2]);
         }
         var need = fresh.slice(0, 5);
         if (!need.length) need = shaky.slice(0, 3);
@@ -7918,7 +7935,7 @@
         if (!rounds || rounds.length < 5) return shuffle(rounds);
         var r = shuffle(rounds.slice());
         function hardness(x) {
-            var h = 0, m = (S.wordmem || {})[x.w ? x.w.et : ""] || null;
+            var h = 0, m = x.w ? ((S.wordmem || {})[mkey(x.w.et, x.w.sv)] || null) : null;
             if (m) h += Math.max(0, 3 - (m.s || 0)) + Math.min(3, (m.m || 0)) * 0.8;
             else h += 2.2;                                   /* osett ord är ganska svårt */
             if (x.type === "type") h += 2.2;                       /* skriva är svårast */
@@ -7927,10 +7944,7 @@
             return h;
         }
         r.sort(function (a, b) { return hardness(a) - hardness(b) });
-        var n = r.length, out = new Array(n), lo = 0, hi = n - 1, i;
-        /* lättast först och sist, svåraste mot mitten */
-        var order = [];
-        for (i = 0; i < n; i++)order.push(i);
+        var n = r.length, out = new Array(n), i;
         /* bygg bågen: 0,1 lätta → mitten svår → sista lätt */
         var easy = r.slice(0, Math.ceil(n * 0.4));             /* lättaste 40 % */
         var hard = r.slice(Math.ceil(n * 0.4));               /* resten */
@@ -7942,14 +7956,6 @@
         while (easy.length) mid.push(easy.shift());
         /* svåraste mot mitten: varva in från båda håll */
         mid.sort(function (a, b) { return hardness(b) - hardness(a) });
-        var slots = [], left = 2, right = n - 2;
-        while (left <= right) {
-            slots.push(Math.floor((left + right) / 2));
-            if (left === right) break;
-            slots.push(left); slots.push(right); left++; right--;
-        }
-        var used = {}, si = 0;
-        for (i = 2; i < n - 1; i++) { if (!used[i]) { } }
         var free = []; for (i = 2; i <= n - 2; i++)free.push(i);
         /* mitten först, sedan utåt */
         free.sort(function (a, b) { return Math.abs(a - (n - 1) / 2) - Math.abs(b - (n - 1) / 2) });
@@ -7990,7 +7996,7 @@
             all = true;
             for (i = 0; i < t.words.length; i++) {
                 if ((t.words[i].step || 1) !== step) continue;
-                m = (S.wordmem || {})[t.words[i].et];
+                m = (S.wordmem || {})[mkey(t.words[i].et, t.words[i].sv)];
                 if (!m || (m.s || 0) < 1 || (m.r || 0) < 2) { all = false; break }
             }
             if (!all) return step;
@@ -8015,7 +8021,7 @@
             var w0 = tw[i0], isNew = false, k0;
             for (k0 = 0; k0 < learned.length; k0++)if (learned[k0].et === w0.et) isNew = true;
             if (isNew) continue;
-            mm0 = (S.wordmem || {})[w0.et];
+            mm0 = (S.wordmem || {})[mkey(w0.et, w0.sv)];
             if (mm0 && (mm0.r || 0) > 0) rest.push(w0);
         }
         rest = pickWeighted(rest, rest.length);
@@ -8044,7 +8050,7 @@
            Ett ord ska aldrig behöva skrivas innan det hörts ett par gånger. */
         var seenW = {};
         for (i = 0; i < ws.length; i++) {
-            var wq = ws[i], mq = (S.wordmem || {})[wq.et] || {}, rq = mq.r || 0, t;
+            var wq = ws[i], mq = (S.wordmem || {})[mkey(wq.et, wq.sv)] || {}, rq = mq.r || 0, t;
             seenW[wq.et] = (seenW[wq.et] || 0) + 1;
             if (rq === 0 && seenW[wq.et] === 1) t = "listen";   /* första mötet: hör ordet */
             else if (rq === 0 && seenW[wq.et] === 2) t = "choose";   /* andra: känn igen det */
@@ -8060,7 +8066,7 @@
             var hasType = 0, eligible = [], rq2;
             for (i = 0; i < r.length; i++) {
                 if (r[i].type === "type") hasType++;
-                rq2 = ((S.wordmem || {})[r[i].w.et] || {}).r || 0;
+                rq2 = ((S.wordmem || {})[mkey(r[i].w.et, r[i].w.sv)] || {}).r || 0;
                 if (rq2 >= 2) eligible.push(i);
             }
             var wantType = Math.min(eligible.length, hasType ? 2 : 1);
@@ -8113,7 +8119,7 @@
     function struggling() { return (L && (L.missRun || 0) >= 3) }
     /* sitter ordet? då behövs inte svenskan längre – bilden räcker (scaffold fading) */
     function wordSolid(w) {
-        var m = w && (S.wordmem || {})[w.et];
+        var m = w && (S.wordmem || {})[mkey(w.et, w.sv)];
         return !!(m && (m.s || 0) >= 2 && (m.r || 0) >= 3 && (m.m || 0) === 0);
     }
     /* svensk undertext, eller en diskret plats där den brukade stå */
@@ -8130,7 +8136,7 @@
         try {
             var rw = L.rounds[L.idx] && L.rounds[L.idx].w;
             if (ok && rw) {
-                var mm = (S.wordmem || {})[rw.et];
+                var mm = (S.wordmem || {})[mkey(rw.et, rw.sv)];
                 if (mm && mm.m >= 2 && mm.r >= 2 && !L.saidFix) {
                     L.saidFix = true;
                     setTimeout(function () { speak("Nüüd sa oskad!"); siiriClass("wob", 900) }, 700);
@@ -8140,11 +8146,11 @@
         /* var ordet svårt innan? spara det före minnet uppdateras */
         var hardBefore = false, cameBack = false;
         if (L.rounds[L.idx] && L.rounds[L.idx].w) {
-            var mb = (S.wordmem || {})[L.rounds[L.idx].w.et];
+            var mb = (S.wordmem || {})[mkey(L.rounds[L.idx].w.et, L.rounds[L.idx].w.sv)];
             hardBefore = !!(mb && (mb.m || 0) > 0 && (mb.s || 0) < 2);
             cameBack = !!(mb && (mb.m || 0) >= 2 && (mb.s || 0) >= 1.5);
         }
-        if (L.rounds[L.idx] && L.rounds[L.idx].w) wmemHit(L.rounds[L.idx].w.et, ok, L.rounds[L.idx].type);
+        if (L.rounds[L.idx] && L.rounds[L.idx].w) wmemHit(L.rounds[L.idx].w.et, ok, L.rounds[L.idx].type, L.rounds[L.idx].w.sv);
         /* satt det nu? då behöver det inte tas upp i morgon */
         if (ok && S.redo && L.rounds[L.idx] && L.rounds[L.idx].w) { delete S.redo[L.rounds[L.idx].w.et]; save() }
         if (ok) {
