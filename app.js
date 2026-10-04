@@ -1527,9 +1527,16 @@
             el.className = "feedback " + (ok ? "ok" : "no");
             el.innerHTML = esc(p.et) + ' <span style="font-weight:500;color:var(--muted);font-size:var(--fs-sm)">' + esc(p.sv) + '</span>'
         }
-        if (ok && (combo >= 3 || Math.random() < 0.45)) speak(p.et);
-        else if (!ok && Math.random() < 0.5) speak(p.et);
+        if (ok && (combo >= 3 || Math.random() < 0.45)) queuePraise(p.et);
+        else if (!ok && Math.random() < 0.5) queuePraise(p.et);
         return p;
+    }
+    /* berömmet sägs efter det rätta ordet när svaret visas (showAnswer), annars ensamt –
+       så att Siiri aldrig pratar i mun på sig själv ("Usku-lehm") */
+    var pendingPraise = null;
+    function queuePraise(et) {
+        pendingPraise = et;
+        setTimeout(function () { if (pendingPraise === et) { pendingPraise = null; speak(et) } }, 150);
     }
 
     var SECRETS = [
@@ -3382,6 +3389,133 @@
         return { words: out.slice(0, 40), bad: bad };
     }
     function schoolHasAudio(et) { return !!(bank()[et] || partFor(et)) }
+
+    /* ---------- uttal till egna glosor ----------
+       Ord som saknar inspelning hämtas från Neurokõne (Tartu universitet, rösten Mari –
+       samma som resten av appen) och sparas i service workerns cache, så att de
+       fungerar offline. Samma inställningar som tools/generate_audio.py. */
+    var TTS_API = "https://api.tartunlp.ai/text-to-speech/v2";
+    var TTS_CACHE = "siilikool";                      /* samma cache som sw.js */
+    var TTS_DIR = "audio/clips/school/";
+    var TTS_SPEED = { normal: 0.95, slow: 0.6 }, TTS_RMS = { normal: 0.148, slow: 0.12 };
+    var ttsRun = null;
+    function ttsOk() { return !!(window.caches && window.fetch && window.Promise && window.DataView) }
+    function ttsUrl(et, kind) {
+        var h = 5381, i;
+        for (i = 0; i < et.length; i++) h = ((h * 33) ^ et.charCodeAt(i)) >>> 0;
+        var s = et.toLowerCase().replace(/[õö]/g, "o").replace(/[äå]/g, "a").replace(/ü/g, "u").replace(/š/g, "s").replace(/ž/g, "z")
+            .replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 40) || "ord";
+        return new URL(TTS_DIR + kind + "/" + s + "-" + h.toString(36) + ".wav", location.href).href;
+    }
+    function ttsFetch(text, speed) {
+        /* utan avslutande skiljetecken tappar rösten sista ljudet ("Sinakas" -> "sinaka") */
+        if (!/[.!?…]$/.test(text)) text += ".";
+        var tries = 0;
+        function go() {
+            var ctl = window.AbortController ? new AbortController() : null;
+            var t = ctl ? setTimeout(function () { ctl.abort() }, 45000) : 0;
+            return fetch(TTS_API, {
+                method: "POST", headers: { "Content-Type": "application/json", "Accept": "audio/wav" },
+                body: JSON.stringify({ text: text, speaker: "mari", speed: speed }), signal: ctl ? ctl.signal : undefined
+            }).then(function (r) {
+                clearTimeout(t);
+                if (!r.ok) throw new Error("tts " + r.status);
+                return r.arrayBuffer();
+            }).catch(function (e) {
+                clearTimeout(t);
+                if (++tries < 3) return new Promise(function (res) { setTimeout(res, 2000 * tries) }).then(go);
+                throw e;
+            });
+        }
+        return go();
+    }
+    /* läser wav (16-bit eller float) till mono-flyttal */
+    function wavRead(buf) {
+        var v = new DataView(buf), p = 12, fmt = null, data = null;
+        while (p + 8 <= v.byteLength) {
+            var id = String.fromCharCode(v.getUint8(p), v.getUint8(p + 1), v.getUint8(p + 2), v.getUint8(p + 3)), sz = v.getUint32(p + 4, true);
+            if (id === "fmt ") fmt = { tag: v.getUint16(p + 8, true), ch: v.getUint16(p + 10, true), sr: v.getUint32(p + 12, true), bits: v.getUint16(p + 22, true) };
+            else if (id === "data") { data = { off: p + 8, len: Math.min(sz, v.byteLength - p - 8) }; break }
+            p += 8 + sz + (sz & 1);
+        }
+        if (!fmt || !data) return null;
+        var flt = fmt.tag === 3 || (fmt.tag === 0xFFFE && fmt.bits === 32), by = fmt.bits / 8;
+        if (!flt && fmt.bits !== 16) return null;
+        var n = Math.floor(data.len / by / fmt.ch), s = new Float32Array(n), i, c, o, sum;
+        for (i = 0; i < n; i++) {
+            for (sum = 0, c = 0; c < fmt.ch; c++) { o = data.off + (i * fmt.ch + c) * by; sum += flt ? v.getFloat32(o, true) : v.getInt16(o, true) / 32768 }
+            s[i] = sum / fmt.ch;
+        }
+        return { sr: fmt.sr, s: s };
+    }
+    /* klipper tystnaden till 0,25 s, jämnar ut nivån och skriver 16-bit mono-wav */
+    function wavShape(w, kind) {
+        var s = w.s, max = 0, i, a = -1, b = -1, sq = 0;
+        for (i = 0; i < s.length; i++) if (Math.abs(s[i]) > max) max = Math.abs(s[i]);
+        for (i = 0; i < s.length; i++) if (Math.abs(s[i]) > 0.02 * max) { if (a < 0) a = i; b = i }
+        if (a < 0) return null;
+        for (i = a; i <= b; i++) sq += s[i] * s[i];
+        var gain = TTS_RMS[kind] / Math.max(1e-6, Math.sqrt(sq / (b - a + 1)));
+        var pad = Math.round(0.25 * w.sr), n = (b - a + 1) + 2 * pad;
+        var out = new DataView(new ArrayBuffer(44 + n * 2));
+        function str(o, t) { for (var k = 0; k < 4; k++) out.setUint8(o + k, t.charCodeAt(k)) }
+        str(0, "RIFF"); out.setUint32(4, 36 + n * 2, true); str(8, "WAVE");
+        str(12, "fmt "); out.setUint32(16, 16, true); out.setUint16(20, 1, true); out.setUint16(22, 1, true);
+        out.setUint32(24, w.sr, true); out.setUint32(28, w.sr * 2, true); out.setUint16(32, 2, true); out.setUint16(34, 16, true);
+        str(36, "data"); out.setUint32(40, n * 2, true);
+        for (i = a; i <= b; i++) out.setInt16(44 + (pad + i - a) * 2, Math.round(Math.max(-0.98, Math.min(0.98, s[i] * gain)) * 32767), true);
+        return new Blob([out.buffer], { type: "audio/wav" });
+    }
+    /* med service worker spelas klippet från cachen via sin adress, annars som blob */
+    function ttsUse(et, kind, url, blob) {
+        var src = (navigator.serviceWorker && navigator.serviceWorker.controller) ? url : URL.createObjectURL(blob);
+        (kind === "slow" ? BANKS.slow : BANKS.normal)[et] = src;
+    }
+    /* ser till att alla ord i glosorna har ljud: tar från cachen, hämtar det som saknas
+       och rensar bort ljud från gamla listor. onProgress(klara, totalt) är valfri. */
+    function schoolAudio(onProgress) {
+        if (!ttsOk()) return Promise.resolve({ made: 0, failed: 0 });
+        if (ttsRun) return ttsRun;
+        var s = schoolSet(), words = s ? s.words.map(function (w) { return w.et }) : [], want = {}, todo = [];
+        words.forEach(function (et) {
+            /* riktig inspelning finns (långsamt spelas den då i lägre takt) – hämta inget */
+            var src = BANKS.normal[et];
+            if (partFor(et) || (src && src.indexOf("/" + TTS_DIR) < 0 && src.indexOf(TTS_DIR) !== 0 && src.indexOf("blob:") !== 0)) return;
+            ["normal", "slow"].forEach(function (kind) {
+                var url = ttsUrl(et, kind);
+                want[url] = 1;
+                if (!(kind === "slow" ? BANKS.slow : BANKS.normal)[et]) todo.push({ et: et, kind: kind, url: url });
+            });
+        });
+        var made = 0, failed = 0, done = 0;
+        ttsRun = caches.open(TTS_CACHE).then(function (c) {
+            /* städa: ljud till ord som inte längre finns i någon lista */
+            var prune = c.keys().then(function (keys) {
+                return Promise.all(keys.filter(function (k) { return k.url.indexOf("/" + TTS_DIR) >= 0 && !want[k.url] })
+                    .map(function (k) { return c.delete(k) }));
+            });
+            var i = 0;
+            function next() {
+                if (i >= todo.length) return;
+                var t = todo[i++];
+                return c.match(t.url).then(function (hit) {
+                    if (hit) return hit.blob().then(function (bl) { ttsUse(t.et, t.kind, t.url, bl) });
+                    if (navigator.onLine === false) { failed++; return }
+                    return ttsFetch(t.et, TTS_SPEED[t.kind]).then(function (buf) {
+                        var w = wavRead(buf), bl = w && wavShape(w, t.kind);
+                        if (!bl) throw new Error("tomt ljud");
+                        return c.put(t.url, new Response(bl, { headers: { "Content-Type": "audio/wav" } }))
+                            .then(function () { ttsUse(t.et, t.kind, t.url, bl); made++ });
+                    }).catch(function () { failed++ });
+                }).then(function () { done++; if (onProgress) onProgress(done, todo.length) }).then(next);
+            }
+            return Promise.all([prune, next(), next()]);
+        }).catch(function () { }).then(function () {
+            ttsRun = null;
+            return { made: made, failed: failed, total: todo.length };
+        });
+        return ttsRun;
+    }
     function schoolImport() {
         screen = "school"; btnBack.hidden = false;
         var s = schoolSet();
@@ -3397,7 +3531,10 @@
                 var w = s.words[i], ok = schoolKnows(w);
                 html += '<div class="schoolrow' + (ok ? ' done' : '') + '"><span class="sw">' + esc(w.et) + '</span>' +
                     '<span class="ss">' + esc(w.sv) + '</span>' +
-                    '<span class="sa">' + (ok ? '✓' : (schoolHasAudio(w.et) ? '🔊' : '—')) + '</span></div>';
+                    '<span class="sa">' + (ok ? '✓ ' : '') + (schoolHasAudio(w.et)
+                        ? '<button class="speakbtn sm" data-say="' + esc(w.et) + '" aria-label="Hör ordet">🔊</button>' +
+                        '<button class="speakbtn sm" data-slow="' + esc(w.et) + '" aria-label="Hör ordet långsamt">🐢</button>'
+                        : (ok ? '' : '—')) + '</span></div>';
             }
             html += '</div><button class="btn ghost wide" id="schoolclear" style="margin-top:10px">Ta bort listan</button></div>';
         }
@@ -3411,7 +3548,16 @@
             '<div id="schoolmsg"></div></div>';
         app.innerHTML = html;
         var cl = document.getElementById("schoolclear");
-        if (cl) cl.onclick = function () { S.school = null; save(); schoolImport() };
+        if (cl) cl.onclick = function () { S.school = null; save(); schoolAudio(); schoolImport() };
+        var ssay = app.querySelectorAll("[data-say],[data-slow]"), si;
+        for (si = 0; si < ssay.length; si++) {
+            (function (el) {
+                el.onclick = function () {
+                    var w = el.getAttribute("data-say");
+                    if (w) speak(w); else speak(el.getAttribute("data-slow"), true);
+                }
+            })(ssay[si]);
+        }
         document.getElementById("schoolsave").onclick = function () {
             var txt = document.getElementById("schooltxt").value;
             var r = schoolParse(txt), msg = document.getElementById("schoolmsg");
@@ -3424,11 +3570,20 @@
                 days: Math.max(3, Math.min(60, parseInt(document.getElementById("schooldays").value, 10) || 14))
             };
             save();
-            msg.innerHTML = '<p class="qsub" style="color:var(--moss)"><b>' + r.words.length + ' ord tillagda.</b> ' +
+            var head = '<p class="qsub" style="color:var(--moss)"><b>' + r.words.length + ' ord tillagda.</b> ' +
                 withAudio + ' av dem har inspelad röst.' +
                 (r.bad.length ? '<br>' + r.bad.length + ' rader kunde inte läsas.' : '') + '</p>';
+            msg.innerHTML = head;
             burst(60); fanfare(2);
-            setTimeout(function () { schoolImport() }, 900);
+            var t0 = Date.now();
+            /* hämta uttal till resten; skärmen ritas om när det är klart (minst 0,9 s, som förut) */
+            schoolAudio(function (n, tot) {
+                msg.innerHTML = head + '<p class="qsub">🎙️ Hämtar uttal … ' + n + ' av ' + tot + '</p>';
+            }).then(function (res) {
+                if (res.failed) msg.innerHTML = head + '<p class="qsub" style="color:var(--berry)">' + Math.ceil(res.failed / 2) +
+                    ' ord fick inget uttal just nu. Siiri försöker igen nästa gång appen är online.</p>';
+                setTimeout(function () { if (screen === "school") schoolImport() }, Math.max(0, (res.failed ? 2600 : 900) - (Date.now() - t0)));
+            });
         };
     }
 
@@ -3701,7 +3856,7 @@
             var sc = schoolSet();
             if (!sc) return;
             var d = schoolDaysLeft(), pct = Math.round(schoolDone() / sc.words.length * 100);
-            html += '<button class="stbox wide school" id="schoolbtn" style="width:100%;margin-bottom:10px">' +
+            html += '<button class="stbox wide school" id="schoolbtn" style="width:100%;margin-top:14px">' +
                 '<b>📝 ' + esc(sc.name) + '</b>' +
                 '<small>' + schoolDone() + ' av ' + sc.words.length + ' sitter' + (d > 0 ? ' · ' + d + ' dagar kvar' : ' · sista dagen') + '</small>' +
                 '<span class="qbar" style="background:var(--line)"><i style="width:' + pct + '%;background:var(--moss)"></i></span></button>';
@@ -8187,7 +8342,8 @@
                 var mm = (S.wordmem || {})[mkey(rw.et, rw.sv)];
                 if (mm && mm.m >= 2 && mm.r >= 2 && !L.saidFix) {
                     L.saidFix = true;
-                    setTimeout(function () { speak("Nüüd sa oskad!"); siiriClass("wob", 900) }, 700);
+                    queuePraise("Nüüd sa oskad!");
+                    setTimeout(function () { siiriClass("wob", 900) }, 700);
                 }
             }
         } catch (e) { }
@@ -8295,7 +8451,11 @@
         var b = document.getElementById("ansay"); if (b && w) b.onclick = function () { speak(w.et) };
         b = document.getElementById("anslow"); if (b && w) b.onclick = function () { speak(w.et, true) };
         b = document.getElementById("goon"); if (b) b.onclick = goNext;
-        if (w) setTimeout(function () { speak(w.et) }, 200);
+        if (w) {
+            /* först ordet, sedan berömmet om det finns ett i kö */
+            var after = pendingPraise; pendingPraise = null;
+            setTimeout(function () { if (after) speakSeq([w.et, after]); else speak(w.et) }, 200);
+        }
         try { slot.scrollIntoView({ block: "nearest", behavior: "smooth" }) } catch (e) { }
     }
     /* att hoppa över är inte ett fel – prick och serie lämnas i fred */
@@ -8869,6 +9029,9 @@
     applyScene();      /* scenen bakom Siiri, om en sådan bärs */
     refreshTop();
     prefetchName();
+    /* uttal till glosorna: ta fram sparade, hämta det som saknas (även när nätet kommer tillbaka) */
+    setTimeout(function () { schoolAudio() }, 1500);
+    window.addEventListener("online", function () { schoolAudio() });
     setTimeout(seasonFx, 600);
     setTimeout(holidayCard, 300);
     setTimeout(nightOwl, 1000);

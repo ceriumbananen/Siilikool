@@ -5468,7 +5468,8 @@ input.type.wrong {
     margin-top: 8px;
     font-size: var(--fs-xs);
     color: var(--muted);
-    font-weight: 600
+    font-weight: 600;
+    padding: 8px 12px;
 }
 
 .tripdots {
@@ -5721,8 +5722,12 @@ input.type.wrong {
 }
 
 .schoolrow .sa {
-    width: 22px;
-    text-align: right
+    min-width: 22px;
+    flex: none;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 4px
 }
 
 .schoolrow.done {
