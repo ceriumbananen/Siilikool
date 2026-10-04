@@ -3849,7 +3849,7 @@
             var sc = schoolSet();
             if (!sc) return;
             var d = schoolDaysLeft(), pct = Math.round(schoolDone() / sc.words.length * 100);
-            html += '<button class="stbox wide school" id="schoolbtn" style="width:100%;margin-bottom:10px">' +
+            html += '<button class="stbox wide school" id="schoolbtn" style="width:100%;margin-top:14px">' +
                 '<b>📝 ' + esc(sc.name) + '</b>' +
                 '<small>' + schoolDone() + ' av ' + sc.words.length + ' sitter' + (d > 0 ? ' · ' + d + ' dagar kvar' : ' · sista dagen') + '</small>' +
                 '<span class="qbar" style="background:var(--line)"><i style="width:' + pct + '%;background:var(--moss)"></i></span></button>';
