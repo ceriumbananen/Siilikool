@@ -3338,6 +3338,8 @@
         return '<svg class="wicon" viewBox="0 0 100 100" aria-hidden="true">' + a + '</svg>';
     }
     /* ikon om vi ritat en, annars emoji */
+    /* läxord har ingen bild (bara 📝) – de ska inte hamna i frågor där bilden är svaret */
+    function hasPic(w) { return !!(w && !w.school) }
     function wIcon(w) {
         if (!w) return "";
         var a = wArt(w.et);
@@ -3536,7 +3538,8 @@
                         '<button class="speakbtn sm" data-slow="' + esc(w.et) + '" aria-label="Hör ordet långsamt">🐢</button>'
                         : (ok ? '' : '—')) + '</span></div>';
             }
-            html += '</div><button class="btn ghost wide" id="schoolclear" style="margin-top:10px">Ta bort listan</button></div>';
+            html += '</div><button class="btn green big wide" id="schoolplay" style="margin-top:10px">▶️ Öva på orden</button>' +
+                '<button class="btn ghost wide" id="schoolclear" style="margin-top:8px">Ta bort listan</button></div>';
         }
         html += '<div class="card"><p class="kicker">Klistra in orden</p>' +
             '<p class="qsub">Ett ord per rad: <b>estniska = svenska</b>. Komma, semikolon eller tabb fungerar också.</p>' +
@@ -3549,6 +3552,8 @@
         app.innerHTML = html;
         var cl = document.getElementById("schoolclear");
         if (cl) cl.onclick = function () { S.school = null; save(); schoolAudio(); schoolImport() };
+        var pl = document.getElementById("schoolplay");
+        if (pl) pl.onclick = function () { go(schoolLessonStart, true) };
         var ssay = app.querySelectorAll("[data-say],[data-slow]"), si;
         for (si = 0; si < ssay.length; si++) {
             (function (el) {
@@ -3857,9 +3862,10 @@
             if (!sc) return;
             var d = schoolDaysLeft(), pct = Math.round(schoolDone() / sc.words.length * 100);
             html += '<button class="stbox wide school" id="schoolbtn" style="width:100%;margin-top:14px">' +
-                '<b>📝 ' + esc(sc.name) + '</b>' +
+                '<b>📝 ' + esc(sc.name) + ' · ▶️ Öva läxorden</b>' +
                 '<small>' + schoolDone() + ' av ' + sc.words.length + ' sitter' + (d > 0 ? ' · ' + d + ' dagar kvar' : ' · sista dagen') + '</small>' +
-                '<span class="qbar" style="background:var(--line)"><i style="width:' + pct + '%;background:var(--moss)"></i></span></button>';
+                '<span class="qbar" style="background:var(--line)"><i style="width:' + pct + '%;background:var(--moss)"></i></span></button>' +
+                '<button class="btn small ghost" id="schooledit" style="margin-top:6px">✏️ Ändra glosorna</button>';
         })();
 
         /* kompakt status: utmaning + nivå */
@@ -3894,7 +3900,9 @@
         document.getElementById("hello").onclick = function () { if (S.name) speakTo("tere"); else speak("Tere! Mina olen Siiri."); mood("cheer") };
         document.getElementById("questbtn").onclick = function () { go(trophyScreen, true) };
         var sbn = document.getElementById("schoolbtn");
-        if (sbn) sbn.onclick = function () { go(schoolImport, true) };
+        if (sbn) sbn.onclick = function () { go(schoolLessonStart, true) };
+        var sed = document.getElementById("schooledit");
+        if (sed) sed.onclick = function () { go(schoolImport, true) };
         document.getElementById("tripbtn").onclick = function () { speak(TRIP[tripReached() - 1].et); go(tripScreen, true) };
         var bg = document.getElementById("bag");
         if (bg) bg.onclick = function () { openBag() };
@@ -7468,7 +7476,7 @@
     }
     function memStart() {
         var n = [4, 6, 8][S.memLv || 1];
-        var pool = pickWeighted(allWords(), n), cards = [], i;
+        var pool = pickWeighted(allWords().filter(hasPic), n), cards = [], i;   /* bild ↔ ord: inga läxord */
         for (i = 0; i < pool.length; i++) {
             cards.push({ id: i, kind: "word", w: pool[i] });
             cards.push({ id: i, kind: "pic", w: pool[i] });
@@ -8088,10 +8096,19 @@
 
     /* ---------- LEKTION ---------- */
     var L = null;
-    function lessonStart(themeId) {
-        prefetchTheme(themeId);
-        var t = null, i;
-        for (i = 0; i < THEMES.length; i++) { if (THEMES[i].id === themeId) t = THEMES[i] }
+    /* övning med bara läxorden: körs som ett vanligt tema. Ord som redan sitter är med
+       som repetition och svarsalternativ, men de nya och vacklande lärs in först. */
+    function schoolLessonStart() {
+        var s = schoolSet(); if (!s) { schoolImport(); return }
+        var known = s.words.filter(function (w) { return schoolKnows(w) });
+        lessonStart("school", { id: "school", school: true, et: "Koolisõnad", sv: s.name || "Veckans ord", em: "📝", words: schoolLeft().concat(known) });
+    }
+    function lessonStart(themeId, theme) {
+        var t = theme || null, i;
+        if (!t) {
+            prefetchTheme(themeId);
+            for (i = 0; i < THEMES.length; i++) { if (THEMES[i].id === themeId) t = THEMES[i] }
+        }
         if (!t) { homeScreen(); return }
         /* visa bara de ord som behöver mötas: nya och sådana som vacklar */
         /* högst fem nya ord åt gången – arbetsminnet rymmer inte fler */
@@ -8313,6 +8330,9 @@
     }
     function distractors(w, n) {
         var tw2 = stepWords(L.theme);
+        /* läxlistan kan vara kort – fyll på med andra ord så att det finns något att välja mellan */
+        if (L.theme.school && tw2.length < n + 1)
+            tw2 = tw2.concat(shuffle(allWords().filter(hasPic)).slice(0, n + 1 - tw2.length));
         n = Math.max(2, Math.min(n, tw2.length - 1));
         var pool = [], i;
         for (i = 0; i < tw2.length; i++) { if (tw2[i].et !== w.et) pool.push(tw2[i]) }
@@ -8327,7 +8347,8 @@
     }
     /* svensk undertext, eller en diskret plats där den brukade stå */
     function transHtml(w, size) {
-        if (wordSolid(w)) return '<div class="trans faded">utan svenska nu · du kan det här</div>';
+        /* utan bild är svenskan det enda som visar vilket ord som menas */
+        if (wordSolid(w) && hasPic(w)) return '<div class="trans faded">utan svenska nu · du kan det här</div>';
         return '<div class="trans" style="font-size:' + size + 'px">' + esc(w.sv) + '</div>';
     }
     /* färre alternativ när det kärvar */
@@ -8470,11 +8491,14 @@
     }
     function roundListen(r) {
         screen = "q";
-        var opts = distractors(r.w, optCount() - 1), i;
-        var html = dots() + meterHtml() + '<div class="card' + (r.gold ? ' golden' : '') + '"><p class="q">Vilken bild hör du?</p><p class="qsub">Tryck på högtalaren och lyssna noga.</p>' +
+        var opts = distractors(r.w, optCount() - 1), i, pics = hasPic(r.w);
+        /* läxord har ingen bild: då väljer barnet bland de svenska orden i stället */
+        var html = dots() + meterHtml() + '<div class="card' + (r.gold ? ' golden' : '') + '"><p class="q">' + (pics ? 'Vilken bild hör du?' : 'Vilket ord hör du?') + '</p><p class="qsub">Tryck på högtalaren och lyssna noga.</p>' +
             '<div class="center"><button class="speakbtn" id="say" aria-label="Spela upp ordet">🔊</button></div><div class="opts">';
         for (i = 0; i < opts.length; i++) {
-            html += '<button class="opt" data-et="' + esc(opts[i].et) + '"><span class="oem">' + wIcon(opts[i]) + '</span><small>' + esc(opts[i].sv) + '</small></button>';
+            html += '<button class="opt" data-et="' + esc(opts[i].et) + '">' + (pics
+                ? '<span class="oem">' + wIcon(opts[i]) + '</span><small>' + esc(opts[i].sv) + '</small>'
+                : '<b>' + esc(opts[i].sv) + '</b>') + '</button>';
         }
         html += '</div><div class="feedback" id="fb"></div><div class="ansslot" id="ansslot"></div></div><div class="center">' + siilSVG("small") + '</div>';
         app.innerHTML = html;
