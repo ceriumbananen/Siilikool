@@ -1859,6 +1859,30 @@
         } catch (e) { }
     }
     function sndOk() { tone(660, .14, 0); tone(880, .16, .11); tone(1180, .22, .22) }
+    /* applåder: korta brusstötar genom ett högpassfilter, utspridda som en folkmassa som klappar */
+    function applause(n, dur) {
+        if (!S.sound) return;
+        try {
+            if (!AC) AC = new (window.AudioContext || window.webkitAudioContext)();
+            if (AC.state === "suspended") AC.resume();
+            var claps = n || 16, i;
+            for (i = 0; i < claps; i++) {
+                (function (delay) {
+                    var len = 0.05, buf = AC.createBuffer(1, Math.ceil(AC.sampleRate * len), AC.sampleRate);
+                    var data = buf.getChannelData(0), j;
+                    for (j = 0; j < data.length; j++) data[j] = (Math.random() * 2 - 1) * (1 - j / data.length);
+                    var src = AC.createBufferSource(); src.buffer = buf;
+                    var f = AC.createBiquadFilter(); f.type = "highpass"; f.frequency.value = 1200;
+                    var g = AC.createGain(), t = AC.currentTime + delay;
+                    g.gain.setValueAtTime(0.0001, t);
+                    g.gain.exponentialRampToValueAtTime(0.4, t + 0.004);
+                    g.gain.exponentialRampToValueAtTime(0.0001, t + len);
+                    src.connect(f); f.connect(g); g.connect(AC.destination);
+                    src.start(t); src.stop(t + len + 0.01);
+                })(Math.random() * (dur || 1.8));
+            }
+        } catch (e) { }
+    }
     function sndNo() { tone(300, .16, 0, "triangle"); tone(210, .22, .13, "triangle") }
     var AMB = null;
     function ambienceStop() {
@@ -2360,10 +2384,33 @@
         }
         if (!raf) raf = requestAnimationFrame(tick);
     }
+    /* ballonger som stiger från botten, för de allra största firandena */
+    function balloons(n) {
+        if (!ctx) return;
+        if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+        for (var i = 0; i < (n || 12); i++) {
+            parts.push({
+                balloon: 1, x: innerWidth * (0.08 + Math.random() * 0.84), y: innerHeight + 30 + Math.random() * 220,
+                vy: -(1 + Math.random() * 0.9), s: 20 + Math.random() * 14,
+                c: CONF[(Math.random() * CONF.length) | 0], a: 1, w: Math.random() * 6.28
+            });
+        }
+        if (!raf) raf = requestAnimationFrame(tick);
+    }
     function tick() {
         ctx.clearRect(0, 0, innerWidth, innerHeight);
         for (var i = parts.length - 1; i >= 0; i--) {
             var p = parts[i];
+            if (p.balloon) {
+                p.w += 0.04; p.y += p.vy; p.x += Math.sin(p.w) * 0.7;
+                if (p.y < -60) { parts.splice(i, 1); continue }
+                ctx.save(); ctx.globalAlpha = p.a;
+                ctx.beginPath(); ctx.ellipse(p.x, p.y, p.s * 0.62, p.s, 0, 0, 6.284); ctx.fillStyle = p.c; ctx.fill();
+                ctx.beginPath(); ctx.moveTo(p.x, p.y + p.s); ctx.lineTo(p.x, p.y + p.s + 22);
+                ctx.strokeStyle = "rgba(255,255,255,.5)"; ctx.lineWidth = 1; ctx.stroke();
+                ctx.restore();
+                continue;
+            }
             if (p.snow) {
                 p.w += 0.03; p.y += p.vy; p.x += Math.sin(p.w) * (p.petal ? 1.6 : 0.9);
                 if (p.y > innerHeight + 20) { parts.splice(i, 1); continue }
@@ -4795,8 +4842,9 @@
         if (S.badges.indexOf("laulupidu") < 0) S.badges.push("laulupidu");
         S.songDone = 1;
         earnStars(gain); addXp(500); save(); refreshTop(); autoBackup("sångfesten");
-        burst(420); fanfare(3);
-        setTimeout(function () { burst(260) }, 700); setTimeout(function () { burst(220) }, 1400);
+        burst(420); fanfare(3); balloons(16); applause(18, 2.4);
+        setTimeout(function () { speak("Hurraa! Hurraa! Hurraa!") }, 300);
+        setTimeout(function () { burst(260); balloons(8) }, 700); setTimeout(function () { burst(220) }, 1400);
         app.innerHTML = '<div class="card" style="text-align:center"><p class="kicker">🎶 Laulupidu</p>' +
             '<h2 class="q">Sången är färdig!</h2>' +
             '<div class="center">' + siilSVG("big") + '</div>' +
