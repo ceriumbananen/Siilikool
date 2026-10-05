@@ -20,14 +20,11 @@
                 { et: "nägemist", sv: "vi ses", em: "🫱", hint: "NÄ-ge-mist" },
                 { et: "tere tulemast", sv: "välkommen", em: "🚪", hint: "TE-re TU-le-mast" },
                 { et: "kõike head", sv: "allt gott", em: "🍀", hint: "KÕI-ke HEAD" },
-                { et: "ole hea", sv: "varsågod", em: "🙂", hint: "O-le HEA" }
-                ,
-                { et: "vabandust", sv: "förlåt", em: "🙇", hint: "va-BAN-dust" },
+                { et: "ole hea", sv: "varsågod", em: "🙂", hint: "O-le HEA" },
                 { et: "kuidas läheb", sv: "hur går det", em: "🤔", hint: "KUI-das LÄ-heb" },
                 { et: "hästi", sv: "bra", em: "👍", hint: "HÄS-ti" },
                 { et: "halvasti", sv: "dåligt", em: "👎", hint: "HAL-vas-ti" },
-                { et: "kena", sv: "trevligt", em: "😊", hint: "KE-na" },
-                { et: "tere õhtust", sv: "god kväll", em: "🌆", hint: "TE-re ÕH-tust" }
+                { et: "kena", sv: "trevligt", em: "😊", hint: "KE-na" }
             ]
         },
         {
@@ -47,14 +44,8 @@
                 { et: "rebane", sv: "räv", em: "🦊", hint: "RE-ba-ne" },
                 { et: "jänes", sv: "hare", em: "🐰", hint: "JÄ-nes" },
                 { et: "hiir", sv: "mus", em: "🐭", hint: "hiir" },
-                { et: "konn", sv: "groda", em: "🐸", hint: "konn" }
-                ,
-                { et: "rebane", sv: "räv", em: "🦊", hint: "RE-ba-ne" },
-                { et: "karu", sv: "björn", em: "🐻", hint: "KA-ru" },
-                { et: "jänes", sv: "hare", em: "🐰", hint: "JÄ-nes" },
-                { et: "orav", sv: "ekorre", em: "🐿️", hint: "O-rav" },
-                { et: "hunt", sv: "varg", em: "🐺", hint: "hunt" },
-                { et: "konn", sv: "groda", em: "🐸", hint: "konn" }
+                { et: "konn", sv: "groda", em: "🐸", hint: "konn" },
+                { et: "orav", sv: "ekorre", em: "🐿️", hint: "O-rav" }
             ]
         },
         {
@@ -119,13 +110,7 @@
                 { et: "pasta", sv: "pasta", em: "🍝", hint: "PAS-ta" },
                 { et: "mesi", sv: "honung", em: "🍯", hint: "ME-si" },
                 { et: "sool", sv: "salt", em: "🧂", hint: "sool" },
-                { et: "šokolaad", sv: "choklad", em: "🍫", hint: "SJO-ko-laad" }
-                ,
-                { et: "supp", sv: "soppa", em: "🍲", hint: "supp" },
-                { et: "juust", sv: "ost", em: "🧀", hint: "juust" },
-                { et: "või", sv: "smör", em: "🧈", hint: "või" },
-                { et: "muna", sv: "ägg", em: "🥚", hint: "MU-na" },
-                { et: "mesi", sv: "honung", em: "🍯", hint: "ME-si" },
+                { et: "šokolaad", sv: "choklad", em: "🍫", hint: "SJO-ko-laad" },
                 { et: "kartul", sv: "potatis", em: "🥔", hint: "KAR-tul" }
             ]
         },
@@ -147,13 +132,6 @@
                 { et: "tütar", sv: "dotter", em: "👧🏻", hint: "TÜ-tar" },
                 { et: "naine", sv: "kvinna", em: "👩‍🦳", hint: "NAI-ne" },
                 { et: "mees", sv: "man", em: "👨‍🦳", hint: "mees" }
-                ,
-                { et: "tädi", sv: "faster", em: "👩", hint: "TÄ-di" },
-                { et: "onu", sv: "farbror", em: "👨", hint: "O-nu" },
-                { et: "nõbu", sv: "kusin", em: "🧒", hint: "NÕ-bu" },
-                { et: "vanaema", sv: "mormor", em: "👵", hint: "VA-na-e-ma" },
-                { et: "vanaisa", sv: "morfar", em: "👴", hint: "VA-na-i-sa" },
-                { et: "laps", sv: "barn", em: "🧒", hint: "laps" }
             ]
         },
         {
@@ -173,14 +151,8 @@
                 { et: "varvas", sv: "tå", em: "👣", hint: "VAR-vas" },
                 { et: "põlv", sv: "knä", em: "🦵", hint: "põlv" },
                 { et: "õlg", sv: "axel", em: "💪", hint: "õlg" },
-                { et: "keel", sv: "tunga", em: "👅", hint: "keel" }
-                ,
-                { et: "õlg", sv: "axel", em: "💪", hint: "õlg" },
-                { et: "põlv", sv: "knä", em: "🦵", hint: "põlv" },
-                { et: "sõrm", sv: "finger", em: "☝️", hint: "sõrm" },
-                { et: "selg", sv: "rygg", em: "🔙", hint: "selg" },
-                { et: "kael", sv: "hals", em: "🧣", hint: "kael" },
-                { et: "hammas", sv: "tand", em: "🦷", hint: "HAM-mas" }
+                { et: "keel", sv: "tunga", em: "👅", hint: "keel" },
+                { et: "kael", sv: "hals", em: "🧣", hint: "kael" }
             ]
         },
         {
@@ -200,9 +172,6 @@
                 { et: "joonlaud", sv: "linjal", em: "📏", hint: "JOON-laud" },
                 { et: "vihik", sv: "skrivbok", em: "📓", hint: "VI-hik" },
                 { et: "pinal", sv: "pennfodral", em: "🖊️", hint: "PI-nal" },
-                { et: "tund", sv: "lektion", em: "⏰", hint: "tund" }
-                ,
-                { et: "tahvel", sv: "tavla", em: "📋", hint: "TAH-vel" },
                 { et: "tund", sv: "lektion", em: "⏰", hint: "tund" },
                 { et: "vahetund", sv: "rast", em: "🏃", hint: "VA-he-tund" },
                 { et: "küsimus", sv: "fråga", em: "❓", hint: "KÜ-si-mus" },
@@ -227,14 +196,8 @@
                 { et: "lühikesed püksid", sv: "shorts", em: "🩳", hint: "LÜ-hi-ke-sed PÜK-sid" },
                 { et: "pidžaama", sv: "pyjamas", em: "🛌", hint: "PID-zjaa-ma" },
                 { et: "taskurätik", sv: "näsduk", em: "🤧", hint: "TAS-ku-rä-tik" },
-                { et: "käekell", sv: "armbandsur", em: "⌚", hint: "KÄE-kell" }
-                ,
-                { et: "sokid", sv: "strumpor", em: "🧦", hint: "SO-kid" },
-                { et: "püksid", sv: "byxor", em: "👖", hint: "PÜK-sid" },
-                { et: "seelik", sv: "kjol", em: "👗", hint: "SEE-lik" },
-                { et: "jope", sv: "jacka", em: "🧥", hint: "JO-pe" },
-                { et: "kindad", sv: "vantar", em: "🧤", hint: "KIN-dad" },
-                { et: "saapad", sv: "stövlar, kängor", em: "🥾", hint: "SAA-pad" }
+                { et: "käekell", sv: "armbandsur", em: "⌚", hint: "KÄE-kell" },
+                { et: "seelik", sv: "kjol", em: "👗", hint: "SEE-lik" }
             ]
         },
         {
@@ -254,14 +217,10 @@
                 { et: "pliit", sv: "spis", em: "🍳", hint: "pliit" },
                 { et: "telekas", sv: "tv", em: "📺", hint: "TE-le-kas" },
                 { et: "tekk", sv: "täcke", em: "🛌", hint: "tekk" },
-                { et: "vaip", sv: "matta", em: "🟫", hint: "vaip" }
-                ,
-                { et: "diivan", sv: "soffa", em: "🛋️", hint: "DII-van" },
+                { et: "vaip", sv: "matta", em: "🟫", hint: "vaip" },
                 { et: "padi", sv: "kudde", em: "🛏️", hint: "PA-di" },
-                { et: "tekk", sv: "täcke", em: "🛌", hint: "tekk" },
                 { et: "kell", sv: "klocka", em: "🕰️", hint: "kell" },
-                { et: "peegel", sv: "spegel", em: "🪞", hint: "PEE-gel" },
-                { et: "vaip", sv: "matta", em: "🟥", hint: "vaip" }
+                { et: "peegel", sv: "spegel", em: "🪞", hint: "PEE-gel" }
             ]
         },
         {
@@ -281,13 +240,8 @@
                 { et: "kiirabi", sv: "ambulans", em: "🚑", hint: "KII-ra-bi" },
                 { et: "politseiauto", sv: "polisbil", em: "🚓", hint: "PO-lit-sei-au-to" },
                 { et: "helikopter", sv: "helikopter", em: "🚁", hint: "HE-li-kop-ter" },
-                { et: "rakett", sv: "raket", em: "🚀", hint: "RA-kett" }
-                ,
-                { et: "buss", sv: "buss", em: "🚌", hint: "buss" },
-                { et: "laev", sv: "båt", em: "🚢", hint: "laev" },
-                { et: "lennuk", sv: "flygplan", em: "✈️", hint: "LEN-nuk" },
+                { et: "rakett", sv: "raket", em: "🚀", hint: "RA-kett" },
                 { et: "ratas", sv: "hjul", em: "☸️", hint: "RA-tas" },
-                { et: "tramm", sv: "spårvagn", em: "🚋", hint: "tramm" },
                 { et: "veoauto", sv: "lastbil", em: "🚚", hint: "VE-o-au-to" }
             ]
         },
@@ -309,13 +263,6 @@
                 { et: "naerma", sv: "skratta", em: "😂", hint: "NAER-ma" },
                 { et: "nutma", sv: "gråta", em: "😭", hint: "NUT-ma" },
                 { et: "ootama", sv: "vänta", em: "⏳", hint: "OO-ta-ma" }
-                ,
-                { et: "jooksma", sv: "springa", em: "🏃", hint: "JOOKS-ma" },
-                { et: "hüppama", sv: "hoppa", em: "🤸", hint: "HÜP-pa-ma" },
-                { et: "laulma", sv: "sjunga", em: "🎤", hint: "LAUL-ma" },
-                { et: "joonistama", sv: "rita", em: "🎨", hint: "JOO-nis-ta-ma" },
-                { et: "lugema", sv: "läsa", em: "📖", hint: "LU-ge-ma" },
-                { et: "kirjutama", sv: "skriva", em: "✍️", hint: "KIR-ju-ta-ma" }
             ]
         },
         {
@@ -335,13 +282,9 @@
                 { et: "kirss", sv: "körsbär", em: "🍒", hint: "kirss" },
                 { et: "mustikas", sv: "blåbär", em: "🫐", hint: "MUS-ti-kas" },
                 { et: "seen", sv: "svamp", em: "🍄", hint: "seen" },
-                { et: "sibul", sv: "lök", em: "🧅", hint: "SI-bul" }
-                ,
-                { et: "kurk", sv: "gurka", em: "🥒", hint: "kurk" },
                 { et: "sibul", sv: "lök", em: "🧅", hint: "SI-bul" },
                 { et: "kapsas", sv: "kål", em: "🥬", hint: "KAP-sas" },
                 { et: "ploom", sv: "plommon", em: "🫐", hint: "ploom" },
-                { et: "pirn", sv: "päron", em: "🍐", hint: "pirn" },
                 { et: "hernes", sv: "ärta", em: "🫛", hint: "HER-nes" }
             ]
         },
@@ -362,14 +305,9 @@
                 { et: "õnnelik", sv: "lycklig", em: "🥰", hint: "ÕN-ne-lik" },
                 { et: "mures", sv: "orolig", em: "😟", hint: "MU-res" },
                 { et: "tugev", sv: "stark", em: "💪", hint: "TU-gev" },
-                { et: "julge", sv: "modig", em: "🦁", hint: "JUL-ge" }
-                ,
-                { et: "üllatunud", sv: "förvånad", em: "😲", hint: "ÜL-la-tu-nud" },
-                { et: "väsinud", sv: "trött", em: "😴", hint: "VÄ-si-nud" },
-                { et: "uhke", sv: "stolt", em: "😌", hint: "UH-ke" },
+                { et: "julge", sv: "modig", em: "🦁", hint: "JUL-ge" },
                 { et: "elevil", sv: "uppspelt", em: "🤩", hint: "E-le-vil" },
-                { et: "rahulik", sv: "lugn", em: "😌", hint: "RA-hu-lik" },
-                { et: "janune", sv: "törstig", em: "🥤", hint: "JA-nu-ne" }
+                { et: "rahulik", sv: "lugn", em: "😌", hint: "RA-hu-lik" }
             ]
         },
         {
@@ -389,9 +327,7 @@
                 { et: "pusle", sv: "pussel", em: "🧩", hint: "PUS-le" },
                 { et: "võimlema", sv: "gympa", em: "🤸", hint: "VÕIM-le-ma" },
                 { et: "kelgutama", sv: "åka pulka", em: "🛷", hint: "KEL-gu-ta-ma" },
-                { et: "ronima", sv: "klättra", em: "🧗", hint: "RO-ni-ma" }
-                ,
-                { et: "pall", sv: "boll", em: "⚽", hint: "pall" },
+                { et: "ronima", sv: "klättra", em: "🧗", hint: "RO-ni-ma" },
                 { et: "mäng", sv: "spel", em: "🎲", hint: "mäng" },
                 { et: "võit", sv: "vinst", em: "🏆", hint: "võit" },
                 { et: "kiik", sv: "gunga", em: "🛝", hint: "kiik" },
@@ -416,11 +352,7 @@
                 { et: "mägi", sv: "berg", em: "⛰️", hint: "MÄ-gi" },
                 { et: "kivi", sv: "sten", em: "🪨", hint: "KI-vi" },
                 { et: "täht", sv: "stjärna", em: "⭐", hint: "täht" },
-                { et: "kuu", sv: "måne", em: "🌙", hint: "kuu" }
-                ,
-                { et: "pilv", sv: "moln", em: "☁️", hint: "pilv" },
-                { et: "tuul", sv: "vind", em: "🌬️", hint: "tuul" },
-                { et: "vikerkaar", sv: "regnbåge", em: "🌈", hint: "VI-ker-kaar" },
+                { et: "kuu", sv: "måne", em: "🌙", hint: "kuu" },
                 { et: "muru", sv: "gräsmatta", em: "🌱", hint: "MU-ru" },
                 { et: "liiv", sv: "sand", em: "🏖️", hint: "liiv" },
                 { et: "oks", sv: "gren", em: "🌿", hint: "oks" }
@@ -3864,14 +3796,14 @@
         /* resan */
         var trn = tripReached(), tdone = 3 - tasksLeft(), allDone = tripDone() >= TRIP.length;
         html += '<div class="tripcard">' +
-            '<p class="tripkick"><span class="tripflag">🎶</span> Laulupidu · Siiri samlar sångens ' + TRIP.length + ' rader</p>' +
+            '<p class="tripkick"><span class="tripflag">🎶</span> Laulupidu · Siiri reser genom Estlands ' + TRIP.length + ' orter</p>' +
             '<button class="tripgo" id="tripbtn">' +
             '<span class="tripem">' + TRIP[trn - 1].em + '</span>' +
             '<span class="triptx">' +
             '<b><span lang="et">' + esc(UI.trip.et) + '</span> · <span lang="et">' + esc(TRIP[trn - 1].et) + '</span></b>' +
             '<small>' + (allDone ? 'hela resan klar!' : 'ort ' + trn + ' av ' + TRIP.length) + '</small>' +
             '<span class="tripbar"><i style="width:' + Math.round(tripDone() / TRIP.length * 100) + '%"></i></span>' +
-            '<span class="triplines">' + tripDone() + ' av ' + TRIP.length + ' rader i sången</span>' +
+            '<span class="triplines">' + tripDone() + ' av ' + TRIP.length + ' orter</span>' +
             '</span>' +
             '<span class="tripcta"><span class="tripgobtn">Mine ▸</span><small>gå dit</small></span>' +
             '</button>' +
@@ -4914,7 +4846,9 @@
         var st = ST ? Math.max(1, 3 - (ST.wrong || 0)) : 1;
         ST = null;
         earnStars(gain); addXp(50); S.lessons = (S.lessons || 0) + 1; save(); refreshTop();
-        bumpQuest("themes", 1); tripBump("theme", 1);
+        bumpQuest("themes", 1);
+        /* bumpa bara aktuell orts uppdrag – annars kan en omspelad gammal ort knuffa fel orts framsteg */
+        if (!cityId || cityId === tripCur().id) tripBump("theme", 1);
         burst(170); fanfare(st >= 3 ? 3 : 2);
         app.innerHTML = '<div class="card" style="text-align:center"><p class="kicker">' + esc(title) + '</p>' +
             '<div class="bigstars">' + "⭐".repeat(st) + '</div>' +
@@ -5717,8 +5651,8 @@
         var html = '<div class="zone map"><span class="zem">🗺️</span><span><b>Teekond</b><span>Resan genom Estland</span></span></div>';
         /* målet först: barnet ska veta vad resan går ut på innan det ser kartan */
         html += '<div class="card goalcard"><p class="q" style="text-align:left;margin-bottom:2px">🎶 Laulupidu · Sångfesten</p>' +
-            '<p class="qsub" style="text-align:left">Hjälp Siiri att samla sångens ' + TRIP.length + ' rader. Hon hittar en rad i varje ort.</p>' +
-            '<div class="songrow"><b class="songbig">' + tripDone() + ' av ' + TRIP.length + '</b><span>rader hittade</span></div>' +
+            '<p class="qsub" style="text-align:left">Hjälp Siiri att resa genom Estlands ' + TRIP.length + ' orter. I varje ort väntar nya ord och uppdrag.</p>' +
+            '<div class="songrow"><b class="songbig">' + tripDone() + ' av ' + TRIP.length + '</b><span>orter besökta</span></div>' +
             '<span class="qbar" style="background:var(--line)"><i style="width:' + songPct + '%;background:var(--berry)"></i></span>' +
             '</div>';
         html += '<div class="card">' +
@@ -8639,7 +8573,7 @@
             inp.focus();
         };
         function check() {
-            var got = inp.value, ok = norm(got) === norm(r.w.et);
+            var got = inp.value, ok = norm(got) === norm(r.w.et), closeTry = false;
             /* på Lätt räcker det nära nog, men rätt stavning visas alltid */
             if (!ok && diff().id === "latt" && got && lev(norm(got), norm(r.w.et)) <= 1) ok = true;
             if (!ok && loose(got) === loose(r.w.et)) {
@@ -8647,12 +8581,17 @@
                 fb.innerHTML = "Nästan! Kolla prickarna och krokarna.<br>" + letterDiff(got, r.w.et);
                 setTimeout(function () { inp.className = "type" }, 600);
                 if (tries < 2) return;
-                ok = false;
+                closeTry = true;
             }
             if (ok) {
                 inp.className = "type right"; inp.disabled = true;
                 praiseSay(L.combo + 1, true, fb);
                 answered(true, "type");
+            } else if (closeTry) {
+                /* redan på sitt andra (nästan-rätt) försök – räkna inte ett tredje här */
+                inp.className = "type wrong"; inp.disabled = true;
+                fb.className = "feedback no"; fb.innerHTML = typoHint(got, r.w.et);
+                answered(false, "type");
             } else {
                 tries++;
                 if (tries < 2) {
