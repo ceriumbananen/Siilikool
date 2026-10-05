@@ -9,7 +9,7 @@
                 { et: "tere hommikust", sv: "god morgon", em: "🌅", hint: "TE-re HOM-mi-kust" },
                 { et: "head aega", sv: "hej då", em: "🖐️", hint: "HEAD A-e-ga" },
                 { et: "aitäh", sv: "tack", em: "🎁", hint: "AJ-täh" },
-                { et: "palun", sv: "varsågod · snälla", em: "🤲", hint: "PA-lun" },
+                { et: "palun", sv: "snälla", em: "🤲", hint: "PA-lun" },
                 { et: "jah", sv: "ja", em: "✅", hint: "jah" },
                 { et: "ei", sv: "nej", em: "❌", hint: "ej" },
                 { et: "head ööd", sv: "god natt", em: "🌙", hint: "HEAD ÖÖD" },
