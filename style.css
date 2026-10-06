@@ -4846,6 +4846,47 @@ h2.sec {
     margin: 4px 0 2px
 }
 
+/* ledordet och bilden sida vid sida – ordet är det man läser, bilden en hjälp */
+.prompt {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    margin: 12px 0 14px
+}
+
+.prompt .pem {
+    flex: none;
+    width: 84px;
+    height: 84px;
+    border-radius: 22px;
+    background: color-mix(in srgb, var(--honey) 16%, var(--card));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 50px;
+    line-height: 1
+}
+
+.prompt .pem .wicon {
+    width: 62px;
+    height: 62px
+}
+
+.prompt .pword {
+    font-size: clamp(30px, 9vw, 46px);
+    font-weight: 700;
+    line-height: 1.1;
+    color: var(--ink);
+    overflow-wrap: anywhere;
+    min-width: 0
+}
+
+.qtools {
+    gap: 10px;
+    margin-bottom: 4px
+}
+
 .bigem {
     font-size: clamp(64px, 20vw, 120px);
     text-align: center;
@@ -4927,6 +4968,20 @@ h2.sec {
     border-color: var(--moss);
     background: color-mix(in srgb, var(--moss) 16%, var(--card));
     animation: pop .35s
+}
+
+/* textsvar (Välj-frågan): två kolumner, lägre knappar */
+.opts.txt {
+    grid-template-columns: 1fr 1fr
+}
+
+.opts.txt .opt {
+    min-height: 64px;
+    font-size: var(--fs-xl)
+}
+
+.opt.dim {
+    opacity: .45
 }
 
 .opt.wrong {
@@ -5063,11 +5118,12 @@ input.type.wrong {
     animation: wob .4s
 }
 
+/* alla sex specialtecken på en rad – knapparna krymper hellre än att bryta raden */
 .keys {
     display: flex;
     gap: 8px;
     justify-content: center;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
     margin-top: 8px
 }
 
@@ -5075,7 +5131,8 @@ input.type.wrong {
     background: var(--card);
     border: var(--bd) solid var(--line);
     border-radius: var(--r-sm);
-    width: 48px;
+    flex: 0 1 48px;
+    min-width: 36px;
     height: 48px;
     font-size: var(--fs-xl);
     font-weight: 600;
@@ -5165,6 +5222,7 @@ input.type.wrong {
 }
 
 .ansbox {
+    margin-top: 1rem;
     width: 100%;
     text-align: center;
     animation: ansIn .18s ease-out
@@ -5182,11 +5240,41 @@ input.type.wrong {
     }
 }
 
+/* när svaret tar kontrollernas plats (#qctl) behövs ingen extra reserverad yta under dem */
+.qctl+.ansslot {
+    min-height: 0;
+    margin-top: 0
+}
+
+/* svaret i en tonad panel: grön vid rätt, rosa vid fel. Edasi ligger under panelen. */
+.ansbox .anspanel {
+    border-radius: var(--r-md);
+    padding: 14px 12px;
+    background: color-mix(in srgb, var(--moss) 12%, var(--card))
+}
+
+.ansbox.bad .anspanel {
+    background: color-mix(in srgb, var(--berry) 10%, var(--card))
+}
+
+.ansbox .anspanel .feedback {
+    margin: 0 0 6px;
+    min-height: 0
+}
+
+.ansbox .answrap {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 10px
+}
+
 .ansbox .answord {
     font-size: clamp(28px, 8vw, 44px);
     font-weight: 700;
     line-height: 1.1;
-    margin: 2px 0 4px
+    margin: 2px 4px 4px 0
 }
 
 .ansbox .anssv {

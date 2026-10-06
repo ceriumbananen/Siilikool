@@ -3190,6 +3190,13 @@
     /* emojier räcker inte: 🏞️ betyder både sjö, flod och nationalpark.
        Orden nedan får egna ritade ikoner i stället. */
     var WORDART = {
+        /* pennfodral: det finns ingen emoji, och 🖊️ visade bara en penna */
+        "pinal": '<g transform="translate(0 7)">' +
+            '<g transform="rotate(-18 36 46)"><rect x="31" y="12" width="10" height="36" rx="1" fill="#F6C744"/><rect x="31" y="12" width="3.5" height="36" fill="#E2A92A"/><path d="M31 12 L36 1 L41 12 z" fill="#F2D9B0"/><path d="M34.3 5 L36 1 L37.7 5 z" fill="#3B3B3B"/></g>' +
+            '<g transform="rotate(14 62 46)"><rect x="57" y="16" width="10" height="32" rx="1" fill="#E5534B"/><rect x="57" y="16" width="3.5" height="32" fill="#C23B35"/><path d="M57 16 L62 5 L67 16 z" fill="#F2D9B0"/><path d="M60.3 9 L62 5 L63.7 9 z" fill="#C23B35"/></g>' +
+            '<rect x="10" y="40" width="80" height="44" rx="18" fill="#4E9AC4"/><path d="M10 64 h80 v2 a18 18 0 0 1 -18 18 h-44 a18 18 0 0 1 -18 -18 z" fill="#3D82AD"/>' +
+            '<path d="M20 50 H80" stroke="#2C6688" stroke-width="5" stroke-linecap="round"/><path d="M20 50 H80" stroke="#BFD9EA" stroke-width="2.4" stroke-dasharray="2.6 2.6"/><circle cx="80" cy="50" r="4.5" fill="#D9D9D9" stroke="#8C8C8C" stroke-width="1.5"/><rect x="77.5" y="53" width="5" height="12" rx="2.5" fill="#D9D9D9" stroke="#8C8C8C" stroke-width="1.5"/>' +
+            '</g>',
         "järv": '<ellipse cx="50" cy="62" rx="36" ry="20" fill="#4E9AC4"/><ellipse cx="50" cy="60" rx="31" ry="16" fill="#7CC0E0"/>' +
             '<path d="M22 70 q14 -6 28 0 q14 6 28 0" stroke="#fff" stroke-width="3" fill="none" opacity=".6"/>' +
             '<path d="M6 62 q10 -22 20 -6 q8 -14 16 -2" fill="#5C9A5E"/><path d="M78 58 q10 -20 16 -2 v8 z" fill="#5C9A5E"/>' +
@@ -3322,13 +3329,14 @@
         if (!a) return "";
         return '<svg class="wicon" viewBox="0 0 100 100" aria-hidden="true">' + a + '</svg>';
     }
-    /* ikon om vi ritat en, annars emoji */
-    /* läxord har ingen bild (bara 📝) – de ska inte hamna i frågor där bilden är svaret */
-    function hasPic(w) { return !!(w && !w.school) }
+    /* har ordet en bild som säkert stämmer? Läxord saknar bild (de hade bara 📝), och ett ord
+       vars emoji är missvisande kan märkas med nopic: true i THEMES. Sådana ord visas utan
+       ikon och hamnar aldrig i frågor där bilden är svaret. */
+    function hasPic(w) { return !!(w && !w.school && !w.nopic && (WORDART[w.et] || (w.em && w.em !== "📝"))) }
+    /* ikon om vi ritat en, annars emoji – och hellre ingen alls än en som kan vara fel */
     function wIcon(w) {
-        if (!w) return "";
-        var a = wArt(w.et);
-        return a || esc(w.em || "");
+        if (!hasPic(w)) return "";
+        return wArt(w.et) || esc(w.em);
     }
 
 
@@ -4690,7 +4698,7 @@
         for (j = 0; j < TP.q.length; j++)html += '<i class="' + (j < TP.i ? "on" : (j === TP.i ? "now" : "")) + '"></i>';
         html += '</div><div class="card">' +
             (listen ? '<p class="q">Lyssna — vad betyder ordet?</p><div class="center"><button class="speakbtn big" id="tpsay" aria-label="Hör ordet">🔊</button></div>'
-                : '<p class="q">Vad betyder</p><div class="bigem">' + wIcon(w) + '</div><div class="bigword">' + esc(w.et) + '</div>' +
+                : '<p class="q">Vad betyder</p>' + promptHtml(w, w.et, "et") +
                 '<div class="center"><button class="speakbtn sm" id="tpsay" aria-label="Hör ordet">🔊</button></div>') +
             '<div class="opts">';
         for (j = 0; j < opts.length; j++)html += '<button class="opt" data-sv="' + esc(opts[j].sv) + '">' + esc(opts[j].sv) + '</button>';
@@ -7358,7 +7366,7 @@
                 ? '<p class="q">Lyssna och välj</p>' +
                 '<div class="center"><button class="speakbtn big" id="hear" aria-label="Hör ordet">🔊</button></div>' +
                 '<p class="qsub">Tryck igen om du vill höra en gång till</p>'
-                : '<p class="q">Vad heter</p><div class="bigem">' + wIcon(w) + '</div><div class="trans">' + esc(w.sv) + '</div>') +
+                : '<p class="q">Vad heter</p>' + promptHtml(w, w.sv)) +
             '<div class="opts" id="opts">';
         for (i = 0; i < opts.length; i++)html += '<button class="opt" data-et="' + esc(opts[i].et) + '" lang="et">' + esc(opts[i].et) + '</button>';
         html += '</div><div class="row" style="margin-top:10px">' +
@@ -7611,7 +7619,7 @@
         var html = '<div class="zone play"><span class="zem">🌧️</span><span><b>Sõnasadu</b>' +
             '<span>ord ' + (RN.i + 1) + ' av ' + RN.n + ' · ' + RN.right + ' rätt</span></span></div>' +
             '<div class="card"><p class="q">Hitta ordet för</p>' +
-            '<div class="bigem">' + target.em + '</div><div class="trans">' + esc(target.sv) + '</div>' +
+            promptHtml(target, target.sv) +
             '<div class="center"><button class="speakbtn sm" id="say" aria-label="Hör ordet">🔊</button></div>' +
             '<div class="rainbox">';
         for (i = 0; i < opts.length; i++) {
@@ -7957,7 +7965,7 @@
                 '<div class="center"><button class="speakbtn" id="say" aria-label="Hör ordet">🔊</button>' +
                 '<button class="speakbtn sm" id="slow" aria-label="Hör ordet långsamt">🐢</button></div>';
         } else {
-            html += '<div class="bigem">' + wIcon(w) + '</div><div class="trans">' + esc(w.sv) + '</div>';
+            html += promptHtml(w, w.sv);
         }
         html += '<div class="streakline">' + (SP.combo > 1 ? SP.combo + ' rätt i rad!' : '&nbsp;') + '</div><div class="opts">';
         for (i = 0; i < opts.length; i++) {
@@ -8151,8 +8159,7 @@
         var t = L.theme, list = L.learnList || t.words, w = list[L.learnIdx];
         var html = '<div class="qsub">Lär dig först · ' + (L.learnIdx + 1) + ' av ' + list.length +
             (list.length < t.words.length ? ' <span style="color:var(--moss)">(bara orden som behöver övas)</span>' : '') + '</div>' +
-            '<div class="card"><div class="bigem">' + wIcon(w) + '</div>' +
-            '<div class="bigword">' + esc(w.et) + '</div>' +
+            '<div class="card">' + promptHtml(w, w.et, "et") +
             '<div class="trans">' + esc(w.sv) + '</div>' +
             '<div class="hint">säg så här: ' + esc(w.hint) + '</div>' +
             '<div class="center"><button class="speakbtn" id="say" aria-label="Hör ordet igen">🔊</button>' +
@@ -8373,6 +8380,13 @@
         if (wordSolid(w) && hasPic(w)) return '<div class="trans faded">utan svenska nu · du kan det här</div>';
         return '<div class="trans" style="font-size:' + size + 'px">' + esc(w.sv) + '</div>';
     }
+    /* ledordet och bilden sida vid sida: bilden hjälper till, men ordet är det man läser.
+       Utan säker bild står ordet ensamt. */
+    function promptHtml(w, text, lang) {
+        var ic = diff().emoji ? wIcon(w) : "";
+        return '<div class="prompt">' + (ic ? '<span class="pem" aria-hidden="true">' + ic + '</span>' : '') +
+            '<span class="pword"' + (lang ? ' lang="' + lang + '"' : '') + '>' + esc(text) + '</span></div>';
+    }
     /* färre alternativ när det kärvar */
     function optCount() { return struggling() ? Math.min(3, diff().opts) : diff().opts }
     function answered(ok, extra) {
@@ -8481,16 +8495,27 @@
             slot = document.createElement("div"); slot.className = "ansslot"; slot.id = "ansslot";
             card.appendChild(slot);
         }
-        var h = '<div class="ansbox">';
+        /* frågans kontroller (t.ex. bokstäverna och Valmis) byts mot svaret på samma plats och höjd */
+        var fb = document.getElementById("fb"), ctl = document.getElementById("qctl");
+        var good = !fb || fb.className.indexOf(" no") < 0;
+        if (ctl) {
+            slot.style.minHeight = ctl.offsetHeight + "px";
+            ctl.parentNode.insertBefore(slot, ctl.nextSibling);
+            ctl.hidden = true;
+        }
+        var h = '<div class="ansbox ' + (good ? "good" : "bad") + '"><div class="anspanel">';
         if (w) {
-            h += '<div class="answord" lang="et">' + esc(w.et) + '</div>' +
-                '<div class="ansrow"><button class="speakbtn sm" id="ansay" aria-label="Hör ordet">🔊</button>' +
+            h += '<div class="answrap"><span class="answord" lang="et">' + esc(w.et) + '</span>' +
+                '<button class="speakbtn sm" id="ansay" aria-label="Hör ordet">🔊</button>' +
                 '<button class="speakbtn sm" id="anslow" aria-label="Hör ordet långsamt">🐢</button></div>' +
                 '<div class="anssv"><span lang="et">' + esc(w.et) + '</span> = ' + esc(w.sv) + '</div>';
         }
         if (again) h += '<div class="ansagain">🔁 Vi tar det igen snart</div>';
-        h += '<button class="btn wide nextbtn" id="goon">Edasi · Nästa →</button></div>';
+        h += '</div><button class="btn green wide nextbtn" id="goon">Edasi · Nästa →</button></div>';
         slot.innerHTML = h;
+        /* berömmet (eller "ingen fara") hamnar överst i samma panel som ordet */
+        var panel = slot.querySelector(".anspanel");
+        if (fb && fb.innerHTML && panel) panel.insertBefore(fb, panel.firstChild);
         var b = document.getElementById("ansay"); if (b && w) b.onclick = function () { speak(w.et) };
         b = document.getElementById("anslow"); if (b && w) b.onclick = function () { speak(w.et, true) };
         b = document.getElementById("goon"); if (b) b.onclick = goNext;
@@ -8545,9 +8570,9 @@
     function roundChoose(r) {
         screen = "q";
         var opts = distractors(r.w, optCount() - 1), i;
-        var html = dots() + meterHtml() + '<div class="card' + (r.gold ? ' golden' : '') + '"><p class="q">Vad heter det på estniska?</p>' +
-            (diff().emoji ? '<div class="bigem">' + wIcon(r.w) + '</div>' : '<div style="height:12px"></div>') +
-            (diff().emoji ? transHtml(r.w, 19) : '<div class="trans" style="font-size:30px">' + esc(r.w.sv) + '</div>') + '<div class="opts">';
+        /* svenskan står alltid kvar: bilderna stämmer inte alltid, så ordet är ledtråden */
+        var html = dots() + meterHtml() + '<div class="card' + (r.gold ? ' golden' : '') + '"><p class="q">Mis see on? · Vad heter det?</p>' +
+            promptHtml(r.w, r.w.sv) + '<div class="opts txt">';
         for (i = 0; i < opts.length; i++) {
             html += '<button class="opt" data-et="' + esc(opts[i].et) + '" lang="et">' + esc(opts[i].et) + '</button>';
         }
@@ -8558,11 +8583,12 @@
             (function (el) {
                 el.onclick = function () {
                     var ok = el.getAttribute("data-et") === r.w.et, j;
+                    /* rätt svar får en bock, resten tonas ned – lugnt, utan rött */
                     for (j = 0; j < btns.length; j++) {
                         btns[j].disabled = true;
-                        if (btns[j].getAttribute("data-et") === r.w.et) { btns[j].classList.add("right"); stampOn(btns[j], "⭐") }
+                        if (btns[j].getAttribute("data-et") === r.w.et) { btns[j].classList.add("right"); btns[j].textContent += " ✓" }
+                        else btns[j].classList.add("dim");
                     }
-                    if (!ok) { el.classList.add("wrong"); stampOn(el, "❌") }
                     praiseSay(L.combo + (ok ? 1 : 0), ok, document.getElementById("fb"));
                     answered(ok);
                 };
@@ -8620,15 +8646,15 @@
     }
     function roundType(r) {
         screen = "q";
-        var html = dots() + meterHtml() + '<div class="card' + (r.gold ? ' golden' : '') + '"><p class="q">Skriv ordet på estniska</p>' +
-            (diff().emoji ? '<div class="bigem">' + wIcon(r.w) + '</div>' : '<div style="height:10px"></div>') +
-            (diff().emoji ? transHtml(r.w, 19) : '<div class="trans" style="font-size:28px">' + esc(r.w.sv) + '</div>') +
-            '<div class="center"><button class="speakbtn sm" id="say" aria-label="Hör ordet">🔊</button>' +
-            (diff().peek ? '<button class="btn ghost" id="peek">Visa första bokstaven</button>' : '') + '</div>' +
+        /* specialtecknen och Valmis ligger i #qctl – svaret tar deras plats, så kortet inte hoppar */
+        var html = dots() + meterHtml() + '<div class="card' + (r.gold ? ' golden' : '') + '"><p class="q">Kirjuta eesti keeles · Skriv på estniska</p>' +
+            promptHtml(r.w, r.w.sv) +
+            '<div class="center qtools"><button class="speakbtn sm" id="say" aria-label="Hör ordet">🔊</button>' +
+            (diff().peek ? '<button class="btn ghost" id="peek">💡 Första bokstaven</button>' : '') + '</div>' +
             '<input class="type" id="inp" lang="et" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="skriv här" inputmode="text">' +
-            '<p class="keyslabel">Estniska bokstäver</p><div class="keys" id="keys"></div>' +
+            '<div class="qctl" id="qctl"><p class="keyslabel">Estniska bokstäver</p><div class="keys" id="keys"></div>' +
             '<button class="btn wide" id="ok">Valmis! · Klart</button>' +
-            '<div class="feedback" id="fb"></div><div class="ansslot" id="ansslot"></div></div><div class="center">' + siilSVG("small") + '</div>';
+            '<div class="feedback" id="fb"></div></div><div class="ansslot" id="ansslot"></div></div><div class="center">' + siilSVG("small") + '</div>';
         app.innerHTML = html;
         var inp = document.getElementById("inp"), fb = document.getElementById("fb"), tries = 0;
         var special = ["ä", "ö", "ü", "õ", "š", "ž"], keys = document.getElementById("keys"), i;
@@ -8650,8 +8676,9 @@
         var done = false;
         function finish(ok) {
             done = true;
-            ["ok", "peek", "keys"].forEach(function (id) { var e = document.getElementById(id); if (e) e.hidden = true });
-            var kl = app.querySelector(".keyslabel"); if (kl) kl.hidden = true;
+            /* Valmis och bokstäverna försvinner när showAnswer byter #qctl mot svaret */
+            var e = document.getElementById("peek"); if (e) e.hidden = true;
+            if (ok) inp.value = inp.value.trim() + " ✓";
             answered(ok, "type");
         }
         function check() {
@@ -8701,8 +8728,8 @@
     function roundSpeak(r) {
         if (!micOK || micBlocked) { roundChoose(r); return }
         screen = "q";
-        var html = dots() + meterHtml() + '<div class="card' + (r.gold ? ' golden' : '') + '"><p class="q">Säg ordet högt!</p><p class="qsub">Tryck på mikrofonen och säg ordet.</p>' +
-            '<div class="bigem">' + wIcon(r.w) + '</div><div class="bigword" lang="et">' + esc(r.w.et) + '</div>' +
+        var html = dots() + meterHtml() + '<div class="card' + (r.gold ? ' golden' : '') + '"><p class="q">Ütle valjusti! · Säg ordet högt!</p><p class="qsub">Tryck på mikrofonen och säg ordet.</p>' +
+            promptHtml(r.w, r.w.et, "et") +
             '<div class="trans">' + esc(r.w.sv) + '</div>' + (diff().hint ? '<div class="hint">säg så här: ' + esc(r.w.hint) + '</div>' : '') +
             '<div class="center"><button class="speakbtn sm" id="say" aria-label="Hör ordet först">🔊</button>' +
             '<button class="mic" id="mic" aria-label="Spela in din röst">🎤</button>' +
