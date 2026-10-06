@@ -6236,8 +6236,37 @@
     }
     function fPet(id) {
         if (id === "d-cat") {
-            return '<g transform="translate(74,236) scale(0.72)">' +
-                ' <ellipse cx="0" cy="4" rx="26" ry="5" fill="#2A1B0C" opacity=".22"/> <!-- svans som kröker sig runt kroppen --> <path d="M18 -4 q14 2 17 -10 q2 -8 -4 -10 q-5 -1 -5 5 q0 7 -8 9 z" fill="#E08A3C"/> <path d="M24 -8 q6 -1 8 -6" stroke="#C4661F" stroke-width="2.6" fill="none" stroke-linecap="round"/> <path d="M29 -15 q3 -2 3 -6" stroke="#C4661F" stroke-width="2.4" fill="none" stroke-linecap="round"/> <!-- kropp --> <ellipse cx="0" cy="-8" rx="21" ry="12.5" fill="#EE9644"/> <ellipse cx="-1" cy="-12" rx="18" ry="8" fill="#F5A95C" opacity=".75"/> <!-- strimmor --> <g stroke="#C4661F" stroke-width="2.4" stroke-linecap="round" opacity=".9" fill="none"> <path d="M-2 -19 q1.5 5 .5 9"/><path d="M5 -18.5 q1.5 5 .5 9"/><path d="M12 -16.5 q1.5 4 .5 7.5"/> </g> <!-- ljus mage --> <ellipse cx="-3" cy="-2" rx="14" ry="6" fill="#FBE0B4"/> <!-- framtassar --> <ellipse cx="-13" cy="1.5" rx="6" ry="3.6" fill="#FBE0B4"/> <ellipse cx="-4" cy="2" rx="6" ry="3.6" fill="#FBE0B4"/> <g stroke="#E3C193" stroke-width="1" stroke-linecap="round"> <path d="M-15.5 .6 v2.2 M-13 .2 v2.6 M-10.5 .6 v2.2 M-6.5 1.1 v2.2 M-4 .7 v2.6 M-1.5 1.1 v2.2"/> </g> <!-- huvud --> <g transform="translate(-16,-16)"> <!-- öron --> <path d="M-9.5 -7.5 l-1.5 -9.5 l8.5 4.5 z" fill="#EE9644"/> <path d="M-8.2 -7.8 l-.9 -5.8 l5 2.7 z" fill="#F3B49C"/> <path d="M8.5 -8.5 l5 -8.5 l2.5 9 z" fill="#EE9644"/> <path d="M8.9 -8.4 l3.3 -5.2 l1.6 5.6 z" fill="#F3B49C"/> <!-- ansikte --> <ellipse cx="0" cy="0" rx="13" ry="11.5" fill="#F3A152"/> <ellipse cx="0" cy="3" rx="10.5" ry="8" fill="#FBE0B4"/> <!-- pannstrimmor --> <g stroke="#C4661F" stroke-width="1.8" stroke-linecap="round" fill="none" opacity=".85"> <path d="M-5 -9 q.5 3 0 5"/><path d="M0 -10 q.5 3 0 5"/><path d="M5 -9 q-.5 3 0 5"/> </g> <!-- kinder --> <ellipse cx="-8.5" cy="3.5" rx="4.5" ry="3.4" fill="#F7C07E" opacity=".55"/> <ellipse cx="8.5" cy="3.5" rx="4.5" ry="3.4" fill="#F7C07E" opacity=".55"/> <!-- ögon --> <ellipse cx="-5" cy="-.5" rx="3.6" ry="4" fill="#2E6B45"/> <ellipse cx="5" cy="-.5" rx="3.6" ry="4" fill="#2E6B45"/> <ellipse cx="-5" cy="-.5" rx="1.5" ry="3.4" fill="#12100E"/> <ellipse cx="5" cy="-.5" rx="1.5" ry="3.4" fill="#12100E"/> <circle cx="-6.3" cy="-2" r="1.3" fill="#fff" opacity=".95"/> <circle cx="3.7" cy="-2" r="1.3" fill="#fff" opacity=".95"/> <circle cx="-4" cy="1.2" r=".6" fill="#fff" opacity=".6"/> <circle cx="6" cy="1.2" r=".6" fill="#fff" opacity=".6"/> <!-- nos och mun --> <path d="M-1.8 4 h3.6 l-1.8 2 z" fill="#E88A8A"/> <path d="M0 6 v1.2" stroke="#C98A6A" stroke-width=".9"/> <path d="M0 7.2 q-2.6 2.4 -4.6 .2" stroke="#C98A6A" stroke-width="1.1" fill="none" stroke-linecap="round"/> <path d="M0 7.2 q2.6 2.4 4.6 .2" stroke="#C98A6A" stroke-width="1.1" fill="none" stroke-linecap="round"/> <!-- morrhår --> <g stroke="#FDF2DC" stroke-width=".9" stroke-linecap="round" opacity=".95"> <path d="M-10 2.5 l-8 -1.5 M-10 4.5 l-8 1 M-10 6 l-7 3"/> <path d="M10 2.5 l8 -1.5 M10 4.5 l8 1 M10 6 l7 3"/     > </g> </g> ' +
+            return '<g transform="translate(70,199) scale(0.6)">' +
+                '<ellipse cx="50" cy="93" rx="27" ry="5" fill="#2A1B0C" opacity=".18"/>' +
+                '<g class="pettail">' +
+                '<path d="M64,66 C96,66 108,30 86,8 C98,28 96,62 60,60 Z" fill="#F2A765"/>' +
+                '<path d="M84,16 C94,32 90,54 68,58" fill="none" stroke="#D98A3E" stroke-width="1.6" opacity=".5" stroke-linecap="round"/>' +
+                '</g>' +
+                '<ellipse cx="50" cy="62" rx="28" ry="24" fill="#F2A765"/>' +
+                '<ellipse cx="50" cy="71" rx="18" ry="15" fill="#FDF4E6"/>' +
+                '<path d="M50,78 q0,7 0,11" stroke="#E8C79A" stroke-width="1.3" opacity=".6" stroke-linecap="round"/>' +
+                '<ellipse cx="39" cy="84" rx="9" ry="7" fill="#FDF4E6"/>' +
+                '<ellipse cx="61" cy="84" rx="9" ry="7" fill="#FDF4E6"/>' +
+                '<path d="M32,16 Q22,0 42,12 Q38,18 32,16 Z" fill="#F2A765"/>' +
+                '<path d="M33,14 Q27,5 39,12 Q36,15.5 33,14 Z" fill="#FBD9B0"/>' +
+                '<path d="M68,16 Q78,0 58,12 Q62,18 68,16 Z" fill="#F2A765"/>' +
+                '<path d="M67,14 Q73,5 61,12 Q64,15.5 67,14 Z" fill="#FBD9B0"/>' +
+                '<circle cx="50" cy="31" r="21" fill="#F2A765"/>' +
+                '<g stroke="#D98A3E" stroke-width="1.6" fill="none" stroke-linecap="round" opacity=".7">' +
+                '<path d="M43,15 q2,5 0,9"/><path d="M50,13 q0,5 0,9"/><path d="M57,15 q-2,5 0,9"/>' +
+                '</g>' +
+                '<ellipse cx="33" cy="38" rx="5" ry="3.6" fill="#F7C07E" opacity=".5"/>' +
+                '<ellipse cx="67" cy="38" rx="5" ry="3.6" fill="#F7C07E" opacity=".5"/>' +
+                '<g stroke="#FFFDF8" stroke-width="1.1" stroke-linecap="round" opacity=".9">' +
+                '<path d="M29,35 L11,31"/><path d="M29,38 L10,38"/><path d="M29,41 L11,45"/>' +
+                '<path d="M71,35 L86,32"/><path d="M71,38 L87,38"/><path d="M71,41 L86,44"/>' +
+                '</g>' +
+                '<ellipse cx="42" cy="33" rx="4" ry="5" fill="#2A2015"/><ellipse cx="58" cy="33" rx="4" ry="5" fill="#2A2015"/>' +
+                '<circle cx="40.5" cy="30.5" r="1.3" fill="#fff"/><circle cx="56.5" cy="30.5" r="1.3" fill="#fff"/>' +
+                '<path d="M47,39 L53,39 L50,42 Z" fill="#E8899A"/>' +
+                '<path d="M50,42 L50,44" stroke="#C47A4A" stroke-width="1"/>' +
+                '<path d="M50,44 q-4,4 -8,0.6" fill="none" stroke="#C47A4A" stroke-width="1.3" stroke-linecap="round"/>' +
+                '<path d="M50,44 q4,4 8,0.6" fill="none" stroke="#C47A4A" stroke-width="1.3" stroke-linecap="round"/>' +
                 '</g>';
         }
         if (id === "d-bird") {

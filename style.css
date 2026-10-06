@@ -2276,6 +2276,23 @@ body {
     animation: embers 3.2s ease-in-out infinite
 }
 
+.roomsvg .pettail {
+    transform-origin: 66px 62px;
+    animation: tailsway 2.6s ease-in-out infinite
+}
+
+@keyframes tailsway {
+
+    0%,
+    100% {
+        transform: rotate(-4deg)
+    }
+
+    50% {
+        transform: rotate(9deg)
+    }
+}
+
 @keyframes flick {
 
     0%,
@@ -2309,7 +2326,8 @@ body {
 @media (prefers-reduced-motion: reduce) {
 
     .roomsvg .fl,
-    .roomsvg .embers {
+    .roomsvg .embers,
+    .roomsvg .pettail {
         animation: none
     }
 }
