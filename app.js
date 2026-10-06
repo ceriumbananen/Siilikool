@@ -1831,21 +1831,21 @@
         try {
             if (!AC) AC = new (window.AudioContext || window.webkitAudioContext)();
             if (AC.state === "suspended") AC.resume();
-            var t = AC.currentTime, len = dur || 1.6, sr = AC.sampleRate;
+            var t = AC.currentTime, len = dur || 1.1, sr = AC.sampleRate;
             var n = Math.ceil(sr * len), buf = AC.createBuffer(1, n, sr), data = buf.getChannelData(0);
-            var rate = 27, i, time, pulse;
+            var rate = 28, i, time, pulse;
             for (i = 0; i < n; i++) {
                 time = i / sr;
                 pulse = Math.max(0, Math.sin(2 * Math.PI * rate * time));
-                pulse = Math.pow(pulse, 1.2);
+                pulse = Math.pow(pulse, 1.6);
                 data[i] = (Math.random() * 2 - 1) * pulse;
             }
             var src = AC.createBufferSource(); src.buffer = buf;
-            var f1 = AC.createBiquadFilter(); f1.type = "lowpass"; f1.frequency.value = 250; f1.Q.value = 1.3;
+            var f1 = AC.createBiquadFilter(); f1.type = "lowpass"; f1.frequency.value = 260; f1.Q.value = 1;
             var g = AC.createGain();
             g.gain.setValueAtTime(0.0001, t);
-            g.gain.exponentialRampToValueAtTime(3, t + 0.2);
-            g.gain.setValueAtTime(3, t + len - 0.35);
+            g.gain.exponentialRampToValueAtTime(1.6, t + 0.15);
+            g.gain.setValueAtTime(1.6, t + len - 0.3);
             g.gain.exponentialRampToValueAtTime(0.0001, t + len);
             src.connect(f1); f1.connect(g); g.connect(AC.destination);
             src.start(t); src.stop(t + len + 0.02);
