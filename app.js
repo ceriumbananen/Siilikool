@@ -1822,6 +1822,35 @@
             }
         } catch (e) { }
     }
+    /* kattspinn: en låg ton som darrar i ~26 Hz, plus lite brus för textur */
+    function purr(dur) {
+        if (!S.sound) return;
+        try {
+            if (!AC) AC = new (window.AudioContext || window.webkitAudioContext)();
+            if (AC.state === "suspended") AC.resume();
+            var t = AC.currentTime, len = dur || 1.3;
+            var osc = AC.createOscillator(); osc.type = "sawtooth"; osc.frequency.value = 85;
+            var filt = AC.createBiquadFilter(); filt.type = "lowpass"; filt.frequency.value = 350;
+            var g = AC.createGain();
+            var lfo = AC.createOscillator(); lfo.type = "sine"; lfo.frequency.value = 26;
+            var lfoGain = AC.createGain(); lfoGain.gain.value = 0.22;
+            lfo.connect(lfoGain); lfoGain.connect(g.gain);
+            osc.connect(filt); filt.connect(g); g.connect(AC.destination);
+            g.gain.setValueAtTime(0.0001, t);
+            g.gain.exponentialRampToValueAtTime(0.3, t + 0.15);
+            g.gain.setValueAtTime(0.3, t + len - 0.3);
+            g.gain.exponentialRampToValueAtTime(0.0001, t + len);
+            var buf = AC.createBuffer(1, Math.ceil(AC.sampleRate * len), AC.sampleRate), data = buf.getChannelData(0), j;
+            for (j = 0; j < data.length; j++) data[j] = (Math.random() * 2 - 1) * 0.5;
+            var noise = AC.createBufferSource(); noise.buffer = buf;
+            var noiseFilt = AC.createBiquadFilter(); noiseFilt.type = "lowpass"; noiseFilt.frequency.value = 500;
+            var noiseGain = AC.createGain(); noiseGain.gain.value = 0.05;
+            noise.connect(noiseFilt); noiseFilt.connect(noiseGain); noiseGain.connect(g);
+            osc.start(t); osc.stop(t + len + 0.05);
+            lfo.start(t); lfo.stop(t + len + 0.05);
+            noise.start(t); noise.stop(t + len);
+        } catch (e) { }
+    }
     function sndNo() { tone(300, .16, 0, "triangle"); tone(210, .22, .13, "triangle") }
     var AMB = null;
     function ambienceStop() {
@@ -6236,7 +6265,7 @@
     }
     function fPet(id) {
         if (id === "d-cat") {
-            return '<g transform="translate(70,193) scale(0.6)">' +
+            return '<g id="roompet" transform="translate(70,193) scale(0.6)" style="cursor:pointer">' +
                 '<ellipse cx="50" cy="93" rx="27" ry="5" fill="#2A1B0C" opacity=".18"/>' +
                 '<g class="pettail">' +
                 '<path d="M64,66 C96,66 108,30 86,8 C98,28 96,62 60,60 Z" fill="#F2A765"/>' +
@@ -6360,7 +6389,7 @@
             (fLampExtra(furnOf("lamp")) || fLamp(furnOf("lamp"))) +
             (fPlantExtra(furnOf("plant")) || fPlant(furnOf("plant"))) +
             fPet(furnOf("pet")) +
-            '<rect width="400" height="270" fill="url(#g-warm)"/><rect width="400" height="270" fill="url(#g-vign)"/>' +
+            '<rect width="400" height="270" fill="url(#g-warm)" style="pointer-events:none"/><rect width="400" height="270" fill="url(#g-vign)" style="pointer-events:none"/>' +
             '</svg>';
     }
 
@@ -6595,6 +6624,8 @@
         if (hb) hb.onclick = function (e) { e.stopPropagation(); findHidden() };
         var rd = document.getElementById("rdance");
         if (rd) rd.onclick = function () { dance(true); speak("Mängime!") };
+        var rp = document.getElementById("roompet");
+        if (rp) rp.onclick = function (e) { e.stopPropagation(); purr() };
         var tb = app.querySelectorAll("[data-tab]"), k;
         for (k = 0; k < tb.length; k++) {
             (function (el) { el.onclick = function () { S.roomTab = el.getAttribute("data-tab"); save(); tone(700, .06, 0); roomScreen() } })(tb[k]);
