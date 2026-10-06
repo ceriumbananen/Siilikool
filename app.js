@@ -8608,6 +8608,16 @@
         }
         return s + '</span>';
     }
+    /* visar det rätta ordet och markerar det som skiljer – även en bokstav som saknas
+       ("kasvatu" → kasvatu<b>s</b>), vilket letterDiff inte kan visa */
+    function wantDiff(got, want) {
+        var g = (got || "").toLowerCase().replace(/\s+/g, " ").trim(), w = want || "", wl = w.toLowerCase(), p = 0, q = 0;
+        while (p < g.length && p < wl.length && g.charAt(p) === wl.charAt(p)) p++;
+        while (q < g.length - p && q < wl.length - p && g.charAt(g.length - 1 - q) === wl.charAt(wl.length - 1 - q)) q++;
+        return '<span class="ldiff" lang="et"><span class="okch">' + esc(w.slice(0, p)) + '</span>' +
+            '<span class="badch">' + esc(w.slice(p, w.length - q)) + '</span>' +
+            '<span class="okch">' + esc(w.slice(w.length - q)) + '</span></span>';
+    }
     function roundType(r) {
         screen = "q";
         var html = dots() + meterHtml() + '<div class="card' + (r.gold ? ' golden' : '') + '"><p class="q">Skriv ordet på estniska</p>' +
@@ -8636,10 +8646,19 @@
             if (!inp.value) inp.value = r.w.et.charAt(0);
             inp.focus();
         };
+        /* frågan kan bara besvaras en gång – förut gick Valmis att trycka igen och igen för nya poäng */
+        var done = false;
+        function finish(ok) {
+            done = true;
+            ["ok", "peek", "keys"].forEach(function (id) { var e = document.getElementById(id); if (e) e.hidden = true });
+            var kl = app.querySelector(".keyslabel"); if (kl) kl.hidden = true;
+            answered(ok, "type");
+        }
         function check() {
-            var got = inp.value, ok = norm(got) === norm(r.w.et), closeTry = false;
+            if (done) return;
+            var got = inp.value, ok = norm(got) === norm(r.w.et), closeTry = false, nearly = false;
             /* på Lätt räcker det nära nog, men rätt stavning visas alltid */
-            if (!ok && diff().id === "latt" && got && lev(norm(got), norm(r.w.et)) <= 1) ok = true;
+            if (!ok && diff().id === "latt" && got && lev(norm(got), norm(r.w.et)) <= 1) ok = nearly = true;
             if (!ok && loose(got) === loose(r.w.et)) {
                 tries++; inp.className = "type wrong"; fb.className = "feedback no";
                 fb.innerHTML = "Nästan! Kolla prickarna och krokarna.<br>" + letterDiff(got, r.w.et);
@@ -8647,15 +8666,21 @@
                 if (tries < 2) return;
                 closeTry = true;
             }
-            if (ok) {
+            if (ok && nearly) {
+                /* godkänt, men barnet ska se att en bokstav blev fel – inget "du kan det här" */
+                inp.className = "type right"; inp.disabled = true;
+                fb.className = "feedback ok";
+                fb.innerHTML = "Nästan perfekt! Så här stavas det:<br>" + wantDiff(got, r.w.et);
+                finish(true);
+            } else if (ok) {
                 inp.className = "type right"; inp.disabled = true;
                 praiseSay(L.combo + 1, true, fb);
-                answered(true, "type");
+                finish(true);
             } else if (closeTry) {
                 /* redan på sitt andra (nästan-rätt) försök – räkna inte ett tredje här */
                 inp.className = "type wrong"; inp.disabled = true;
                 fb.className = "feedback no"; fb.innerHTML = typoHint(got, r.w.et);
-                answered(false, "type");
+                finish(false);
             } else {
                 tries++;
                 if (tries < 2) {
@@ -8665,7 +8690,7 @@
                 } else {
                     inp.className = "type wrong"; inp.disabled = true;
                     fb.className = "feedback no"; fb.innerHTML = typoHint(got, r.w.et);
-                    answered(false, "type");
+                    finish(false);
                 }
             }
         }
