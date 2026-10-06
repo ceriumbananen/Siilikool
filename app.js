@@ -1823,32 +1823,32 @@
         } catch (e) { }
     }
     /* kattspinn: en låg ton som darrar i ~26 Hz, plus lite brus för textur */
+    /* kattspinn: riktiga katter spinner genom att stämbanden öppnas och stängs
+       ~25-30 ggr/sek, vilket ger ett muller av bruset luft snarare än en ren ton –
+       därför byggs ljudet av pulsat, lågpassfiltrerat brus och ingen oscillator */
     function purr(dur) {
         if (!S.sound) return;
         try {
             if (!AC) AC = new (window.AudioContext || window.webkitAudioContext)();
             if (AC.state === "suspended") AC.resume();
-            var t = AC.currentTime, len = dur || 1.3;
-            var osc = AC.createOscillator(); osc.type = "sawtooth"; osc.frequency.value = 85;
-            var filt = AC.createBiquadFilter(); filt.type = "lowpass"; filt.frequency.value = 350;
+            var t = AC.currentTime, len = dur || 1.6, sr = AC.sampleRate;
+            var n = Math.ceil(sr * len), buf = AC.createBuffer(1, n, sr), data = buf.getChannelData(0);
+            var rate = 27, i, time, pulse;
+            for (i = 0; i < n; i++) {
+                time = i / sr;
+                pulse = Math.max(0, Math.sin(2 * Math.PI * rate * time));
+                pulse = Math.pow(pulse, 1.2);
+                data[i] = (Math.random() * 2 - 1) * pulse;
+            }
+            var src = AC.createBufferSource(); src.buffer = buf;
+            var f1 = AC.createBiquadFilter(); f1.type = "lowpass"; f1.frequency.value = 250; f1.Q.value = 1.3;
             var g = AC.createGain();
-            var lfo = AC.createOscillator(); lfo.type = "sine"; lfo.frequency.value = 26;
-            var lfoGain = AC.createGain(); lfoGain.gain.value = 0.22;
-            lfo.connect(lfoGain); lfoGain.connect(g.gain);
-            osc.connect(filt); filt.connect(g); g.connect(AC.destination);
             g.gain.setValueAtTime(0.0001, t);
-            g.gain.exponentialRampToValueAtTime(0.3, t + 0.15);
-            g.gain.setValueAtTime(0.3, t + len - 0.3);
+            g.gain.exponentialRampToValueAtTime(3, t + 0.2);
+            g.gain.setValueAtTime(3, t + len - 0.35);
             g.gain.exponentialRampToValueAtTime(0.0001, t + len);
-            var buf = AC.createBuffer(1, Math.ceil(AC.sampleRate * len), AC.sampleRate), data = buf.getChannelData(0), j;
-            for (j = 0; j < data.length; j++) data[j] = (Math.random() * 2 - 1) * 0.5;
-            var noise = AC.createBufferSource(); noise.buffer = buf;
-            var noiseFilt = AC.createBiquadFilter(); noiseFilt.type = "lowpass"; noiseFilt.frequency.value = 500;
-            var noiseGain = AC.createGain(); noiseGain.gain.value = 0.05;
-            noise.connect(noiseFilt); noiseFilt.connect(noiseGain); noiseGain.connect(g);
-            osc.start(t); osc.stop(t + len + 0.05);
-            lfo.start(t); lfo.stop(t + len + 0.05);
-            noise.start(t); noise.stop(t + len);
+            src.connect(f1); f1.connect(g); g.connect(AC.destination);
+            src.start(t); src.stop(t + len + 0.02);
         } catch (e) { }
     }
     function sndNo() { tone(300, .16, 0, "triangle"); tone(210, .22, .13, "triangle") }
