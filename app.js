@@ -3583,13 +3583,13 @@
             var strong = (mode === "type" || mode === "speak");
             m.s = strong ? Math.min(6, (m.s || 0) + 1) : Math.min(3, (m.s || 0) + 0.5);
             m.w = Math.max(0.35, m.w * (strong ? 0.45 : 0.7));
-        } else { m.m++; m.s = 0; m.w = Math.min(9, m.w + 2.2) }
+        } else { m.m++; m.s = 0; m.w = Math.min(16, m.w + 2.2) }
         save();
     }
     function wmemDue(et, sv) {
         var m = (S.wordmem || {})[mkey(et, sv)];
         if (!m) return 0;
-        var gaps = [1, 1, 2, 4, 8, 16, 30];
+        var gaps = [1, 2, 4, 8, 16, 30, 45];
         var gap = gaps[Math.min(6, Math.round(m.s || 0))] || 1;
         return (today0() - (m.d || today0())) - gap;
     }
@@ -7303,7 +7303,7 @@
         html += '</div><div class="row" style="margin-top:10px">' +
             '<button class="btn ghost" id="hint"' + (DU.hint ? '' : ' disabled') + '>🔍 Vihje</button>' +
             '<button class="btn ghost" id="dbl"' + (DU.dbl ? ' disabled' : '') + '>⭐ Topeltpunkt</button></div>' +
-            '<div class="feedback" id="fb"></div></div>';
+            '<div class="feedback" id="fb"></div></div><div class="center">' + siilSVG("small") + '</div>';
         app.innerHTML = html;
         if (listen) { speak(w.et); var hb = document.getElementById("hear"); if (hb) hb.onclick = function () { speak(w.et) } }
         if (DU.rivalDbl === "now" && !listen) speak(taunt("dbl").et);
@@ -7335,8 +7335,8 @@
                     if (!ok) el.className = "opt wrong";
                     wmemHit(w.et, ok, "choose", w.sv);
                     var gained = 0;
-                    if (ok) { gained = DU.dblNow ? 2 : 1; DU.me += gained; sndOk(); buzz(18) }
-                    else { DU.myMiss++; sndNo(); if (DU.dblNow) { DU.you += 1 } }
+                    if (ok) { gained = DU.dblNow ? 2 : 1; DU.me += gained; sndOk(); buzz(18); mood("cheer") }
+                    else { DU.myMiss++; sndNo(); mood("oops"); if (DU.dblNow) { DU.you += 1 } }
                     DU.dblNow = false;
                     praiseSay(ok ? 2 : 0, ok, document.getElementById("fb"));
                     /* motståndaren funderar synligt innan hon svarar */
@@ -7464,7 +7464,7 @@
         }
         html += '</div><p class="qsub" style="margin-top:10px">' +
             (MM.turns ? 'Klarar du det på ' + perfect + ' vändningar blir det tre stjärnor.' : 'Varje par du minns direkt ger extra stjärnor.') +
-            '</p></div>';
+            '</p></div><div class="center">' + siilSVG("small") + '</div>';
         app.innerHTML = html;
         var bs = app.querySelectorAll("[data-m]");
         for (i = 0; i < bs.length; i++) {
@@ -7491,14 +7491,14 @@
             MM.streak++; if (MM.streak > MM.best) MM.best = MM.streak;
             var bonus = 2 + (MM.streak >= 3 ? 2 : MM.streak >= 2 ? 1 : 0);
             S.correct++; earnStars(bonus); addXp(12 + MM.streak * 2); wmemHit(a.w.et, true, "choose", a.w.sv);
-            sndOk(); buzz(18); save(); refreshTop();
+            sndOk(); buzz(18); mood("cheer"); save(); refreshTop();
             MM.flash = { em: wIcon(a.w), et: a.w.et, sv: a.w.sv };
             if (MM.streak >= 3) { tone(1180, .1, 0); tone(1560, .16, .1) }
             if (Object.keys(MM.done).length >= MM.pairs) { setTimeout(memEnd, 650); memDraw(); return }
             setTimeout(memDraw, 260);
         } else {
             MM.streak = 0;
-            wmemHit(a.w.et, false, undefined, a.w.sv); sndNo();
+            wmemHit(a.w.et, false, undefined, a.w.sv); sndNo(); mood("oops");
             setTimeout(function () { if (!MM) return; MM.open = []; MM.lock = false; MM.flash = null; memDraw() }, 1000);
         }
     }
@@ -7556,7 +7556,7 @@
         for (i = 0; i < opts.length; i++) {
             html += '<button class="raindrop" data-et="' + esc(opts[i].et) + '" style="left:' + (6 + i * 23) + '%;animation-duration:' + (7 + i * 1.3) + 's;animation-delay:' + (i * 0.7) + 's">' + esc(opts[i].et) + '</button>';
         }
-        html += '</div><div class="feedback" id="fb"></div></div>';
+        html += '</div><div class="feedback" id="fb"></div></div><div class="center">' + siilSVG("small") + '</div>';
         app.innerHTML = html;
         speak(target.et);
         document.getElementById("say").onclick = function () { speak(target.et) };
@@ -7570,8 +7570,8 @@
                     el.classList.add(ok ? "hit" : "miss");
                     wmemHit(target.et, ok, "choose", target.sv);
                     praiseSay(ok ? RN.right + 1 : 0, ok, document.getElementById("fb"));
-                    if (ok) { RN.right++; S.correct++; earnStars(2); addXp(10); sndOk(); buzz(18); save(); refreshTop() }
-                    else { sndNo() }
+                    if (ok) { RN.right++; S.correct++; earnStars(2); addXp(10); sndOk(); buzz(18); mood("cheer"); save(); refreshTop() }
+                    else { sndNo(); mood("oops") }
                     RN.i++;
                     setTimeout(function () { if (RN) rainRound() }, ok ? 800 : 1500);
                 }
@@ -8076,7 +8076,10 @@
             if (!mm2 || (mm2.r || 0) === 0) fresh.push(pool[i2]);
             else if ((mm2.s || 0) < 2 || wmemDue(pool[i2].et, pool[i2].sv) >= 0) shaky.push(pool[i2]);
         }
-        var need = fresh.slice(0, 5);
+        /* vacklar flera ord redan? då får färre nya in denna gång, så repetitionen får plats */
+        var dueShaky = shaky.filter(function (w) { return wmemDue(w.et, w.sv) >= 0 }).length;
+        var freshBudget = Math.max(2, 5 - Math.min(3, dueShaky));
+        var need = fresh.slice(0, freshBudget);
         if (!need.length) need = shaky.slice(0, 3);
         if (!need.length) need = t.words.slice(0, 3);
         L = { theme: t, phase: "learn", learnIdx: 0, learnList: need, rounds: [], idx: 0, results: [], right: 0 };
@@ -8213,9 +8216,9 @@
             rest = rd.concat(rest);
         }
         /* fem nya ord ×2 fyllde hela passet, så repetitionen trängdes ut helt.
-           Nu reserveras alltid plats för ett par gamla ord som fallit due. */
+           Nu reserveras alltid plats för gamla ord som fallit due. */
         var newQ = learned.length * 2;
-        var want = Math.min(12, Math.max(10, newQ + Math.min(3, rest.length)));
+        var want = Math.min(12, Math.max(10, newQ + Math.min(5, rest.length)));
         var ws = learned.concat(learned);               /* varje nytt ord möts två gånger */
         for (i0 = 0; ws.length < want && i0 < rest.length; i0++)ws.push(rest[i0]);
         if (ws.length < 8) ws = pickWeighted(tw, Math.min(10, tw.length));
@@ -8759,8 +8762,8 @@
             if (!S.tried) S.tried = {}; S.tried[k] = (S.tried[k] || 0) + 1; save();
             go(f, true);
         };
-        if ((S.tough || 0) >= 2 || (S.easy || 0) >= 3) {
-            var easier = (S.tough || 0) >= 2;
+        if ((S.tough || 0) >= 1 || (S.easy || 0) >= 3) {
+            var easier = (S.tough || 0) >= 1;
             setTimeout(function () {
                 var d = document.createElement("div"); d.className = "overlay";
                 d.innerHTML = '<div class="oc"><p class="kicker">' + (easier ? 'Siiri undrar en sak' : 'Siiri har en idé') + '</p>' +
