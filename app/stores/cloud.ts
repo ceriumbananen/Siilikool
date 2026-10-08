@@ -201,6 +201,8 @@ export const useCloudStore = defineStore("cloud", () => {
     s.school = { name: lists.map(w => w.name).join(" + "), added, days: end - added, cloudId: key, words };
     s.schoolCloudId = key;
     profile.save();
+    /* spelet hämtar uttalet till ord som saknar inspelning (public/legacy/app.js, schoolAudio) */
+    window.dispatchEvent(new Event("siiri-school"));
   }
 
   /* ---------- skicka ---------- */

@@ -3807,6 +3807,11 @@
       } catch (e) {}
     }
     if (!src) {
+      /* glosord vars uttal inte hunnit hämtas än: hämta det och spela sedan */
+      if (isSchoolWord(text))
+        ttsNow(text, "normal").then(function (ok) {
+          if (ok) speak(text, slow);
+        });
       return;
     }
     qlist = [];
@@ -5921,11 +5926,94 @@
     var src = navigator.serviceWorker && navigator.serviceWorker.controller ? url : URL.createObjectURL(blob);
     (kind === "slow" ? BANKS.slow : BANKS.normal)[et] = src;
   }
+  /* ett ords uttal (normal/långsam): från cachen, annars från Neurokõne – sparas i cachen.
+       Löftet ger "made" (hämtat), "hit" (fanns), "offline" eller "failed". */
+  function ttsClip(c, et, kind) {
+    var url = ttsUrl(et, kind);
+    return c.match(url).then(function (hit) {
+      if (hit)
+        return hit.blob().then(function (bl) {
+          ttsUse(et, kind, url, bl);
+          return "hit";
+        });
+      if (navigator.onLine === false) return "offline";
+      return ttsFetch(et, TTS_SPEED[kind])
+        .then(function (buf) {
+          var w = wavRead(buf),
+            bl = w && wavShape(w, kind);
+          if (!bl) throw new Error("tomt ljud");
+          return c.put(url, new Response(bl, { headers: { "Content-Type": "audio/wav" } })).then(function () {
+            ttsUse(et, kind, url, bl);
+            return "made";
+          });
+        })
+        .catch(function () {
+          return "failed";
+        });
+    });
+  }
+  /* glosornas ord som saknar inspelning och därför behöver hämtat uttal */
+  function ttsNeeds(et) {
+    var src = BANKS.normal[et];
+    return !(
+      partFor(et) ||
+      (src && src.indexOf("/" + TTS_DIR) < 0 && src.indexOf(TTS_DIR) !== 0 && src.indexOf("blob:") !== 0)
+    );
+  }
+  /* glosorna i alla profiler på enheten – deras uttal får inte städas bort när en annan spelare spelar */
+  function allSchoolWords() {
+    var out = [],
+      i,
+      raw,
+      p;
+    for (i = 0; i < 3; i++) {
+      try {
+        raw = i === curSlot() ? S : JSON.parse(localStorage.getItem("siiri-eesti-v1" + (i ? "-" + i : "")) || "null");
+        p = raw && raw.school && raw.school.words;
+        if (p)
+          p.forEach(function (w) {
+            if (w && w.et) out.push(w.et);
+          });
+      } catch (e) {}
+    }
+    return out;
+  }
+  /* ett glosord utan ljud spelas upp: hämta uttalet nu (en gång per ord och session) */
+  var ttsAsked = {};
+  function ttsNow(et, kind) {
+    if (!ttsOk() || ttsAsked[kind + ":" + et]) return Promise.resolve(false);
+    ttsAsked[kind + ":" + et] = 1;
+    return caches
+      .open(TTS_CACHE)
+      .then(function (c) {
+        return ttsClip(c, et, kind);
+      })
+      .then(function (r) {
+        return r === "made" || r === "hit";
+      })
+      .catch(function () {
+        return false;
+      });
+  }
+  function isSchoolWord(et) {
+    var s = schoolSet();
+    return !!(
+      s &&
+      s.words.some(function (w) {
+        return w.et === et;
+      })
+    );
+  }
   /* ser till att alla ord i glosorna har ljud: tar från cachen, hämtar det som saknas
-       och rensar bort ljud från gamla listor. onProgress(klara, totalt) är valfri. */
+       och rensar bort ljud från gamla listor. onProgress(klara, totalt) är valfri.
+       Kommer en ny lista medan det pågår (t.ex. från familjen) körs det en gång till efteråt. */
+  var ttsAgain = false;
   function schoolAudio(onProgress) {
     if (!ttsOk()) return Promise.resolve({ made: 0, failed: 0 });
-    if (ttsRun) return ttsRun;
+    if (ttsRun) {
+      ttsAgain = true;
+      return ttsRun;
+    }
     var s = schoolSet(),
       words = s
         ? s.words.map(function (w) {
@@ -5934,18 +6022,17 @@
         : [],
       want = {},
       todo = [];
+    /* uttal som ska sparas: alla profilers glosor, inte bara den som spelas nu */
+    allSchoolWords().forEach(function (et) {
+      ["normal", "slow"].forEach(function (kind) {
+        want[ttsUrl(et, kind)] = 1;
+      });
+    });
     words.forEach(function (et) {
       /* riktig inspelning finns (långsamt spelas den då i lägre takt) – hämta inget */
-      var src = BANKS.normal[et];
-      if (
-        partFor(et) ||
-        (src && src.indexOf("/" + TTS_DIR) < 0 && src.indexOf(TTS_DIR) !== 0 && src.indexOf("blob:") !== 0)
-      )
-        return;
+      if (!ttsNeeds(et)) return;
       ["normal", "slow"].forEach(function (kind) {
-        var url = ttsUrl(et, kind);
-        want[url] = 1;
-        if (!(kind === "slow" ? BANKS.slow : BANKS.normal)[et]) todo.push({ et: et, kind: kind, url: url });
+        if (!(kind === "slow" ? BANKS.slow : BANKS.normal)[et]) todo.push({ et: et, kind: kind });
       });
     });
     var made = 0,
@@ -5970,32 +6057,10 @@
         function next() {
           if (i >= todo.length) return;
           var t = todo[i++];
-          return c
-            .match(t.url)
-            .then(function (hit) {
-              if (hit)
-                return hit.blob().then(function (bl) {
-                  ttsUse(t.et, t.kind, t.url, bl);
-                });
-              if (navigator.onLine === false) {
-                failed++;
-                return;
-              }
-              return ttsFetch(t.et, TTS_SPEED[t.kind])
-                .then(function (buf) {
-                  var w = wavRead(buf),
-                    bl = w && wavShape(w, t.kind);
-                  if (!bl) throw new Error("tomt ljud");
-                  return c.put(t.url, new Response(bl, { headers: { "Content-Type": "audio/wav" } })).then(function () {
-                    ttsUse(t.et, t.kind, t.url, bl);
-                    made++;
-                  });
-                })
-                .catch(function () {
-                  failed++;
-                });
-            })
-            .then(function () {
+          return ttsClip(c, t.et, t.kind)
+            .then(function (r) {
+              if (r === "made") made++;
+              else if (r !== "hit") failed++;
               done++;
               if (onProgress) onProgress(done, todo.length);
             })
@@ -6006,6 +6071,10 @@
       .catch(function () {})
       .then(function () {
         ttsRun = null;
+        if (ttsAgain) {
+          ttsAgain = false;
+          schoolAudio();
+        }
         return { made: made, failed: failed, total: todo.length };
       });
     return ttsRun;
@@ -16495,6 +16564,10 @@
     schoolAudio();
   }, 1500);
   window.addEventListener("online", function () {
+    schoolAudio();
+  });
+  /* nya glosor från familjen (app/stores/cloud.ts) – hämta uttalet direkt, inte först nästa gång appen öppnas */
+  window.addEventListener("siiri-school", function () {
     schoolAudio();
   });
   setTimeout(seasonFx, 600);
