@@ -2866,12 +2866,85 @@
   function exportCode() {
     return STORE.exportCode();
   }
-  /* föräldrakontot (Nuxt-appen, app/stores/cloud.ts) – finns bara om konton är påslagna */
+  /* familjekontot (Nuxt-appen, app/stores/cloud.ts) – finns bara om konton är påslagna */
   function cloudOn() {
     return !!(window.SiiriCloud && window.SiiriCloud.enabled);
   }
   function cloudInfo() {
-    return cloudOn() ? window.SiiriCloud.info() : { linked: false, name: "", mode: "", status: "", needsLogin: false };
+    return cloudOn()
+      ? window.SiiriCloud.info()
+      : {
+          linked: false,
+          name: "",
+          kind: "",
+          status: "",
+          needsLogin: false,
+          adult: false,
+          locked: false,
+          familyDevice: false,
+          family: "",
+          signedIn: false,
+        };
+  }
+  /* barn spelar här (barnspelare, eller enheten är låst av en vuxen): föräldradelar, admin och
+     glosinklistring visas inte – glosorna kommer från de vuxna i familjen */
+  function childDevice() {
+    var c = cloudInfo();
+    return c.kind === "child" || c.locked;
+  }
+  /* märke på en spelare i profilväxlaren: sparas i familjen (och har PIN-kod) */
+  function slotTag(i) {
+    if (!cloudOn()) return "";
+    var k = window.SiiriCloud.slotKind(i);
+    return k === "child-pin"
+      ? "<small>☁️ 🔒 PIN</small>"
+      : k === "child"
+        ? "<small>☁️ familjen</small>"
+        : k === "adult"
+          ? "<small>☁️ vuxen</small>"
+          : "";
+  }
+  /* kortet Familj i profilen: vad som gäller beror på vem som är inloggad på enheten */
+  function familyCard() {
+    if (!cloudOn()) return "";
+    var c = cloudInfo(),
+      row = '<div class="row" style="justify-content:flex-start;margin-top:8px">',
+      h =
+        '<div class="card"><p class="q" style="text-align:left">Perekond · Familj</p><p class="qsub" style="text-align:left">';
+    if (c.adult)
+      h +=
+        "Du är inloggad som vuxen" +
+        (c.family ? " i " + esc(c.family) : "") +
+        ". Barn, glosor och familjekod finns i föräldraläget.</p>" +
+        row +
+        '<a class="btn green" href="/parent">👨‍👩‍👧 Föräldraläget</a>' +
+        '<button class="btn ghost" id="famlock">🔒 Lås enheten</button></div>' +
+        '<p class="qsub" id="fammsg" style="text-align:left;margin-top:8px"></p>';
+    else if (c.familyDevice)
+      h +=
+        (c.locked ? "🔒 Enheten är låst av en vuxen. " : "") +
+        (c.family ? "Ni spelar i " + esc(c.family) + "." : "Ni spelar i familjen.") +
+        " Spelet sparas i familjekontot och glosorna kommer från de vuxna.</p>" +
+        row +
+        '<button class="btn green" id="famswitch">👥 Byt spelare</button>' +
+        '<a class="btn ghost" href="/join">➕ Lägg till spelare</a>' +
+        (c.locked ? '<a class="btn ghost" href="/parent">🔓 Lås upp</a>' : "") +
+        "</div>";
+    else if (c.signedIn)
+      h +=
+        "Du är inloggad men inte med i någon familj än.</p>" +
+        row +
+        '<a class="btn green" href="/parent">👨‍👩‍👧 Föräldraläget</a></div>';
+    else
+      h +=
+        (c.linked
+          ? "Spelet hör till familjen, men enheten är utloggad. Skriv familjekoden igen så sparas det som vanligt."
+          : "Spela med familjen: spelet sparas i familjekontot och följer med till andra enheter, och glosorna kommer från de vuxna.") +
+        "</p>" +
+        row +
+        '<a class="btn green" href="/join">🔑 Jag har en familjekod</a>' +
+        '<a class="btn ghost" href="/parent">👩 Jag är vuxen</a></div>';
+    return h + "</div>";
   }
   function cloudLine() {
     var c = cloudInfo();
@@ -2879,17 +2952,17 @@
       return (
         "Allt sparas bara i den här webbläsaren. Spara en kod om du byter dator eller rensar historiken." +
         (cloudOn()
-          ? " Eller koppla till en förälder, så sparas spelet i föräldrakontot och följer med till andra enheter."
+          ? " Eller gå med i familjen, så sparas spelet i familjekontot och följer med till andra enheter."
           : "")
       );
     if (c.needsLogin)
       return (
-        "☁️ Kopplad till föräldrakontot" +
+        "☁️ Kopplad till familjekontot" +
         (c.name ? " (" + esc(c.name) + ")" : "") +
-        ", men inloggningen har gått ut – tryck på Föräldrakontot."
+        ", men enheten är utloggad – se Familj ovan."
       );
     return (
-      "☁️ Sparas i föräldrakontot" +
+      "☁️ Sparas i familjekontot" +
       (c.name ? " som " + esc(c.name) : "") +
       " och följer med till andra enheter." +
       (c.status === "offline" ? " Just nu offline – det skickas när nätet är tillbaka." : "") +
@@ -5943,7 +6016,9 @@
     var s = schoolSet();
     var html =
       '<div class="zone words"><span class="zem">📝</span><span><b>Koolisõnad</b>' +
-      "<span>Skolans glosor — klistra in veckans ord</span></span></div>";
+      "<span>" +
+      (childDevice() ? "Skolans glosor — från de vuxna i familjen" : "Skolans glosor — klistra in veckans ord") +
+      "</span></span></div>";
     if (s) {
       var left = schoolLeft().length,
         d = schoolDaysLeft();
@@ -5987,7 +6062,20 @@
       }
       html +=
         '</div><button class="btn green big wide" id="schoolplay" style="margin-top:10px">▶️ Öva på orden</button>' +
-        '<button class="btn ghost wide" id="schoolclear" style="margin-top:8px">Ta bort listan</button></div>';
+        /* glosor från familjen tas bort av de vuxna i föräldraläget */
+        (s.cloudId || childDevice()
+          ? '<p class="qsub" style="margin-top:8px">Glosorna kommer från familjen – de vuxna byter dem i föräldraläget.</p>'
+          : '<button class="btn ghost wide" id="schoolclear" style="margin-top:8px">Ta bort listan</button>') +
+        "</div>";
+    }
+    if (childDevice()) {
+      if (!s)
+        html +=
+          '<div class="card"><p class="kicker">Inga glosor just nu</p>' +
+          '<p class="qsub">När en vuxen lägger in veckans ord i föräldraläget dyker de upp här.</p></div>';
+      app.innerHTML = html;
+      schoolBind();
+      return;
     }
     html +=
       '<div class="card"><p class="kicker">Klistra in orden</p>' +
@@ -5999,6 +6087,11 @@
       '<button class="btn green big wide" id="schoolsave">Lägg till i spelet</button>' +
       '<div id="schoolmsg"></div></div>';
     app.innerHTML = html;
+    schoolBind();
+    document.getElementById("schoolsave").onclick = schoolSaveClick;
+  }
+  /* knapparna i listan (öva, ta bort, lyssna) */
+  function schoolBind() {
     var cl = document.getElementById("schoolclear");
     if (cl)
       cl.onclick = function () {
@@ -6023,55 +6116,56 @@
         };
       })(ssay[si]);
     }
-    document.getElementById("schoolsave").onclick = function () {
-      var txt = document.getElementById("schooltxt").value;
-      var r = schoolParse(txt),
-        msg = document.getElementById("schoolmsg");
-      if (!r.words.length) {
-        msg.innerHTML =
-          '<p class="qsub" style="color:var(--berry)">Hittade inga ordpar. Skriv ett ord per rad med = mellan.</p>';
-        return;
-      }
-      var withAudio = 0,
-        i;
-      for (i = 0; i < r.words.length; i++) if (schoolHasAudio(r.words[i].et)) withAudio++;
-      S.school = {
-        name: (document.getElementById("schoolname").value || "").trim() || "Veckans ord",
-        words: r.words,
-        added: today0(),
-        days: Math.max(3, Math.min(60, parseInt(document.getElementById("schooldays").value, 10) || 14)),
-      };
-      save();
-      var head =
-        '<p class="qsub" style="color:var(--moss)"><b>' +
-        r.words.length +
-        " ord tillagda.</b> " +
-        withAudio +
-        " av dem har inspelad röst." +
-        (r.bad.length ? "<br>" + r.bad.length + " rader kunde inte läsas." : "") +
-        "</p>";
-      msg.innerHTML = head;
-      burst(60);
-      fanfare(2);
-      var t0 = Date.now();
-      /* hämta uttal till resten; skärmen ritas om när det är klart (minst 0,9 s, som förut) */
-      schoolAudio(function (n, tot) {
-        msg.innerHTML = head + '<p class="qsub">🎙️ Hämtar uttal … ' + n + " av " + tot + "</p>";
-      }).then(function (res) {
-        if (res.failed)
-          msg.innerHTML =
-            head +
-            '<p class="qsub" style="color:var(--berry)">' +
-            Math.ceil(res.failed / 2) +
-            " ord fick inget uttal just nu. Siiri försöker igen nästa gång appen är online.</p>";
-        setTimeout(
-          function () {
-            if (screen === "school") schoolImport();
-          },
-          Math.max(0, (res.failed ? 2600 : 900) - (Date.now() - t0)),
-        );
-      });
+  }
+  /* "Lägg till i spelet": glosorna som klistrats in */
+  function schoolSaveClick() {
+    var txt = document.getElementById("schooltxt").value;
+    var r = schoolParse(txt),
+      msg = document.getElementById("schoolmsg");
+    if (!r.words.length) {
+      msg.innerHTML =
+        '<p class="qsub" style="color:var(--berry)">Hittade inga ordpar. Skriv ett ord per rad med = mellan.</p>';
+      return;
+    }
+    var withAudio = 0,
+      i;
+    for (i = 0; i < r.words.length; i++) if (schoolHasAudio(r.words[i].et)) withAudio++;
+    S.school = {
+      name: (document.getElementById("schoolname").value || "").trim() || "Veckans ord",
+      words: r.words,
+      added: today0(),
+      days: Math.max(3, Math.min(60, parseInt(document.getElementById("schooldays").value, 10) || 14)),
     };
+    save();
+    var head =
+      '<p class="qsub" style="color:var(--moss)"><b>' +
+      r.words.length +
+      " ord tillagda.</b> " +
+      withAudio +
+      " av dem har inspelad röst." +
+      (r.bad.length ? "<br>" + r.bad.length + " rader kunde inte läsas." : "") +
+      "</p>";
+    msg.innerHTML = head;
+    burst(60);
+    fanfare(2);
+    var t0 = Date.now();
+    /* hämta uttal till resten; skärmen ritas om när det är klart (minst 0,9 s, som förut) */
+    schoolAudio(function (n, tot) {
+      msg.innerHTML = head + '<p class="qsub">🎙️ Hämtar uttal … ' + n + " av " + tot + "</p>";
+    }).then(function (res) {
+      if (res.failed)
+        msg.innerHTML =
+          head +
+          '<p class="qsub" style="color:var(--berry)">' +
+          Math.ceil(res.failed / 2) +
+          " ord fick inget uttal just nu. Siiri försöker igen nästa gång appen är online.</p>";
+      setTimeout(
+        function () {
+          if (screen === "school") schoolImport();
+        },
+        Math.max(0, (res.failed ? 2600 : 900) - (Date.now() - t0)),
+      );
+    });
   }
 
   /* ============ ORDMINNE ============ */
@@ -6843,10 +6937,10 @@
     var html =
       '<div class="zone me"><span class="zem">👨‍👩‍👧</span><span><b>Vanemale</b>' +
       "<span>För föräldern — vad barnet faktiskt kan</span></span></div>";
-    /* föräldrakontot: läxlistor och barnens enheter (Nuxt-sidan /parent) */
+    /* föräldraläget: barn, glosor, familjekod och lås (Nuxt-sidan /parent) */
     if (cloudOn())
       html +=
-        '<a class="btn green wide" href="/parent" style="margin-bottom:12px">👨‍👩‍👧 Föräldrakonto · läxor och enheter</a>';
+        '<a class="btn green wide" href="/parent" style="margin-bottom:12px">👨‍👩‍👧 Föräldraläget · barn, glosor och familjekod</a>';
     html +=
       '<div class="card"><p class="q" style="text-align:left">' +
       (S.name ? esc(S.name) : "Spelaren") +
@@ -7231,7 +7325,7 @@
               "Namn, poäng, stjärnor, garderob, resa och hemligheter raderas. Går inte att ångra.",
               "Ja, radera allt",
               function () {
-                /* kopplad till föräldrakontot? Då kopplas enheten bort först – kontots kopia
+                /* sparas i familjekontot? Då kopplas spelaren bort från enheten först – kontots kopia
                                    av spelet lämnas orörd, så ett barn kan inte radera den av misstag */
                 Promise.resolve(cloudOn() ? window.SiiriCloud.unlink() : null)
                   .catch(function () {})
@@ -7639,10 +7733,12 @@
         "<small>" +
         (si ? si.xp.toLocaleString("sv-SE") + " p · ⭐" + si.stars.toLocaleString("sv-SE") : "tom plats") +
         "</small>" +
+        slotTag(i) +
         (cur ? '<small style="color:var(--moss)">spelar nu</small>' : "") +
         "</button>";
     }
     html += "</div></div>";
+    html += familyCard();
 
     /* säkerhetskopiering */
     html +=
@@ -7651,11 +7747,6 @@
       cloudLine() +
       "</p>" +
       '<div class="row" style="justify-content:flex-start">' +
-      (cloudOn()
-        ? '<button class="btn ghost" id="tokoppla">' +
-          (cloudInfo().linked ? "☁️ Föräldrakontot" : "🔗 Koppla till förälder") +
-          "</button>"
-        : "") +
       '<button class="btn ghost" id="bkexp">📋 Kopiera min kod</button>' +
       '<button class="btn ghost" id="bkimp">📥 Återställ från kod</button></div>' +
       '<p class="qsub" id="bkmsg" style="text-align:left;min-height:18px;margin-top:8px">&nbsp;</p></div>';
@@ -7683,16 +7774,18 @@
       "<small>" +
       (schoolSet()
         ? esc(schoolSet().name) + " — " + schoolDone() + " av " + schoolSet().words.length + " sitter"
-        : "Klistra in veckans ord så övar Siiri dem") +
+        : childDevice()
+          ? "Inga glosor just nu – de vuxna lägger in dem"
+          : "Klistra in veckans ord så övar Siiri dem") +
       "</small></span>" +
       '<span class="bcgo">›</span></button>';
-    /* på en barnenhet som är kopplad till föräldrakontot hör föräldradelen och admin inte hemma –
+    /* när ett barn spelar (eller enheten är låst) hör föräldradelen och admin inte hemma –
        föräldern ser framstegen i föräldraläget på sin egen enhet */
-    var childDevice = cloudInfo().linked;
-    if (!childDevice)
+    var kidsHere = childDevice();
+    if (!kidsHere)
       html +=
         '<button class="btn ghost wide" id="toparent" style="margin-top:10px">👨‍👩‍👧 Vanemale · För föräldern</button>';
-    if (S.admin && !childDevice)
+    if (S.admin && !kidsHere)
       html +=
         '<button class="btn wide" id="toadmin" style="margin-top:12px;background:#C8305A;box-shadow:0 5px 0 #8E1338">🛠️ Admin</button>';
     html +=
@@ -7718,7 +7811,9 @@
         el.onclick = function () {
           var idx = parseInt(el.getAttribute("data-slot"), 10);
           if (idx === curSlot()) return;
-          switchSlot(idx);
+          /* familjens spelare: barn med PIN-kod väljs via "Vem spelar?" */
+          if (cloudOn()) window.SiiriCloud.requestSlot(idx);
+          else switchSlot(idx);
         };
       })(sbs[si2]);
     }
@@ -7866,8 +7961,28 @@
     on("toparent", function () {
       go(parentScreen, true);
     });
-    on("tokoppla", function () {
-      location.href = "/connect";
+    on("famswitch", function () {
+      window.SiiriCloud.choosePlayer();
+    });
+    on("famlock", function () {
+      confirmBox(
+        "Lås enheten",
+        "Barnen väljer vem som spelar, och föräldraläget behöver vuxen-PIN för att öppnas igen. Dina andra enheter påverkas inte.",
+        "🔒 Lås",
+        function () {
+          window.SiiriCloud.lock().then(
+            function () {
+              location.reload();
+            },
+            function () {
+              var m = document.getElementById("fammsg");
+              if (m)
+                m.innerHTML =
+                  'Välj först en vuxen-PIN i <a href="/parent">föräldraläget</a> – den behövs för att låsa upp.';
+            },
+          );
+        },
+      );
     });
     on("toschool", function () {
       go(schoolImport, true);

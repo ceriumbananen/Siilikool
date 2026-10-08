@@ -157,9 +157,11 @@ export const useProfileStore = defineStore("profile", () => {
       return null;
     }
   }
-  function switchSlot(i: number) {
+  /* byter profil och laddar om – till `to` (t.ex. spelet från /join), annars samma sida */
+  function switchSlot(i: number, to?: string) {
     write(SLOTKEY, String(i));
-    location.reload();
+    if (to) location.href = to;
+    else location.reload();
   }
 
   /* ---------- automatisk reservkopia ---------- */

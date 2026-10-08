@@ -50,13 +50,15 @@ inte – det är bara iPadens inloggning som är låst.
 | Tabell            | Innehåll                                                                                                                                                                 |
 | ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `families`        | `id`, `name`, `child_code` (unik, kan bytas), `adult_pin_hash`, `created_at`                                                                                             |
-| `family_adults`   | `user_id` (vuxen inloggning) → `family_id`                                                                                                                               |
 | `members`         | `id`, `family_id`, `kind` (`adult`/`child`), `user_id` (vuxens inloggning, för vuxna), `name`, `avatar`, `pin_hash` (valfri, barn), `data` (spelet), `ver`, `updated_at` |
 | `device_members`  | `session_id` (enhetens inloggning – anonym på barnenhet eller låst vuxen) + `member_id`, `label`, `created_at` – vilka barn som valts på enheten (flera per enhet)       |
 | `word_lists`      | `id`, `family_id`, `member_id` (**null = alla barn**), `name`, `words`, `days`, `created_at`                                                                             |
 | `invites`         | `token`, `family_id`, `expires_at` – för fler vuxna                                                                                                                      |
 | `locked_sessions` | `session_id`, `family_id`, `locked_at` – vuxna inloggningar som är låsta                                                                                                 |
 | `pin_attempts`    | felräkning per barn/familj: 5 fel → spärr 15 min                                                                                                                         |
+
+Vuxna är medlemmar (`kind = 'adult'`, med sin inloggning i `user_id`) – så har de också sitt eget spel.
+Fel PIN eller familjekod returneras som svar (`{ok: false, error}`), så att felräkningen sparas.
 
 **Behörighet (RLS)**
 

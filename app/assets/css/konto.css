@@ -1,4 +1,4 @@
-/* Föräldrasidorna (/parent, /connect) använder den gamla appens kort, knappar och färger
+/* Föräldrasidorna (/parent, /join, /invite) och "Vem spelar?" använder den gamla appens kort, knappar och färger
    (public/legacy/style.css). Här finns bara det som saknas där. Allt är avgränsat till .page (sidornas rot),
    eftersom filen laddas globalt och klassnamn som .ok och .pair också finns i spelet. */
 .page {
@@ -101,4 +101,50 @@
   justify-content: space-between;
   gap: 8px;
   padding: 6px 0;
+}
+
+.page .qr {
+  display: flex;
+  justify-content: center;
+  margin: 6px 0 4px;
+}
+
+.page .qr svg {
+  width: 180px;
+  height: 180px;
+  border-radius: var(--r-sm);
+  background: #fff;
+}
+
+/* figurväljaren när ett barn läggs till */
+.page .avpick {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 10px 0 4px;
+}
+
+.page .avpick button {
+  font-size: 26px;
+  width: 44px;
+  height: 44px;
+  border-radius: var(--r-sm);
+  border: var(--bd) solid var(--line);
+  background: var(--card);
+  cursor: pointer;
+}
+
+.page .avpick button.on {
+  border-color: var(--moss);
+  background: color-mix(in srgb, var(--moss) 16%, var(--card));
+}
+
+/* "Vem spelar?" ovanpå spelet (WhoPlays.vue) – den gamla appens ruta (.overlay/.oc) */
+.overlay.whoplays {
+  z-index: 80;
+  padding-bottom: 26px;
+}
+
+.page a.slotbtn {
+  text-decoration: none;
 }

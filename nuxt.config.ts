@@ -33,6 +33,8 @@ export default defineNuxtConfig({
         from: "@supabase/supabase-js",
         imports: ["createClient", { name: "Session", type: true }, { name: "SupabaseClient", type: true }],
       },
+      /* QR-koden för familjekoden i föräldraläget */
+      { from: "qrcode", imports: [{ name: "default", as: "QRCode" }] },
     ],
   },
   /* föräldrasidornas stil (avgränsad till .page, så den inte påverkar spelet) */
@@ -44,7 +46,7 @@ export default defineNuxtConfig({
   },
   /* sidorna utöver spelet får egna filer, så att Cloudflare svarar 200 på dem direkt */
   nitro: {
-    prerender: { routes: ["/parent", "/connect"] },
+    prerender: { routes: ["/parent", "/join", "/connect", "/invite"] },
   },
   /* ingen Nuxt-laddningsskärm – appen har sin egen bakgrund i style.css */
   spaLoadingTemplate: false,

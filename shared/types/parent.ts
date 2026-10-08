@@ -1,4 +1,4 @@
-/* Det föräldern ser i sitt konto (app/composables/useParentApi.ts). */
+/* Det de vuxna ser i familjekontot (app/composables/useParentApi.ts). */
 
 /* en glosa: estniska = svenska */
 export interface Word {
@@ -6,25 +6,37 @@ export interface Word {
   sv: string;
 }
 
-export interface Child {
+export interface Family {
   id: string;
   name: string;
+  child_code: string;
+}
+
+/* en medlem i familjen (vuxen eller barn), utan själva spelet */
+export interface Member {
+  id: string;
+  kind: "adult" | "child";
+  name: string;
   avatar: string;
+  has_pin: boolean;
   updated_at: string;
   stars: number | null;
   xp: number | null;
 }
 
-export interface SchoolList {
+/* en glosa-lista: för ett barn, eller för alla barn (member_id null) */
+export interface WordList {
   id: string;
+  member_id: string | null;
   name: string;
   words: Word[];
   days: number;
   created_at: string;
 }
 
+/* en enhet där ett barn har valts ("Vem spelar?") */
 export interface Device {
-  device_user: string;
+  session_id: string;
   label: string;
   created_at: string;
 }

@@ -1,118 +1,74 @@
 <script setup lang="ts">
-/* Ett barn i föräldraläget: framsteg, läxlistan, kopplade enheter och borttagning.
-   Föräldern läser bara barnets spel – förälderns eget spel på enheten rörs aldrig. */
-
-const props = defineProps<{ child: Child }>();
-const emit = defineEmits<{ removed: [] }>();
+/* Ett barn i föräldraläget: framsteg, egna glosor, namn och figur, PIN, enheter och borttagning.
+   De vuxna läser bara barnets spel – deras eget spel rörs aldrig. */
+const props = defineProps<{ member: Member; familyId: string }>();
+const emit = defineEmits<{ changed: [] }>();
 const api = useParentApi();
+const { busy, err, run } = useBusy();
 
-const tab = ref<"" | "progress" | "lists" | "devices">("");
-const err = ref("");
-const busy = ref(false);
-
-async function run(fn: () => Promise<void>) {
-  err.value = "";
-  busy.value = true;
-  try {
-    await fn();
-  } catch (e) {
-    err.value = e instanceof Error ? e.message : String(e);
-  } finally {
-    busy.value = false;
-  }
-}
+const tab = ref<"" | "progress" | "lists" | "edit" | "pin" | "devices">("");
+const toggle = (t: typeof tab.value, open?: () => Promise<void>) => {
+  tab.value = tab.value === t ? "" : t;
+  if (tab.value && open) run(open);
+};
 
 /* ---------- framsteg ---------- */
 const progress = ref<ChildProgress | null>(null);
 const schoolKnown = computed(() => progress.value?.school?.words.filter(w => w.known).length ?? 0);
-/* i skriptet i stället för i mallen – långa uttryck i {{ }} bryts annars fel av Prettier */
+/* texterna ligger i skriptet i stället för i mallen – långa uttryck i {{ }} bryts annars fel av Prettier */
 const schoolDays = computed(() => {
   const d = progress.value?.school?.daysLeft ?? 0;
   return d > 0 ? `${d} dagar kvar` : "Listan har gått ut";
 });
-async function openProgress() {
-  tab.value = "progress";
-  await run(async () => {
-    progress.value = await api.progress(props.child.id);
-  });
-}
+const openProgress = async () => {
+  progress.value = await api.progress(props.member.id);
+};
 
-/* ---------- läxor ---------- */
-const list = ref<SchoolList | null>(null);
-const listName = ref(""),
-  listText = ref(""),
-  listDays = ref(14);
-const parsed = computed(() => parseWordList(listText.value));
-const daysLeft = computed(() => {
-  if (!list.value) return 0;
-  const added = Math.floor(new Date(list.value.created_at).getTime() / 86400000);
-  return added + list.value.days - Math.floor(Date.now() / 86400000);
-});
-async function openLists() {
-  tab.value = "lists";
-  await run(async () => {
-    list.value = await api.latestList(props.child.id);
+/* ---------- namn och figur (följer med in i spelet på barnets enheter) ---------- */
+const editName = ref(props.member.name),
+  editAvatar = ref(props.member.avatar);
+const saveEdit = () =>
+  run(async () => {
+    if (!editName.value.trim()) throw new Error("Skriv barnets namn.");
+    await api.updateMember(props.member.id, { name: editName.value.trim().slice(0, 40), avatar: editAvatar.value });
+    emit("changed");
   });
-}
-async function saveList() {
-  await run(async () => {
-    if (!parsed.value.words.length) throw new Error("Hittade inga ordpar. Skriv ett ord per rad: estniska = svenska.");
-    await api.createList(
-      props.child.id,
-      listName.value,
-      parsed.value.words,
-      Math.max(3, Math.min(60, listDays.value || 14)),
-    );
-    listName.value = "";
-    listText.value = "";
-    list.value = await api.latestList(props.child.id);
+
+/* ---------- PIN ---------- */
+const pin = ref("");
+const pinText = computed(() =>
+  props.member.has_pin
+    ? `${props.member.name} har en PIN-kod. Den behövs när ${props.member.name} väljs på en ny enhet.`
+    : `${props.member.name} har ingen PIN-kod – den som har familjekoden kan välja ${props.member.name}.`,
+);
+const savePin = () =>
+  run(async () => {
+    if (!/^[0-9]{4,8}$/.test(pin.value)) throw new Error("PIN-koden ska vara 4–8 siffror.");
+    await api.setChildPin(props.member.id, pin.value);
+    pin.value = "";
+    emit("changed");
   });
-}
-async function removeList() {
+const removePin = () =>
+  run(async () => {
+    await api.setChildPin(props.member.id, null);
+    emit("changed");
+  });
+
+/* ---------- enheter ---------- */
+const devices = ref<Device[]>([]);
+const openDevices = async () => {
+  devices.value = await api.devices(props.member.id);
+};
+async function removeDevice(d: Device) {
   if (
-    !list.value ||
     !confirm(
-      `Ta bort listan "${list.value.name}"? Den försvinner från ${props.child.name}s enhet nästa gång appen öppnas.`,
+      `Ta bort ${props.member.name} från "${d.label || "enheten"}"? Spelet finns kvar där men sparas inte längre.`,
     )
   )
     return;
   await run(async () => {
-    await api.deleteList(list.value!.id);
-    list.value = await api.latestList(props.child.id);
-  });
-}
-
-/* ---------- enheter ---------- */
-const devices = ref<Device[]>([]);
-const code = ref(""),
-  codeUntil = ref(0),
-  now = ref(Date.now());
-const tick = setInterval(() => {
-  now.value = Date.now();
-}, 1000);
-onUnmounted(() => clearInterval(tick));
-const kopplaUrl = location.host + "/connect";
-const codeLeft = computed(() => Math.max(0, Math.round((codeUntil.value - now.value) / 1000)));
-/* i skriptet i stället för i mallen – långa uttryck i {{ }} bryts annars fel av Prettier */
-const codeButton = computed(() => (code.value && codeLeft.value > 0 ? "Ny kod" : "Skapa kod för att koppla en enhet"));
-async function openDevices() {
-  tab.value = "devices";
-  await run(async () => {
-    devices.value = await api.devices(props.child.id);
-  });
-}
-async function makeCode() {
-  await run(async () => {
-    code.value = await api.pairCode(props.child.id);
-    codeUntil.value = Date.now() + 10 * 60 * 1000;
-  });
-}
-async function removeDevice(d: Device) {
-  if (!confirm(`Koppla bort "${d.label || "enheten"}"? Spelet finns kvar på enheten men sparas inte längre i kontot.`))
-    return;
-  await run(async () => {
-    await api.removeDevice(d.device_user);
-    devices.value = await api.devices(props.child.id);
+    await api.removeDevice(d.session_id, props.member.id);
+    await openDevices();
   });
 }
 
@@ -120,46 +76,38 @@ async function removeDevice(d: Device) {
 async function removeChild() {
   if (
     !confirm(
-      `Ta bort ${props.child.name} och allt sparat i kontot (poäng, ord, läxor)? Spel som finns kvar på enheter påverkas inte.`,
+      `Ta bort ${props.member.name} och allt sparat i kontot (poäng, ord, glosor)? Spel som finns kvar på enheter påverkas inte.`,
     )
   )
     return;
   await run(async () => {
-    await api.deleteChild(props.child.id);
-    emit("removed");
+    await api.deleteChild(props.member.id);
+    emit("changed");
   });
 }
 const lastSeen = computed(() =>
-  new Date(props.child.updated_at).toLocaleDateString("sv-SE", { day: "numeric", month: "short" }),
+  new Date(props.member.updated_at).toLocaleDateString("sv-SE", { day: "numeric", month: "short" }),
 );
 </script>
 
 <template>
   <div class="card">
     <div class="childhead">
-      <span class="av">{{ child.avatar }}</span>
+      <span class="av">{{ member.avatar }}</span>
       <span>
-        <b>{{ child.name }}</b>
-        <small>⭐ {{ child.stars ?? 0 }} · senast sparat {{ lastSeen }}</small>
+        <b>{{ member.name }}</b>
+        <small>⭐ {{ member.stars ?? 0 }} · senast sparat {{ lastSeen }}{{ member.has_pin ? " · 🔒 PIN" : "" }}</small>
       </span>
     </div>
     <div class="tabs">
-      <button
-        class="btn ghost"
-        :class="{ green: tab === 'progress' }"
-        @click="tab === 'progress' ? (tab = '') : openProgress()"
-      >
+      <button class="btn ghost" :class="{ green: tab === 'progress' }" @click="toggle('progress', openProgress)">
         📊 Framsteg
       </button>
-      <button class="btn ghost" :class="{ green: tab === 'lists' }" @click="tab === 'lists' ? (tab = '') : openLists()">
-        📝 Läxor
-      </button>
-      <button
-        class="btn ghost"
-        :class="{ green: tab === 'devices' }"
-        @click="tab === 'devices' ? (tab = '') : openDevices()"
-      >
-        🔗 Enheter
+      <button class="btn ghost" :class="{ green: tab === 'lists' }" @click="toggle('lists')">📝 Glosor</button>
+      <button class="btn ghost" :class="{ green: tab === 'edit' }" @click="toggle('edit')">✏️ Ändra</button>
+      <button class="btn ghost" :class="{ green: tab === 'pin' }" @click="toggle('pin')">🔒 PIN</button>
+      <button class="btn ghost" :class="{ green: tab === 'devices' }" @click="toggle('devices', openDevices)">
+        📱 Enheter
       </button>
     </div>
 
@@ -185,10 +133,9 @@ const lastSeen = computed(() =>
           ⭐ {{ progress.stars }} stjärnor · {{ progress.xp }} poäng · {{ progress.lessons }} lektioner ·
           {{ progress.badges }} märken
         </p>
-
         <template v-if="progress.school">
           <p class="kicker" style="margin-top: 12px">
-            Läxor: {{ progress.school.name }} – {{ schoolKnown }} av {{ progress.school.words.length }} sitter
+            Glosor: {{ progress.school.name }} – {{ schoolKnown }} av {{ progress.school.words.length }} sitter
           </p>
           <p class="qsub">{{ schoolDays }}</p>
           <ul class="wlist">
@@ -197,8 +144,7 @@ const lastSeen = computed(() =>
             </li>
           </ul>
         </template>
-        <p v-if="progress.doneLists" class="qsub">{{ progress.doneLists }} tidigare läxlistor klara.</p>
-
+        <p v-if="progress.doneLists" class="qsub">{{ progress.doneLists }} tidigare glosor klara.</p>
         <template v-if="progress.hard.length">
           <p class="kicker" style="margin-top: 12px">Svårast just nu</p>
           <ul class="wlist">
@@ -207,90 +153,64 @@ const lastSeen = computed(() =>
             </li>
           </ul>
         </template>
-
         <p v-if="!progress.words.practiced" class="qsub">
-          {{ child.name }} har inte övat några ord än. Spelet syns här när {{ child.name }}s enhet är kopplad.
+          {{ member.name }} har inte övat några ord än. Spelet syns här när {{ member.name }} har spelat på en enhet med
+          familjekoden.
         </p>
       </template>
     </div>
 
-    <!-- läxor -->
-    <div v-if="tab === 'lists'" style="text-align: left; margin-top: 12px">
-      <template v-if="list">
-        <p class="kicker">Gäller nu: {{ list.name }}</p>
-        <p class="qsub">{{ list.words.length }} ord · {{ daysLeft > 0 ? daysLeft + " dagar kvar" : "har gått ut" }}</p>
-        <ul class="wlist">
-          <li v-for="w in list.words" :key="w.et">
-            <b lang="et">{{ w.et }}</b> = {{ w.sv }}
-          </li>
-        </ul>
-        <button class="btn ghost" :disabled="busy" @click="removeList">Ta bort listan</button>
-      </template>
-      <p v-else class="qsub">Ingen läxlista just nu.</p>
+    <!-- egna glosor -->
+    <div v-if="tab === 'lists'" style="margin-top: 12px">
+      <ParentWordListEditor :family-id="familyId" :member-id="member.id" :who="member.name" />
+    </div>
 
-      <p class="q" style="text-align: left; margin-top: 14px">Ny läxlista</p>
-      <p class="qsub">
-        Ett ord per rad: <b>estniska = svenska</b>. Den nya listan ersätter den gamla på {{ child.name }}s enhet.
-      </p>
-      <input v-model="listName" class="field" type="text" placeholder="Namn, t.ex. Vecka 41" maxlength="40" />
-      <textarea
-        v-model="listText"
-        class="schooltext field"
-        rows="7"
-        placeholder="koer = hund&#10;maja = hus&#10;punane = röd"
+    <!-- namn och figur -->
+    <div v-if="tab === 'edit'" style="text-align: left; margin-top: 12px">
+      <input v-model="editName" class="field" type="text" maxlength="40" placeholder="Barnets namn" />
+      <AvatarPicker v-model="editAvatar" />
+      <button class="btn green wide" :disabled="busy" @click="saveEdit">Spara</button>
+      <p class="qsub">Det nya namnet och figuren syns i spelet nästa gång {{ member.name }}s enheter öppnar appen.</p>
+    </div>
+
+    <!-- PIN -->
+    <div v-if="tab === 'pin'" style="text-align: left; margin-top: 12px">
+      <p class="qsub">{{ pinText }}</p>
+      <input
+        v-model="pin"
+        class="field code"
+        type="password"
+        inputmode="numeric"
+        pattern="[0-9]*"
+        autocomplete="new-password"
+        maxlength="8"
+        placeholder="4–8 siffror"
       />
-      <label class="qsub"
-        >Gäller i
-        <input
-          v-model.number="listDays"
-          class="field"
-          type="number"
-          min="3"
-          max="60"
-          style="width: 90px; display: inline-block"
-        />
-        dagar</label
-      >
-      <p class="qsub">
-        {{ parsed.words.length }} ord<span v-if="parsed.bad.length">
-          · {{ parsed.bad.length }} rader går inte att läsa</span
-        >
-      </p>
-      <button class="btn green wide" :disabled="busy || !parsed.words.length" @click="saveList">
-        Skicka till {{ child.name }}
+      <button class="btn green wide" :disabled="busy || pin.length < 4" @click="savePin">
+        {{ member.has_pin ? "Byt PIN-kod" : "Sätt PIN-kod" }}
+      </button>
+      <button v-if="member.has_pin" class="btn ghost wide" :disabled="busy" @click="removePin">
+        Ta bort PIN-koden
       </button>
     </div>
 
     <!-- enheter -->
     <div v-if="tab === 'devices'" style="text-align: left; margin-top: 12px">
-      <div v-for="d in devices" :key="d.device_user" class="devrow">
-        <span
-          >📱 {{ d.label || "Enhet" }}
-          <small class="qsub">sedan {{ new Date(d.created_at).toLocaleDateString("sv-SE") }}</small></span
-        >
-        <button class="btn ghost" :disabled="busy" @click="removeDevice(d)">Koppla bort</button>
+      <div v-for="d in devices" :key="d.session_id" class="devrow">
+        <span>
+          📱 {{ d.label || "Enhet" }}
+          <small class="qsub">sedan {{ new Date(d.created_at).toLocaleDateString("sv-SE") }}</small>
+        </span>
+        <button class="btn ghost" :disabled="busy" @click="removeDevice(d)">Ta bort</button>
       </div>
-      <p v-if="!devices.length" class="qsub">Ingen enhet kopplad än.</p>
-
-      <template v-if="code && codeLeft > 0">
-        <p class="qsub" style="margin-top: 12px">
-          Skriv koden på {{ child.name }}s enhet: <b>Siilikool → Profil → Koppla till förälder</b> (eller gå till
-          <b>{{ kopplaUrl }}</b
-          >).
-        </p>
-        <div class="pair">{{ code }}</div>
-        <p class="qsub" style="text-align: center">
-          Gäller {{ Math.floor(codeLeft / 60) }}:{{ String(codeLeft % 60).padStart(2, "0") }} till, och bara en gång.
-        </p>
-      </template>
-      <button class="btn green wide" :disabled="busy" @click="makeCode">
-        {{ codeButton }}
-      </button>
+      <p v-if="!devices.length" class="qsub">
+        {{ member.name }} spelar inte på någon enhet än. Skriv familjekoden på enheten och välj {{ member.name }}.
+      </p>
     </div>
 
     <p v-if="err" class="err">{{ err }}</p>
     <button v-if="tab" class="btn ghost wide" style="margin-top: 14px" :disabled="busy" @click="removeChild">
-      Ta bort {{ child.name }} från kontot
+      Ta bort {{ member.name }} från familjen
     </button>
   </div>
 </template>
