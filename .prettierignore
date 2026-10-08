@@ -1,0 +1,15 @@
+# byggen och beroenden
+.output
+.nuxt
+.data
+dist
+node_modules
+yarn.lock
+
+# skrivs av ljudskripten i tools/ (bilder och ljudkartor på några få, mycket långa rader)
+public/legacy/data.js
+public/audio
+public/manifest.webmanifest
+
+# verktygsinställningar
+.claude

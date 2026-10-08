@@ -1,0 +1,36 @@
+{
+  "name": "siilikool",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "nuxt dev",
+    "build": "nuxt build",
+    "generate": "nuxt generate",
+    "preview": "nuxt preview",
+    "postinstall": "nuxt prepare",
+    "typecheck": "nuxt typecheck",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
+  },
+  "dependencies": {
+    "@pinia/nuxt": "^1.0.2",
+    "@supabase/supabase-js": "^2.117.2",
+    "nuxt": "^4.6.0",
+    "pinia": "^4.0.3",
+    "vue": "^3.5.43",
+    "vue-router": "^5.3.1"
+  },
+  "packageManager": "yarn@4.16.0",
+  "devDependencies": {
+    "@vite-pwa/nuxt": "^1.1.1",
+    "prettier": "^3.9.9",
+    "typescript": "^6.0.3",
+    "vue-tsc": "^3.3.12",
+    "workbox-cacheable-response": "^7.4.1",
+    "workbox-core": "^7.4.1",
+    "workbox-precaching": "^7.4.1",
+    "workbox-range-requests": "^7.4.1",
+    "workbox-routing": "^7.4.1",
+    "workbox-strategies": "^7.4.1"
+  }
+}

@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Plockar ut inbäddade ljudklipp (data:audio/...;base64) till riktiga mp3-filer.
 
-Läser window.AUDIO i index.html och alla audio/*.js (window.addAudio(...)),
-sparar varje klipp som audio/clips/<bank>/<namn>.mp3 och byter ut base64-texten
+Läser window.AUDIO i public/legacy/data.js och alla public/audio/*.js (window.addAudio(...)),
+sparar varje klipp som public/audio/clips/<bank>/<namn>.mp3 och byter ut base64-texten
 mot sökvägen. Identiska klipp sparas bara en gång. Kan köras flera gånger:
 värden som redan är sökvägar lämnas orörda.
 
@@ -16,6 +16,9 @@ import os
 import re
 import unicodedata
 
+# skripten arbetar inifrån public/, där sökvägarna i ljuddatan ("audio/clips/...") stämmer
+PUBLIC = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "public")
+CORE = "legacy/data.js"   # window.AUDIO, PARTMAP och SLOWMAP (låg förr i index.html)
 CLIPS = "audio/clips"
 DATA_RE = re.compile(r'"(data:audio/[a-z0-9]+;base64,[A-Za-z0-9+/=]+)"')
 
@@ -33,7 +36,7 @@ def slug(text):
 
 def banks_in(path, text):
     """Returnerar {bank: {nyckel: värde}} för en fil."""
-    if path == "index.html":
+    if path == CORE:
         start = text.index("window.AUDIO = ") + len("window.AUDIO = ")
         obj, _ = json.JSONDecoder().raw_decode(text, start)
         return obj
@@ -45,7 +48,8 @@ def banks_in(path, text):
 
 
 def main():
-    files = ["index.html"] + sorted(glob.glob("audio/*.js"))
+    os.chdir(PUBLIC)
+    files = [CORE] + sorted(glob.glob("audio/*.js"))
     by_content = {}   # sha1 -> sökväg
     used_paths = set(p.replace(os.sep, "/") for p in glob.glob(CLIPS + "/*/*.mp3"))
     total_before = total_after = written = 0

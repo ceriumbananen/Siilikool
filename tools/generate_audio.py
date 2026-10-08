@@ -3,8 +3,8 @@
 
 Skapar för varje ord en vanlig och en långsam version i samma format som de
 befintliga klippen (mp3, 16 kHz, mono, 40 kbit/s, ca 0,25 s tystnad före/efter),
-lägger dem i audio/clips/normal/ och audio/clips/slow/, skriver ljuddelen
-audio/<del>.js och pekar ut orden i window.PARTMAP i index.html.
+lägger dem i public/audio/clips/normal/ och .../slow/, skriver ljuddelen
+public/audio/<del>.js och pekar ut orden i window.PARTMAP i public/legacy/data.js.
 Ord som redan har ljud någonstans hoppas över.
 
 Kräver macOS (afconvert) och:  pip install lameenc numpy
@@ -26,7 +26,7 @@ import lameenc
 import numpy as np
 
 sys.path.insert(0, os.path.dirname(__file__))
-from extract_audio import banks_in, slug  # noqa: E402
+from extract_audio import CORE, PUBLIC, banks_in, slug  # noqa: E402
 
 API = "https://api.tartunlp.ai/text-to-speech/v2"
 SPEAKER = "mari"
@@ -83,7 +83,7 @@ def to_mp3(a):
 
 def existing_banks():
     have = {"normal": {}, "slow": {}}
-    for f in ["index.html"] + sorted(glob.glob("audio/*.js")):
+    for f in [CORE] + sorted(glob.glob("audio/*.js")):
         o = banks_in(f, open(f, encoding="utf-8").read())
         for k in have:
             have[k].update(o.get(k, {}))
@@ -91,7 +91,7 @@ def existing_banks():
 
 
 def add_to_partmap(words, part):
-    text = open("index.html", encoding="utf-8").read()
+    text = open(CORE, encoding="utf-8").read()
     start = text.index("window.PARTMAP = ") + len("window.PARTMAP = ")
     pm, end = json.JSONDecoder().raw_decode(text, start)
     add = [w for w in words if pm.get(w) != part]
@@ -100,13 +100,14 @@ def add_to_partmap(words, part):
     extra = "".join(', %s: "%s"' % (json.dumps(w, ensure_ascii=False), part) for w in add)
     close = end - 1                      # sista "}" i PARTMAP
     text = text[:close].rstrip() + extra + " " + text[close:]
-    open("index.html", "w", encoding="utf-8").write(text)
+    open(CORE, "w", encoding="utf-8").write(text)
 
 
 def main():
     if len(sys.argv) < 3:
         raise SystemExit(__doc__)
     part, words = sys.argv[1], list(dict.fromkeys(sys.argv[2:]))
+    os.chdir(PUBLIC)
     have = existing_banks()
     partfile = "audio/%s.js" % part
     data = {"normal": {}, "slow": {}}
@@ -130,7 +131,7 @@ def main():
     with open(partfile, "w", encoding="utf-8") as f:
         f.write("window.addAudio(%s,%s);" % (json.dumps(part), json.dumps(data, ensure_ascii=False)))
     add_to_partmap(list(data.get("normal", {}).keys()), part)
-    print("Klart: %s och PARTMAP i index.html uppdaterade." % partfile)
+    print("Klart: public/%s och PARTMAP i public/%s uppdaterade." % (partfile, CORE))
 
 
 if __name__ == "__main__":

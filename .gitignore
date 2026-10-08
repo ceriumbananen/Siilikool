@@ -1,4 +1,22 @@
 node_modules/
-dist/
+dist
 .env
 .DS_Store
+
+# Nuxt
+.nuxt/
+.output/
+.data/
+.nitro/
+.cache/
+logs/
+*.log
+
+# Yarn
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/sdks
+!.yarn/versions
+.pnp.*

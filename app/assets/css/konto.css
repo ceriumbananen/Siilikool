@@ -1,0 +1,104 @@
+/* Föräldrasidorna (/parent, /connect) använder den gamla appens kort, knappar och färger
+   (public/legacy/style.css). Här finns bara det som saknas där. Allt är avgränsat till .page (sidornas rot),
+   eftersom filen laddas globalt och klassnamn som .ok och .pair också finns i spelet. */
+.page {
+  padding-bottom: 40px;
+}
+
+.page .field {
+  width: 100%;
+  font: inherit;
+  font-size: var(--fs-lg);
+  padding: 12px 14px;
+  border-radius: var(--r-md);
+  border: var(--bd) solid var(--line);
+  background: var(--card);
+  color: var(--ink);
+  margin-top: 8px;
+}
+
+.page .field:focus {
+  outline: none;
+  border-color: var(--moss);
+}
+
+.page .field.code {
+  text-align: center;
+  letter-spacing: 6px;
+  font-weight: 700;
+  font-size: 28px;
+  text-transform: uppercase;
+}
+
+.page .err {
+  color: var(--berry);
+  font-weight: 600;
+  margin-top: 8px;
+}
+
+.page .ok {
+  color: var(--moss);
+  font-weight: 600;
+  margin-top: 8px;
+}
+
+.page .childhead {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-align: left;
+}
+
+.page .childhead .av {
+  font-size: 38px;
+  line-height: 1;
+}
+
+.page .childhead b {
+  display: block;
+  font-size: var(--fs-xl);
+}
+
+.page .childhead small {
+  color: var(--muted);
+}
+
+.page .tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.page .tabs .btn {
+  margin-top: 0;
+}
+
+.page .pair {
+  text-align: center;
+  font-size: 40px;
+  font-weight: 700;
+  letter-spacing: 8px;
+  color: var(--moss);
+  margin: 6px 0;
+}
+
+.page .wlist {
+  text-align: left;
+  margin: 8px 0;
+  padding: 0;
+  list-style: none;
+}
+
+.page .wlist li {
+  padding: 4px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.page .devrow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 6px 0;
+}
