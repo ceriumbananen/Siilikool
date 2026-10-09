@@ -3755,6 +3755,10 @@ body {
   background: color-mix(in srgb, var(--moss) 14%, var(--card));
 }
 
+.shopitem.locked {
+  opacity: 0.82;
+}
+
 .shopitem.cant {
   opacity: 0.55;
   filter: grayscale(0.85);

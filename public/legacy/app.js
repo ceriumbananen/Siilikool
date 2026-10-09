@@ -4681,6 +4681,71 @@
         '<path d="M154 158 h12 l-2 6 h-8 z" fill="#D9DEE8"/><circle cx="160" cy="148" r="2.4" fill="#8FD3F4"/></g>' +
         '<g fill="#FFD45E" opacity=".9"><path d="M78 168 l2 5 5 .7 -3.6 3.5 1 5-4.4-2.4-4.4 2.4 1-5-3.6-3.5 5-.7 z"/></g></g>'
       );
+    if (id === "vanalinn")
+      return (
+        "<g><defs>" +
+        gr("g-vanalinn", "#F6C879", "#C9703E", 0, 0, 0.3, 1) +
+        '<clipPath id="clip-vanalinn"><circle cx="100" cy="100" r="99"/></clipPath>' +
+        "</defs>" +
+        '<circle cx="100" cy="100" r="99" fill="url(#g-vanalinn)"/>' +
+        '<g clip-path="url(#clip-vanalinn)">' +
+        '<g fill="#4A2E22">' +
+        '<rect x="8" y="128" width="24" height="60"/>' +
+        '<rect x="36" y="110" width="18" height="78"/>' +
+        '<path d="M36 110 l9 -16 9 16 z"/>' +
+        '<rect x="58" y="134" width="20" height="54"/>' +
+        '<rect x="148" y="122" width="20" height="66"/>' +
+        '<rect x="170" y="138" width="22" height="50"/>' +
+        '<rect x="108" y="76" width="16" height="112"/>' +
+        '<path d="M108 76 l8 -28 8 28 z"/>' +
+        '<rect x="115" y="40" width="2" height="12"/>' +
+        "</g>" +
+        '<g fill="#F3D34A" opacity=".85">' +
+        '<rect x="14" y="146" width="4" height="6"/><rect x="22" y="156" width="4" height="6"/>' +
+        '<rect x="64" y="150" width="4" height="6"/><rect x="154" y="140" width="4" height="6"/>' +
+        '<rect x="178" y="156" width="4" height="6"/>' +
+        "</g>" +
+        "</g>" +
+        '<circle cx="150" cy="40" r="15" fill="#FFE9A8" opacity=".9"/></g>'
+      );
+    if (id === "rand2")
+      return (
+        "<g><defs>" +
+        gr("g-rand2sky", "#BFE6F5", "#EAF6FC", 0, 0, 0, 1) +
+        gr("g-rand2sea", "#4E9FC9", "#1E5A82", 0, 0, 0, 1) +
+        '<clipPath id="clip-rand2"><circle cx="100" cy="100" r="99"/></clipPath>' +
+        "</defs>" +
+        '<g clip-path="url(#clip-rand2)">' +
+        '<rect x="0" y="0" width="200" height="200" fill="url(#g-rand2sky)"/>' +
+        '<circle cx="148" cy="48" r="16" fill="#FFE07A"/>' +
+        '<rect x="0" y="128" width="200" height="72" fill="url(#g-rand2sea)"/>' +
+        '<path d="M0 140 q25 10 50 0 q25 -10 50 0 q25 10 50 0 q25 -10 50 0" stroke="#EAF6FC" stroke-width="3" fill="none" opacity=".6"/>' +
+        '<path d="M0 154 q25 10 50 0 q25 -10 50 0 q25 10 50 0 q25 -10 50 0" stroke="#EAF6FC" stroke-width="3" fill="none" opacity=".4"/>' +
+        '<rect x="0" y="176" width="200" height="24" fill="#E8D7A8"/>' +
+        '<g stroke="#4E8A52" stroke-width="2" fill="none" opacity=".8">' +
+        '<path d="M10 178 q2 -12 -2 -20"/><path d="M18 180 q4 -14 0 -22"/>' +
+        '<path d="M182 176 q-2 -12 2 -18"/><path d="M190 180 q-4 -14 0 -20"/>' +
+        "</g>" +
+        "</g></g>"
+      );
+    if (id === "raba")
+      return (
+        "<g><defs>" +
+        gr("g-rabasky", "#F3C9A0", "#F7E6C4", 0, 0, 0, 1) +
+        '<clipPath id="clip-raba"><circle cx="100" cy="100" r="99"/></clipPath>' +
+        "</defs>" +
+        '<g clip-path="url(#clip-raba)">' +
+        '<rect x="0" y="0" width="200" height="200" fill="url(#g-rabasky)"/>' +
+        '<circle cx="100" cy="118" r="26" fill="#FFD98A" opacity=".9"/>' +
+        '<rect x="0" y="130" width="200" height="70" fill="#9AB89C"/>' +
+        '<path d="M0 132 q50 -8 100 0 q50 8 100 0 v6 q-50 8 -100 0 q-50 -8 -100 0 z" fill="#7FA082" opacity=".8"/>' +
+        '<g stroke="#5E4A38" stroke-width="2.4" opacity=".55">' +
+        '<path d="M20 200 v-46"/><path d="M34 200 v-50"/><path d="M160 200 v-44"/><path d="M176 200 v-52"/>' +
+        "</g>" +
+        '<g fill="#E8D7B0" opacity=".9"><rect x="86" y="150" width="28" height="4"/><rect x="82" y="158" width="36" height="4"/>' +
+        '<rect x="86" y="166" width="28" height="4"/></g>' +
+        "</g></g>"
+      );
     if (id === "tulekroon")
       return (
         "<g><defs>" +
@@ -6712,7 +6777,7 @@
         lessonStart(n.t.id);
       }, true);
     } else if (n.kind === "hard") {
-      speak(UI.mix.et);
+      speak(UI.hard.et);
       go(speedIntro, true);
     } else {
       speak(UI.mix.et);
@@ -8412,6 +8477,7 @@
     for (i = 0; i < tb.length; i++) {
       (function (el) {
         el.onclick = function () {
+          if (LS.done) return;
           var word = LS.bag[parseInt(el.getAttribute("data-tile"), 10)];
           speak(word);
           for (var k = 0; k < LS.list[LS.i].w.length; k++) {
@@ -8446,6 +8512,7 @@
     }
   }
   function checkSentence() {
+    if (LS.done) return;
     var s = LS.list[LS.i];
     if (LS.placed.length < s.w.length) return;
     for (var i = 0; i < s.w.length; i++) {
@@ -8476,6 +8543,7 @@
       speak(s.et);
       drawTiles();
       setTimeout(function () {
+        if (!LS) return;
         LS.i++;
         sentRound();
       }, 2100);
@@ -8492,6 +8560,7 @@
           });
       speak(s.et);
       setTimeout(function () {
+        if (!LS) return;
         LS.i++;
         sentRound();
       }, 3000);
@@ -14065,6 +14134,7 @@
       rainEnd();
       return;
     }
+    RN.lock = false;
     var target = RN.pool[RN.i % RN.pool.length],
       all = allWords(),
       opts = [target],
@@ -14115,9 +14185,13 @@
     for (i = 0; i < ds.length; i++) {
       (function (el) {
         el.onclick = function () {
-          if (!RN) return;
+          if (!RN || RN.lock) return;
+          RN.lock = true;
+          for (var j = 0; j < ds.length; j++) {
+            ds[j].disabled = true;
+            ds[j].style.animationPlayState = "paused";
+          }
           var ok = el.getAttribute("data-et") === target.et;
-          el.style.animationPlayState = "paused";
           el.classList.add(ok ? "hit" : "miss");
           wmemHit(target.et, ok, "choose", target.sv);
           praiseSay(ok ? RN.right + 1 : 0, ok, document.getElementById("fb"));
