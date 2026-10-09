@@ -4382,14 +4382,16 @@
     if (id === "kott")
       return (
         {
+          /* väskan centrerad på ryggen (syns bakifrån); remmarna går över axlarna
+             och syns framifrån - tillsammans syns hela ryggsäcken bakifrån */
           back:
             "<g><defs>" +
             gr("g-kott", "#E04A74", "#8E1838") +
             "</defs>" +
-            '<rect x="10" y="102" width="36" height="50" rx="13" fill="url(#g-kott)" stroke="#7A1430" stroke-width="1.4"/>' +
-            '<rect x="14" y="116" width="28" height="18" rx="7" fill="#9E1F42" stroke="#7A1430" stroke-width="1"/>' +
-            '<rect x="14" y="116" width="28" height="7" rx="3.5" fill="#F07A9C" opacity=".35"/>' +
-            '<rect x="24" y="100" width="8" height="8" rx="4" fill="none" stroke="#7A1430" stroke-width="2.4"/></g>',
+            '<rect x="74" y="118" width="52" height="55" rx="14" fill="url(#g-kott)" stroke="#7A1430" stroke-width="1.4"/>' +
+            '<rect x="80" y="134" width="40" height="20" rx="8" fill="#9E1F42" stroke="#7A1430" stroke-width="1"/>' +
+            '<rect x="80" y="134" width="40" height="8" rx="4" fill="#F07A9C" opacity=".35"/>' +
+            '<rect x="92" y="114" width="16" height="9" rx="4.5" fill="none" stroke="#7A1430" stroke-width="2.4"/></g>',
           front:
             '<g><path d="M70 122 q-15 7 -19 22" stroke="#7A1430" stroke-width="6" fill="none" stroke-linecap="round"/>' +
             '<path d="M70 122 q-15 7 -19 22" stroke="#C8305A" stroke-width="3.6" fill="none" stroke-linecap="round"/>' +
@@ -4986,24 +4988,21 @@
   var BACK_SPLIT = ["kott", "tiivad", "paasuke2", "draakon", "ring"];
   function backFurColors() {
     var f = myFur();
-    if (!f.o)
-      return {
-        body: "#F7F1E2",
-        bodyLight: "#FBF7EE",
-        quillDark: "#C9BBA3",
-        quillLight: "#DCD0BC",
-        quillStroke: "#A8987E",
-        line: "#E6DCC8",
-      };
-    var light = mixHex(f.c, "#FFFFFF", 0.5),
-      dark = mixHex(f.c, "#2A1E14", 0.3);
+    var rim = f.o ? f.c : "#C9BBA3";
+    var base = f.o ? mixHex(f.c, "#FFFFFF", 0.65) : "#E2D6BC";
+    var bodyLight = f.o ? mixHex(base, "#FFFFFF", 0.4) : "#FBF7EE";
     return {
-      body: light,
-      bodyLight: mixHex(light, "#FFFFFF", 0.3),
-      quillDark: f.c,
-      quillLight: mixHex(f.c, "#FFFFFF", 0.25),
-      quillStroke: dark,
-      line: mixHex(light, "#000000", 0.1),
+      base: base,
+      bodyLight: bodyLight,
+      rim: rim,
+      rimLight: mixHex(rim, "#FFFFFF", 0.35),
+      r2: mixHex(rim, base, 0.35),
+      r2Stroke: mixHex(rim, "#2A1E14", 0.12),
+      r3: mixHex(rim, base, 0.65),
+      r3Stroke: mixHex(rim, "#2A1E14", 0.08),
+      r4: mixHex(rim, base, 0.85),
+      stroke: f.o ? mixHex(rim, "#2A1E14", 0.35) : "#A8987E",
+      line: f.o ? mixHex(base, "#000000", 0.12) : "#E6DCC8",
     };
   }
   function siilBackSVG(size) {
@@ -5020,24 +5019,40 @@
       wearSVG("scene") +
       wearSVG("aura") +
       '<ellipse cx="100" cy="186" rx="55" ry="8" fill="#2A1B0C" opacity=".15"/>' +
-      '<path fill="' +
-      c.quillDark +
-      '" stroke="' +
-      c.quillStroke +
-      '" stroke-width="1" d="M37.2 112.6 L18.3 123.3 L39.6 126.4 Z M38.0 97.2 L17.2 102.9 L37.1 111.1 Z M42.1 82.3 L20.5 82.8 L38.1 95.7 Z M49.3 68.8 L28.2 64.1 L42.3 80.9 Z M59.3 57.5 L39.7 47.7 L49.7 67.6 Z M71.5 48.8 L54.4 34.6 L59.8 56.5 Z M85.2 43.4 L71.6 25.5 L72.0 48.1 Z M99.7 41.4 L90.4 20.8 L85.8 43.0 Z M114.2 43.0 L109.6 20.8 L100.3 41.4 Z M128.0 48.1 L128.4 25.5 L114.8 43.4 Z M140.2 56.5 L145.6 34.6 L128.5 48.8 Z M150.3 67.6 L160.3 47.7 L140.7 57.5 Z M157.7 80.9 L171.8 64.1 L150.7 68.8 Z M161.9 95.7 L179.5 82.8 L157.9 82.3 Z M162.9 111.1 L182.8 102.9 L162.0 97.2 Z M160.4 126.4 L181.7 123.3 L162.8 112.6 Z"/>' +
-      '<path fill="' +
-      c.quillLight +
-      '" opacity=".6" d="M37.2 112.6 L18.3 123.3 L39.6 126.4 Z M42.1 82.3 L20.5 82.8 L38.1 95.7 Z M59.3 57.5 L39.7 47.7 L49.7 67.6 Z M85.2 43.4 L71.6 25.5 L72.0 48.1 Z M114.2 43.0 L109.6 20.8 L100.3 41.4 Z M140.2 56.5 L145.6 34.6 L128.5 48.8 Z M157.7 80.9 L171.8 64.1 L150.7 68.8 Z M162.9 111.1 L182.8 102.9 L162.0 97.2 Z"/>' +
+      /* kroppen under, sedan fyra ringar med taggar ovanpå - störst och mörkast
+         ytterst, minst och ljusast nära mitten - så hela ryggen ser taggig och
+         fluffig ut istället för bara en tunn krans längst upp */
       '<ellipse cx="100" cy="116" rx="61" ry="66" fill="' +
-      c.body +
+      c.r4 +
       '"/>' +
+      '<path fill="' +
+      c.rim +
+      '" stroke="' +
+      c.stroke +
+      '" stroke-width="1" d="M32.6 120.4 L15.0 131.8 L36.0 132.9 Z M31.8 104.8 L12.1 112.2 L32.4 117.8 Z M34.1 89.5 L13.3 92.5 L31.9 102.3 Z M39.4 74.9 L18.4 73.4 L34.5 87.0 Z M47.6 61.9 L27.4 56.0 L40.2 72.7 Z M58.2 51.1 L39.7 41.0 L48.7 60.0 Z M70.7 42.9 L54.8 29.0 L59.5 49.5 Z M84.6 37.7 L72.0 20.8 L72.2 41.8 Z M99.1 35.7 L90.5 16.5 L86.2 37.1 Z M113.8 37.1 L109.5 16.5 L100.9 35.7 Z M127.8 41.8 L128.0 20.8 L115.4 37.7 Z M140.5 49.5 L145.2 29.0 L129.3 42.9 Z M151.3 60.0 L160.3 41.0 L141.8 51.1 Z M159.8 72.7 L172.6 56.0 L152.4 61.9 Z M165.5 87.0 L181.6 73.4 L160.6 74.9 Z M168.1 102.3 L186.7 92.5 L165.9 89.5 Z M167.6 117.8 L187.9 112.2 L168.2 104.8 Z M164.0 132.9 L185.0 131.8 L167.4 120.4 Z"/>' +
+      '<path fill="' +
+      c.rimLight +
+      '" opacity=".55" d="M32.6 120.4 L15.0 131.8 L36.0 132.9 Z M34.1 89.5 L13.3 92.5 L31.9 102.3 Z M47.6 61.9 L27.4 56.0 L40.2 72.7 Z M70.7 42.9 L54.8 29.0 L59.5 49.5 Z M99.1 35.7 L90.5 16.5 L86.2 37.1 Z M127.8 41.8 L128.0 20.8 L115.4 37.7 Z M151.3 60.0 L160.3 41.0 L141.8 51.1 Z M165.5 87.0 L181.6 73.4 L160.6 74.9 Z M167.6 117.8 L187.9 112.2 L168.2 104.8 Z"/>' +
+      '<path fill="' +
+      c.r2 +
+      '" stroke="' +
+      c.r2Stroke +
+      '" stroke-width=".8" d="M47.4 122.7 L37.0 132.3 L51.1 133.0 Z M45.7 107.9 L33.3 114.6 L46.7 118.9 Z M47.6 93.2 L33.9 96.5 L45.8 104.0 Z M52.9 79.4 L38.8 79.1 L48.4 89.4 Z M61.3 67.5 L47.7 63.6 L54.4 76.1 Z M72.2 58.2 L60.0 51.0 L63.3 64.8 Z M84.9 52.2 L74.9 42.2 L74.7 56.3 Z M98.6 49.8 L91.4 37.6 L87.7 51.2 Z M112.3 51.2 L108.6 37.6 L101.4 49.8 Z M125.3 56.3 L125.1 42.2 L115.1 52.2 Z M136.7 64.8 L140.0 51.0 L127.8 58.2 Z M145.6 76.1 L152.3 63.6 L138.7 67.5 Z M151.6 89.4 L161.2 79.1 L147.1 79.4 Z M154.2 104.0 L166.1 96.5 L152.4 93.2 Z M153.3 118.9 L166.7 114.6 L154.3 107.9 Z M148.9 133.0 L163.0 132.3 L152.6 122.7 Z"/>' +
+      '<path fill="' +
+      c.r3 +
+      '" stroke="' +
+      c.r3Stroke +
+      '" stroke-width=".7" d="M61.8 122.5 L55.6 130.4 L65.6 130.7 Z M59.8 109.1 L51.4 114.7 L60.9 118.1 Z M61.5 95.6 L51.8 98.4 L59.8 104.5 Z M66.8 83.3 L56.8 83.1 L62.6 91.3 Z M75.3 73.3 L65.8 70.0 L68.9 79.6 Z M86.2 66.6 L78.1 60.6 L78.1 70.6 Z M98.3 63.8 L92.5 55.6 L89.4 65.2 Z M110.6 65.2 L107.5 55.6 L101.7 63.8 Z M121.9 70.6 L121.9 60.6 L113.8 66.6 Z M131.1 79.6 L134.2 70.0 L124.7 73.3 Z M137.4 91.3 L143.2 83.1 L133.2 83.3 Z M140.2 104.5 L148.2 98.4 L138.5 95.6 Z M139.1 118.1 L148.6 114.7 L140.2 109.1 Z M134.4 130.7 L144.4 130.4 L138.2 122.5 Z"/>' +
+      '<path fill="' +
+      c.r4 +
+      '" opacity=".9" d="M72.8 109.8 L67.5 114.3 L74.0 116.7 Z M74.4 98.2 L67.7 100.4 L72.9 105.1 Z M79.7 88.1 L72.8 87.6 L75.8 93.9 Z M88.1 81.0 L81.9 77.9 L82.2 84.9 Z M98.2 77.9 L93.6 72.7 L91.4 79.2 Z M108.6 79.2 L106.4 72.7 L101.8 77.9 Z M117.8 84.9 L118.1 77.9 L111.9 81.0 Z M124.2 93.9 L127.2 87.6 L120.3 88.1 Z M127.1 105.1 L132.3 100.4 L125.6 98.2 Z M126.0 116.7 L132.5 114.3 L127.2 109.8 Z"/>' +
       '<ellipse cx="100" cy="150" rx="50" ry="40" fill="' +
       c.bodyLight +
       '"/>' +
       '<g stroke="' +
       c.line +
       '" stroke-width="1.4" opacity=".7" fill="none">' +
-      '<path d="M58 100 q42 20 84 0"/><path d="M54 122 q46 22 92 0"/><path d="M58 144 q42 20 84 0"/></g>' +
+      '<path d="M70 134 q30 14 60 0"/><path d="M66 154 q34 16 68 0"/></g>' +
       '<ellipse cx="76" cy="182" rx="15" ry="10" fill="' +
       c.bodyLight +
       '" stroke="' +
