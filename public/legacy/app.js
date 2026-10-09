@@ -4891,9 +4891,7 @@
     return FURS[0];
   }
   /* samma ritning som Siiri, men med barnets päls och kläder och utan animationer */
-  /* skicka turned=true för att visa ryggplagget helt synligt ovanpå - som när
-     barnet "vänder på" Siiri i Tuba för att se ryggsäcken/vingarna ordentligt */
-  function siilSVG(size, turned) {
+  function siilSVG(size) {
     var cls = "siiri" + (size ? " " + size : "") + (diff().id === "svar" ? " cool" : "");
     var img = (typeof window !== "undefined" && window.SIIRI_IMG) || "";
     return (
@@ -4981,14 +4979,124 @@
       '<ellipse id="s-mouthO" cx="100" cy="117" rx="9.5" ry="2" fill="#6E3540"/>' +
       '<ellipse id="s-tongue" cx="100" cy="120" rx="5.5" ry="1.3" fill="#E28EA0"/>' +
       "</g>" +
-      /* vänd-läge: ryggplagget ritas helt synligt ovanpå allt annat, med samma
-         vattenfärgstextur som framsidan - så barnet ser ryggsäcken/vingarna tydligt */
-      (turned
-        ? ["kott", "tiivad", "paasuke2", "draakon", "ring"].indexOf(wearing("back")) >= 0
-          ? wearSVG("back", "back") + wearSVG("back", "front")
-          : wearSVG("back")
-        : "") +
       "</g></g></svg>" +
+      '<span class="siirishadow"></span></span>'
+    );
+  }
+  /* Siiri sedd bakifrån: en egen taggig/fluffig teckning (inte vattenfärgsbilden,
+     som har ansiktet inbakat i pixlarna och därför inte kan "vändas om") - men
+     byggd med samma pälsfärglogik som framsidans furLayer() så tonen stämmer. */
+  var BACK_SPLIT = ["kott", "tiivad", "paasuke2", "draakon", "ring"];
+  function backFurColors() {
+    var f = myFur();
+    return {
+      rim: f.o ? mixHex(f.c, "#2A1E14", 0.32) : "#B9A787",
+      r2: f.o ? mixHex(f.c, "#2A1E14", 0.12) : "#C9BBA3",
+      r3: f.o ? f.c : "#D6C7A8",
+      r4: f.o ? mixHex(f.c, "#FFFFFF", 0.3) : "#E2D6BC",
+      r5: f.o ? mixHex(f.c, "#FFFFFF", 0.55) : "#EBE1CA",
+      r6: f.o ? mixHex(f.c, "#FFFFFF", 0.78) : "#F5EFDE",
+      hiTint: f.o ? mixHex(f.c, "#FFFFFF", 0.6) : "#FFFFFF",
+      base: f.o ? mixHex(f.c, "#FFFFFF", 0.82) : "#FBF7EE",
+      stroke: f.o ? mixHex(f.c, "#2A1E14", 0.45) : "#A8987E",
+      line: f.o ? mixHex(f.c, "#000000", 0.14) : "#E6DCC8",
+    };
+  }
+  function siilBackSVG(size) {
+    var cls = "siiri" + (size ? " " + size : "");
+    var c = backFurColors();
+    var backItem =
+      BACK_SPLIT.indexOf(wearing("back")) >= 0 ? wearSVG("back", "back") + wearSVG("back", "front") : wearSVG("back");
+    var rings = [
+      [
+        c.rim,
+        1.1,
+        "M158.4 107.9 L181.1 112.4 L158.8 118.8 Z M156.8 132.6 L175.7 145.4 L153.4 142.9 Z M150.2 149.2 L166.7 168.3 L144.1 158.0 Z M143.1 159.3 L156.3 182.1 L135.5 166.6 Z M128.8 171.4 L134.4 196.6 L119.6 175.9 Z M111.1 178.3 L108.3 201.3 L101.0 179.5 Z M87.7 178.1 L74.7 203.6 L78.0 174.9 Z M74.3 173.1 L58.1 190.5 L65.6 167.5 Z M54.4 156.1 L27.6 168.1 L48.7 147.1 Z M45.4 139.7 L20.4 141.7 L42.4 129.2 Z M41.1 114.2 L20.2 106.3 L42.3 103.3 Z M44.0 96.4 L24.2 82.0 L48.0 86.3 Z M47.2 88.0 L30.7 71.6 L52.4 78.6 Z M59.4 70.0 L46.0 44.5 L67.3 63.2 Z M73.0 59.6 L67.8 33.1 L82.4 55.4 Z M96.9 52.6 L102.8 28.1 L107.0 53.0 Z M114.0 54.3 L125.8 35.0 L123.6 57.8 Z M124.9 58.5 L140.8 40.9 L133.7 63.9 Z M146.1 76.5 L169.5 67.2 L151.7 85.6 Z M153.1 88.7 L179.3 84.5 L156.7 98.9 Z",
+        "M158.4 107.9 L181.1 112.4 L158.8 118.8 Z M143.1 159.3 L156.3 182.1 L135.5 166.6 Z M87.7 178.1 L74.7 203.6 L78.0 174.9 Z M45.4 139.7 L20.4 141.7 L42.4 129.2 Z M47.2 88.0 L30.7 71.6 L52.4 78.6 Z M96.9 52.6 L102.8 28.1 L107.0 53.0 Z M146.1 76.5 L169.5 67.2 L151.7 85.6 Z",
+      ],
+      [
+        c.r2,
+        0.95,
+        "M151.3 109.9 L170.8 114.5 L151.4 119.6 Z M149.2 131.9 L167.8 144.8 L145.9 140.9 Z M145.7 141.3 L161.1 157.0 L140.9 149.5 Z M133.5 158.0 L143.3 179.8 L126.3 163.7 Z M117.4 168.2 L118.1 188.6 L108.9 170.7 Z M98.5 171.5 L92.0 189.6 L89.7 170.4 Z M89.4 170.3 L78.7 190.6 L80.8 167.5 Z M77.2 165.7 L62.7 181.2 L69.6 160.7 Z M65.1 156.6 L46.0 167.9 L59.1 149.5 Z M51.4 134.0 L29.8 134.6 L49.2 124.6 Z M48.5 115.2 L29.4 108.6 L49.3 105.5 Z M50.4 100.2 L32.1 88.0 L53.6 91.1 Z M56.4 85.5 L42.8 69.1 L61.7 77.8 Z M69.5 70.2 L61.2 47.3 L77.1 65.1 Z M79.6 63.9 L77.0 41.4 L88.1 60.8 Z M90.2 60.3 L92.3 37.6 L99.0 59.3 Z M113.4 61.2 L125.7 40.3 L121.8 64.5 Z M129.9 69.7 L145.9 57.8 L136.7 76.0 Z M138.0 77.5 L157.9 67.8 L143.4 85.1 Z M144.8 87.8 L165.3 83.5 L148.5 96.6 Z",
+        "M151.3 109.9 L170.8 114.5 L151.4 119.6 Z M133.5 158.0 L143.3 179.8 L126.3 163.7 Z M89.4 170.3 L78.7 190.6 L80.8 167.5 Z M51.4 134.0 L29.8 134.6 L49.2 124.6 Z M56.4 85.5 L42.8 69.1 L61.7 77.8 Z M90.2 60.3 L92.3 37.6 L99.0 59.3 Z M138.0 77.5 L157.9 67.8 L143.4 85.1 Z",
+      ],
+      [
+        c.r3,
+        0.8,
+        "M143.5 106.3 L158.4 109.7 L144.2 115.6 Z M143.7 122.0 L160.0 130.9 L141.6 131.0 Z M138.5 138.7 L148.6 151.6 L133.6 146.4 Z M126.6 153.7 L132.6 172.2 L119.4 158.6 Z M116.0 160.2 L116.4 177.6 L107.9 162.8 Z M96.0 163.4 L88.4 181.0 L87.7 161.6 Z M78.7 157.5 L64.8 170.4 L71.7 152.2 Z M70.8 151.3 L56.1 159.2 L65.0 144.5 Z M60.8 137.3 L42.1 140.0 L57.6 128.6 Z M55.8 114.1 L41.6 107.8 L56.8 104.8 Z M56.5 106.3 L43.0 97.6 L58.8 97.3 Z M62.1 89.8 L51.3 76.0 L67.1 82.3 Z M75.1 74.5 L71.4 58.4 L82.6 70.0 Z M83.2 69.7 L82.6 52.5 L91.3 67.0 Z M102.1 66.1 L108.7 49.6 L110.5 67.4 Z M122.6 72.9 L136.3 61.2 L129.4 78.4 Z M131.1 80.1 L146.9 72.5 L136.5 87.3 Z M140.6 95.7 L155.5 95.7 L143.2 104.6 Z",
+        "M143.5 106.3 L158.4 109.7 L144.2 115.6 Z M126.6 153.7 L132.6 172.2 L119.4 158.6 Z M78.7 157.5 L64.8 170.4 L71.7 152.2 Z M55.8 114.1 L41.6 107.8 L56.8 104.8 Z M75.1 74.5 L71.4 58.4 L82.6 70.0 Z M122.6 72.9 L136.3 61.2 L129.4 78.4 Z",
+      ],
+      [
+        c.r4,
+        0.65,
+        "M136.8 113.7 L150.9 119.6 L136.0 122.6 Z M134.2 129.3 L145.3 140.3 L130.6 137.3 Z M129.3 139.3 L136.0 151.8 L123.8 145.8 Z M120.7 148.5 L123.7 163.3 L113.6 152.6 Z M107.8 154.7 L105.1 167.2 L99.9 155.6 Z M92.2 154.6 L84.6 165.1 L84.6 151.8 Z M78.1 147.4 L67.2 153.2 L72.2 141.4 Z M70.1 138.3 L57.6 140.5 L66.2 130.5 Z M64.0 122.6 L50.8 119.4 L63.2 113.7 Z M63.7 107.2 L50.5 98.7 L65.9 98.6 Z M72.0 87.4 L66.6 75.3 L77.7 81.2 Z M80.4 79.1 L78.4 65.3 L87.6 75.2 Z M94.8 73.2 L98.4 60.7 L102.8 72.9 Z M113.3 75.6 L123.8 63.6 L120.3 79.7 Z M122.8 81.7 L135.0 75.0 L128.5 88.0 Z M130.4 90.8 L142.7 89.0 L134.1 98.7 Z",
+        "M136.8 113.7 L150.9 119.6 L136.0 122.6 Z M120.7 148.5 L123.7 163.3 L113.6 152.6 Z M78.1 147.4 L67.2 153.2 L72.2 141.4 Z M63.7 107.2 L50.5 98.7 L65.9 98.6 Z M94.8 73.2 L98.4 60.7 L102.8 72.9 Z M130.4 90.8 L142.7 89.0 L134.1 98.7 Z",
+      ],
+      [
+        c.r5,
+        0.55,
+        "M130.0 108.1 L139.8 111.9 L130.2 116.5 Z M127.9 127.0 L134.1 135.5 L124.1 134.2 Z M124.0 134.5 L129.7 145.9 L118.7 140.4 Z M110.2 145.7 L108.5 156.0 L102.9 147.5 Z M96.6 147.4 L90.9 155.5 L89.4 145.5 Z M84.0 142.5 L73.6 149.3 L78.2 137.2 Z M73.1 129.5 L61.6 129.6 L70.5 121.6 Z M70.1 119.7 L60.0 116.1 L69.7 111.4 Z M70.6 105.3 L61.5 97.3 L73.2 97.5 Z M78.5 89.6 L74.5 77.9 L84.3 84.4 Z M88.5 82.1 L89.6 71.5 L95.7 79.9 Z M105.3 80.1 L112.4 69.7 L112.5 82.6 Z M118.0 86.2 L128.5 80.6 L123.4 91.9 Z M126.7 97.4 L138.4 97.1 L129.4 105.2 Z",
+        "M130.0 108.1 L139.8 111.9 L130.2 116.5 Z M110.2 145.7 L108.5 156.0 L102.9 147.5 Z M73.1 129.5 L61.6 129.6 L70.5 121.6 Z M78.5 89.6 L74.5 77.9 L84.3 84.4 Z M118.0 86.2 L128.5 80.6 L123.4 91.9 Z",
+      ],
+      [
+        c.r6,
+        0.4,
+        "M123.4 107.4 L131.2 110.8 L123.8 115.1 Z M122.5 122.0 L126.5 128.5 L119.3 128.8 Z M116.8 132.0 L118.3 140.1 L111.3 136.5 Z M104.8 139.1 L101.8 147.7 L97.9 139.6 Z M88.8 136.6 L81.6 140.5 L83.2 132.0 Z M79.8 127.2 L70.3 127.4 L77.0 120.2 Z M76.1 113.9 L69.3 109.3 L76.8 106.3 Z M77.2 104.8 L72.6 98.2 L80.3 97.9 Z M83.9 93.3 L82.9 85.3 L89.5 89.0 Z M97.3 86.5 L101.0 77.8 L104.1 86.7 Z M110.6 89.1 L117.8 84.9 L116.3 93.5 Z M119.3 97.3 L128.3 96.6 L122.5 104.0 Z",
+        "M123.4 107.4 L131.2 110.8 L123.8 115.1 Z M104.8 139.1 L101.8 147.7 L97.9 139.6 Z M76.1 113.9 L69.3 109.3 L76.8 106.3 Z M97.3 86.5 L101.0 77.8 L104.1 86.7 Z",
+      ],
+    ];
+    var spikes = "";
+    for (var i = 0; i < rings.length; i++) {
+      spikes +=
+        '<path fill="' +
+        rings[i][0] +
+        '" stroke="' +
+        c.stroke +
+        '" stroke-width="' +
+        rings[i][1] +
+        '" d="' +
+        rings[i][2] +
+        '"/>' +
+        '<path fill="' +
+        c.hiTint +
+        '" opacity=".4" d="' +
+        rings[i][3] +
+        '"/>';
+    }
+    return (
+      '<span class="siiri3d">' +
+      '<svg class="' +
+      cls +
+      '" id="s-back-svg" viewBox="0 0 200 200" role="img" aria-label="Igelkotten Siiri bakifrån">' +
+      '<g id="s-back-all">' +
+      wearSVG("scene") +
+      wearSVG("aura") +
+      '<ellipse cx="100" cy="186" rx="55" ry="8" fill="#2A1B0C" opacity=".15"/>' +
+      '<ellipse cx="100" cy="116" rx="66" ry="71" fill="' +
+      c.r3 +
+      '"/>' +
+      spikes +
+      '<ellipse cx="100" cy="150" rx="50" ry="40" fill="' +
+      c.base +
+      '"/>' +
+      '<g stroke="' +
+      c.line +
+      '" stroke-width="1.4" opacity=".7" fill="none">' +
+      '<path d="M70 134 q30 14 60 0"/><path d="M66 154 q34 16 68 0"/></g>' +
+      '<ellipse cx="76" cy="182" rx="15" ry="10" fill="' +
+      c.base +
+      '" stroke="' +
+      c.line +
+      '" stroke-width="1"/>' +
+      '<ellipse cx="124" cy="182" rx="15" ry="10" fill="' +
+      c.base +
+      '" stroke="' +
+      c.line +
+      '" stroke-width="1"/>' +
+      backItem +
+      wearSVG("head") +
+      wearSVG("neck") +
+      "</g></svg>" +
       '<span class="siirishadow"></span></span>'
     );
   }
@@ -11813,8 +11921,17 @@
     html +=
       '<div class="roomstage">' +
       roomSVG() +
-      '<div class="rsiiri" id="rdance" title="Tryck på Siiri för att vända på henne">' +
-      siilSVG(undefined, roomFacing === "back") +
+      '<div class="rsiiri' +
+      (roomFacing === "back" ? " turned" : "") +
+      '" id="rdance" title="Tryck på Siiri för att vända på henne">' +
+      '<div class="sflip">' +
+      '<div class="sflipface sflipfront">' +
+      siilSVG() +
+      "</div>" +
+      '<div class="sflipface sflipback">' +
+      siilBackSVG() +
+      "</div>" +
+      "</div>" +
       "</div>" +
       (function () {
         if (hideFound()) return "";
@@ -12054,9 +12171,9 @@
         roomFacing = roomFacing === "back" ? "front" : "back";
         tone(520, 0.08, 0);
         tone(720, 0.1, 0.07);
-        roomScreen();
-        var sv = document.getElementById("s-svg");
-        if (sv) sv.classList.add("wob");
+        /* CSS-flippen (backface-visibility) sköter själva vändningen, så vi
+           byter bara klass - ett helt om-render skulle avbryta animationen */
+        rd.classList.toggle("turned", roomFacing === "back");
       };
     var rp = document.getElementById("roompet");
     if (rp)

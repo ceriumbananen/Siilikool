@@ -2352,6 +2352,7 @@ body {
   display: flex;
   justify-content: center;
   pointer-events: none;
+  perspective: 1100px;
   filter: drop-shadow(0 10px 12px rgba(40, 25, 10, 0.28));
 }
 
@@ -2362,6 +2363,36 @@ body {
 
 .rsiiri .siiri {
   width: clamp(130px, 34vw, 190px);
+}
+
+/* vänd-animationen: två sidor av samma kort, bara en syns åt gången */
+.sflip {
+  position: relative;
+  display: inline-block;
+  pointer-events: auto;
+  cursor: pointer;
+  transform-style: preserve-3d;
+  transition: transform 0.8s cubic-bezier(0.34, 1.4, 0.4, 1);
+}
+
+.rsiiri.turned .sflip {
+  transform: rotateY(180deg);
+}
+
+.sflipface {
+  backface-visibility: hidden;
+}
+
+.sflipback {
+  position: absolute;
+  inset: 0;
+  transform: rotateY(180deg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sflip {
+    transition: none;
+  }
 }
 
 .rlabel {
