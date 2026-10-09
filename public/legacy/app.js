@@ -4981,6 +4981,80 @@
       '<span class="siirishadow"></span></span>'
     );
   }
+  /* Siiri sedd bakifrån - en enkel egen teckning (inte vattenfärgsbilden), så att
+     ryggplaggen syns i sin helhet när barnet vänder på henne */
+  var BACK_SPLIT = ["kott", "tiivad", "paasuke2", "draakon", "ring"];
+  function backFurColors() {
+    var f = myFur();
+    if (!f.o)
+      return {
+        body: "#F7F1E2",
+        bodyLight: "#FBF7EE",
+        quillDark: "#C9BBA3",
+        quillLight: "#DCD0BC",
+        quillStroke: "#A8987E",
+        line: "#E6DCC8",
+      };
+    var light = mixHex(f.c, "#FFFFFF", 0.5),
+      dark = mixHex(f.c, "#2A1E14", 0.3);
+    return {
+      body: light,
+      bodyLight: mixHex(light, "#FFFFFF", 0.3),
+      quillDark: f.c,
+      quillLight: mixHex(f.c, "#FFFFFF", 0.25),
+      quillStroke: dark,
+      line: mixHex(light, "#000000", 0.1),
+    };
+  }
+  function siilBackSVG(size) {
+    var cls = "siiri" + (size ? " " + size : "");
+    var c = backFurColors();
+    var backItem =
+      BACK_SPLIT.indexOf(wearing("back")) >= 0 ? wearSVG("back", "back") + wearSVG("back", "front") : wearSVG("back");
+    return (
+      '<span class="siiri3d">' +
+      '<svg class="' +
+      cls +
+      '" id="s-back-svg" viewBox="0 0 200 200" role="img" aria-label="Igelkotten Siiri bakifrån">' +
+      '<g id="s-back-all">' +
+      wearSVG("scene") +
+      wearSVG("aura") +
+      '<ellipse cx="100" cy="186" rx="55" ry="8" fill="#2A1B0C" opacity=".15"/>' +
+      '<path fill="' +
+      c.quillDark +
+      '" stroke="' +
+      c.quillStroke +
+      '" stroke-width="1" d="M37.2 112.6 L18.3 123.3 L39.6 126.4 Z M38.0 97.2 L17.2 102.9 L37.1 111.1 Z M42.1 82.3 L20.5 82.8 L38.1 95.7 Z M49.3 68.8 L28.2 64.1 L42.3 80.9 Z M59.3 57.5 L39.7 47.7 L49.7 67.6 Z M71.5 48.8 L54.4 34.6 L59.8 56.5 Z M85.2 43.4 L71.6 25.5 L72.0 48.1 Z M99.7 41.4 L90.4 20.8 L85.8 43.0 Z M114.2 43.0 L109.6 20.8 L100.3 41.4 Z M128.0 48.1 L128.4 25.5 L114.8 43.4 Z M140.2 56.5 L145.6 34.6 L128.5 48.8 Z M150.3 67.6 L160.3 47.7 L140.7 57.5 Z M157.7 80.9 L171.8 64.1 L150.7 68.8 Z M161.9 95.7 L179.5 82.8 L157.9 82.3 Z M162.9 111.1 L182.8 102.9 L162.0 97.2 Z M160.4 126.4 L181.7 123.3 L162.8 112.6 Z"/>' +
+      '<path fill="' +
+      c.quillLight +
+      '" opacity=".6" d="M37.2 112.6 L18.3 123.3 L39.6 126.4 Z M42.1 82.3 L20.5 82.8 L38.1 95.7 Z M59.3 57.5 L39.7 47.7 L49.7 67.6 Z M85.2 43.4 L71.6 25.5 L72.0 48.1 Z M114.2 43.0 L109.6 20.8 L100.3 41.4 Z M140.2 56.5 L145.6 34.6 L128.5 48.8 Z M157.7 80.9 L171.8 64.1 L150.7 68.8 Z M162.9 111.1 L182.8 102.9 L162.0 97.2 Z"/>' +
+      '<ellipse cx="100" cy="116" rx="61" ry="66" fill="' +
+      c.body +
+      '"/>' +
+      '<ellipse cx="100" cy="150" rx="50" ry="40" fill="' +
+      c.bodyLight +
+      '"/>' +
+      '<g stroke="' +
+      c.line +
+      '" stroke-width="1.4" opacity=".7" fill="none">' +
+      '<path d="M58 100 q42 20 84 0"/><path d="M54 122 q46 22 92 0"/><path d="M58 144 q42 20 84 0"/></g>' +
+      '<ellipse cx="76" cy="182" rx="15" ry="10" fill="' +
+      c.bodyLight +
+      '" stroke="' +
+      c.line +
+      '" stroke-width="1"/>' +
+      '<ellipse cx="124" cy="182" rx="15" ry="10" fill="' +
+      c.bodyLight +
+      '" stroke="' +
+      c.line +
+      '" stroke-width="1"/>' +
+      backItem +
+      wearSVG("head") +
+      wearSVG("neck") +
+      "</g></svg>" +
+      '<span class="siirishadow"></span></span>'
+    );
+  }
   function $s(id) {
     return document.getElementById(id);
   }
@@ -6503,6 +6577,7 @@
 
   /* ============ SKÄRMAR ============ */
   var screen = "home";
+  var roomFacing = "front"; /* "front" eller "back" - styr bara hur Siiri ritas i Tuba */
   function go(fn, isSub) {
     btnBack.hidden = !isSub;
     window.scrollTo(0, 0);
@@ -11801,8 +11876,8 @@
     html +=
       '<div class="roomstage">' +
       roomSVG() +
-      '<div class="rsiiri" id="rdance" title="Tryck på Siiri">' +
-      siilSVG() +
+      '<div class="rsiiri" id="rdance" title="Tryck på Siiri för att vända på henne">' +
+      (roomFacing === "back" ? siilBackSVG() : siilSVG()) +
       "</div>" +
       (function () {
         if (hideFound()) return "";
@@ -12039,8 +12114,12 @@
     var rd = document.getElementById("rdance");
     if (rd)
       rd.onclick = function () {
-        dance(true);
-        speak("Mängime!");
+        roomFacing = roomFacing === "back" ? "front" : "back";
+        tone(520, 0.08, 0);
+        tone(720, 0.1, 0.07);
+        roomScreen();
+        var sv = document.getElementById(roomFacing === "back" ? "s-back-svg" : "s-svg");
+        if (sv) sv.classList.add("wob");
       };
     var rp = document.getElementById("roompet");
     if (rp)
