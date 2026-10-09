@@ -4500,11 +4500,15 @@
       );
     if (id === "paasuke2")
       return (
-        '<g transform="translate(42,110) scale(1.05)"><path d="M0 0 q-16 -10 -30 -4 q14 4 22 12 q10 10 22 8 q-10 -6 -14 -16 z" fill="#2B3A56"/>' +
-        '<ellipse cx="4" cy="2" rx="13" ry="9" fill="#2B3A56"/><circle cx="14" cy="-2" r="6" fill="#2B3A56"/>' +
-        '<path d="M16 2 q6 -1 9 2 q-6 2 -9 0 z" fill="#E8A33C"/><circle cx="16" cy="-4" r="1.6" fill="#fff"/>' +
-        '<path d="M12 6 q6 4 12 2 q-4 6 -12 2 z" fill="#C8302F"/>' +
-        '<path d="M-8 6 q-18 10 -30 8 q14 -2 22 -10 z" fill="#1E2A40"/></g>'
+        {
+          back: "",
+          front:
+            '<g transform="translate(42,110) scale(1.05)"><path d="M0 0 q-16 -10 -30 -4 q14 4 22 12 q10 10 22 8 q-10 -6 -14 -16 z" fill="#2B3A56"/>' +
+            '<ellipse cx="4" cy="2" rx="13" ry="9" fill="#2B3A56"/><circle cx="14" cy="-2" r="6" fill="#2B3A56"/>' +
+            '<path d="M16 2 q6 -1 9 2 q-6 2 -9 0 z" fill="#E8A33C"/><circle cx="16" cy="-4" r="1.6" fill="#fff"/>' +
+            '<path d="M12 6 q6 4 12 2 q-4 6 -12 2 z" fill="#C8302F"/>' +
+            '<path d="M-8 6 q-18 10 -30 8 q14 -2 22 -10 z" fill="#1E2A40"/></g>',
+        }[arguments[1] || "front"] || ""
       );
     if (id === "jaanituli")
       return (
@@ -4608,8 +4612,12 @@
       );
     if (id === "ring")
       return (
-        '<g><circle cx="100" cy="128" r="62" fill="none" stroke="#F4F1EA" stroke-width="15"/>' +
-        '<circle cx="100" cy="128" r="62" fill="none" stroke="#E2453C" stroke-width="15" stroke-dasharray="46 46" stroke-dashoffset="23"/></g>'
+        {
+          back: "",
+          front:
+            '<g><circle cx="100" cy="128" r="62" fill="none" stroke="#F4F1EA" stroke-width="15"/>' +
+            '<circle cx="100" cy="128" r="62" fill="none" stroke="#E2453C" stroke-width="15" stroke-dasharray="46 46" stroke-dashoffset="23"/></g>',
+        }[arguments[1] || "front"] || ""
       );
     if (id === "sara")
       return (
@@ -4671,26 +4679,76 @@
         '<path d="M154 158 h12 l-2 6 h-8 z" fill="#D9DEE8"/><circle cx="160" cy="148" r="2.4" fill="#8FD3F4"/></g>' +
         '<g fill="#FFD45E" opacity=".9"><path d="M78 168 l2 5 5 .7 -3.6 3.5 1 5-4.4-2.4-4.4 2.4 1-5-3.6-3.5 5-.7 z"/></g></g>'
       );
+    if (id === "tulekroon")
+      return (
+        "<g><defs>" +
+        '<linearGradient id="g-tulekroon" x1="0" y1="1" x2="0" y2="0">' +
+        '<stop offset="0%" stop-color="#8E1F10"/><stop offset="40%" stop-color="#E8430A"/>' +
+        '<stop offset="75%" stop-color="#FF8C14"/><stop offset="100%" stop-color="#FFE07A"/></linearGradient>' +
+        '<linearGradient id="g-tulekroonB" x1="0" y1="0" x2="0" y2="1">' +
+        '<stop offset="0%" stop-color="#8A2A14"/><stop offset="100%" stop-color="#4A1006"/></linearGradient>' +
+        "</defs>" +
+        '<path d="M70 54 q-10 -20 -2 -34 q2 10 9 13 q-5 -16 5 -26 q-3 18 8 27 q7 8 -4 20 z" fill="url(#g-tulekroon)"/>' +
+        '<path d="M100 54 q-12 -24 -2 -40 q2 12 11 16 q-6 -19 6 -31 q-3 21 9 32 q8 10 -5 23 z" fill="url(#g-tulekroon)"/>' +
+        '<path d="M130 54 q10 -20 2 -34 q-2 10 -9 13 q5 -16 -5 -26 q3 18 -8 27 q-7 8 4 20 z" fill="url(#g-tulekroon)"/>' +
+        '<rect x="63" y="49" width="74" height="11" rx="5.5" fill="url(#g-tulekroonB)" stroke="#2E0A03" stroke-width="1.4"/>' +
+        '<path d="M65 52 h70" stroke="#FFCB6B" stroke-width="1.4" opacity=".55"/>' +
+        '<circle cx="100" cy="30" r="3" fill="#FFE07A"/><circle cx="78" cy="38" r="2.2" fill="#FFCB6B"/><circle cx="122" cy="38" r="2.2" fill="#FFCB6B"/></g>'
+      );
+    if (id === "valk")
+      return (
+        '<g opacity=".95"><defs>' +
+        '<linearGradient id="g-valk" x1="0" y1="0" x2="1" y2="1">' +
+        '<stop offset="0%" stop-color="#FFF3B0"/><stop offset="100%" stop-color="#F6C92B"/></linearGradient>' +
+        "</defs>" +
+        '<path d="M34 50 l18 -34 l-6 20 l16 -6 l-22 38 l6 -20 z" fill="url(#g-valk)" stroke="#C99A0A" stroke-width="1"/>' +
+        '<path d="M176 60 l-16 -32 l5 19 l-15 -5 l20 36 l-5 -19 z" fill="url(#g-valk)" stroke="#C99A0A" stroke-width="1"/>' +
+        '<path d="M24 146 l16 -30 l-5 18 l14 -5 l-18 33 l5 -18 z" fill="url(#g-valk)" stroke="#C99A0A" stroke-width="1" opacity=".85"/>' +
+        '<path d="M168 152 l-14 -28 l4 16 l-13 -4 l16 30 l-4 -16 z" fill="url(#g-valk)" stroke="#C99A0A" stroke-width="1" opacity=".85"/></g>'
+      );
+    if (id === "draakon")
+      return (
+        {
+          back: "",
+          front:
+            "<g><defs>" +
+            '<linearGradient id="g-draakon" x1="1" y1="0" x2="0" y2="1">' +
+            '<stop offset="0%" stop-color="#8FD98F"/><stop offset="55%" stop-color="#3E8C4A"/>' +
+            '<stop offset="100%" stop-color="#1E5A2A"/></linearGradient>' +
+            "</defs>" +
+            '<g><path d="M148,108 Q160,58 192,34 Q182,64 180,86 Q198,80 198,98 Q184,98 180,112 Q196,120 196,142 Q180,132 174,132 Q180,152 172,170 Q156,138 148,108 Z" fill="url(#g-draakon)" stroke="#143F1C" stroke-width="2"/>' +
+            '<g stroke="#143F1C" stroke-width="1.4" opacity=".55" fill="none">' +
+            '<path d="M150,106 Q166,70 188,38"/><path d="M154,112 Q176,96 196,98"/><path d="M158,122 Q178,114 194,142"/><path d="M160,132 Q170,142 172,168"/></g></g>' +
+            '<g transform="scale(-1,1) translate(-200,0)">' +
+            '<path d="M148,108 Q160,58 192,34 Q182,64 180,86 Q198,80 198,98 Q184,98 180,112 Q196,120 196,142 Q180,132 174,132 Q180,152 172,170 Q156,138 148,108 Z" fill="url(#g-draakon)" stroke="#143F1C" stroke-width="2"/>' +
+            '<g stroke="#143F1C" stroke-width="1.4" opacity=".55" fill="none">' +
+            '<path d="M150,106 Q166,70 188,38"/><path d="M154,112 Q176,96 196,98"/><path d="M158,122 Q178,114 194,142"/><path d="M160,132 Q170,142 172,168"/></g></g></g>',
+        }[arguments[1] || "front"] || ""
+      );
     if (id === "tiivad")
       return (
-        '<g opacity=".92"><defs>' +
-        '<linearGradient id="g-tiiv" x1="1" y1="0" x2="0" y2="1">' +
-        '<stop offset="0%" stop-color="#D9F1FD"/><stop offset="55%" stop-color="#8FD3F4"/>' +
-        '<stop offset="100%" stop-color="#5FA8D8"/></linearGradient>' +
-        '<linearGradient id="g-tiiv2" x1="1" y1="0" x2="0" y2="1">' +
-        '<stop offset="0%" stop-color="#EAF8FE"/><stop offset="100%" stop-color="#93CDE8"/></linearGradient></defs>' +
-        "<g>" +
-        '<path d="M46 96 q-34 -30 -34 -4 q0 26 34 22 z" fill="url(#g-tiiv)" stroke="#5FA8D8" stroke-width="1.2"/>' +
-        '<path d="M46 116 q-30 4 -28 26 q2 20 28 -8 z" fill="url(#g-tiiv2)" stroke="#7FBEDC" stroke-width="1.1"/>' +
-        '<g stroke="#6FB6DA" stroke-width=".9" opacity=".8" fill="none">' +
-        '<path d="M44 98 q-16 -6 -26 -2"/><path d="M44 104 q-18 0 -26 6"/><path d="M44 120 q-14 4 -20 14"/></g>' +
-        '<circle cx="24" cy="100" r="3" fill="#FFFFFF" opacity=".6"/><circle cx="26" cy="132" r="2.4" fill="#FFFFFF" opacity=".55"/></g>' +
-        "<g>" +
-        '<path d="M154 96 q34 -30 34 -4 q0 26 -34 22 z" fill="url(#g-tiiv)" stroke="#5FA8D8" stroke-width="1.2"/>' +
-        '<path d="M154 116 q30 4 28 26 q-2 20 -28 -8 z" fill="url(#g-tiiv2)" stroke="#7FBEDC" stroke-width="1.1"/>' +
-        '<g stroke="#6FB6DA" stroke-width=".9" opacity=".8" fill="none">' +
-        '<path d="M156 98 q16 -6 26 -2"/><path d="M156 104 q18 0 26 6"/><path d="M156 120 q14 4 20 14"/></g>' +
-        '<circle cx="176" cy="100" r="3" fill="#FFFFFF" opacity=".6"/><circle cx="174" cy="132" r="2.4" fill="#FFFFFF" opacity=".55"/></g></g>'
+        {
+          back: "",
+          front:
+            '<g opacity=".92"><defs>' +
+            '<linearGradient id="g-tiiv" x1="1" y1="0" x2="0" y2="1">' +
+            '<stop offset="0%" stop-color="#D9F1FD"/><stop offset="55%" stop-color="#8FD3F4"/>' +
+            '<stop offset="100%" stop-color="#5FA8D8"/></linearGradient>' +
+            '<linearGradient id="g-tiiv2" x1="1" y1="0" x2="0" y2="1">' +
+            '<stop offset="0%" stop-color="#EAF8FE"/><stop offset="100%" stop-color="#93CDE8"/></linearGradient></defs>' +
+            "<g>" +
+            '<path d="M46 96 q-34 -30 -34 -4 q0 26 34 22 z" fill="url(#g-tiiv)" stroke="#5FA8D8" stroke-width="1.2"/>' +
+            '<path d="M46 116 q-30 4 -28 26 q2 20 28 -8 z" fill="url(#g-tiiv2)" stroke="#7FBEDC" stroke-width="1.1"/>' +
+            '<g stroke="#6FB6DA" stroke-width=".9" opacity=".8" fill="none">' +
+            '<path d="M44 98 q-16 -6 -26 -2"/><path d="M44 104 q-18 0 -26 6"/><path d="M44 120 q-14 4 -20 14"/></g>' +
+            '<circle cx="24" cy="100" r="3" fill="#FFFFFF" opacity=".6"/><circle cx="26" cy="132" r="2.4" fill="#FFFFFF" opacity=".55"/></g>' +
+            "<g>" +
+            '<path d="M154 96 q34 -30 34 -4 q0 26 -34 22 z" fill="url(#g-tiiv)" stroke="#5FA8D8" stroke-width="1.2"/>' +
+            '<path d="M154 116 q30 4 28 26 q-2 20 -28 -8 z" fill="url(#g-tiiv2)" stroke="#7FBEDC" stroke-width="1.1"/>' +
+            '<g stroke="#6FB6DA" stroke-width=".9" opacity=".8" fill="none">' +
+            '<path d="M156 98 q16 -6 26 -2"/><path d="M156 104 q18 0 26 6"/><path d="M156 120 q14 4 20 14"/></g>' +
+            '<circle cx="176" cy="100" r="3" fill="#FFFFFF" opacity=".6"/><circle cx="174" cy="132" r="2.4" fill="#FFFFFF" opacity=".55"/></g></g>',
+        }[arguments[1] || "front"] || ""
       );
     return "";
   }
@@ -4860,11 +4918,15 @@
       '<g id="s-wave"><circle cx="14" cy="52" r="6" fill="#3B6CD4" opacity="0"/><circle cx="14" cy="52" r="6" fill="#3B6CD4" opacity="0"/><circle cx="14" cy="52" r="6" fill="#3B6CD4" opacity="0"/></g>' +
       '<g id="s-head">' +
       wearSVG("scene") +
-      wearSVG("aura") +
-      (wearing("back") === "kott" ? wearSVG("back", "back") : wearSVG("back")) +
+      (["kott", "tiivad", "paasuke2", "draakon", "ring"].indexOf(wearing("back")) >= 0
+        ? wearSVG("back", "back")
+        : wearSVG("back")) +
       '<use href="#siiriPic"/>' +
       furLayer(myFur(), img, "s") +
-      (wearing("back") === "kott" ? wearSVG("back", "front") : "") +
+      (["kott", "tiivad", "paasuke2", "draakon", "ring"].indexOf(wearing("back")) >= 0
+        ? wearSVG("back", "front")
+        : "") +
+      wearSVG("aura") +
       wearSVG("outfit") +
       wearSVG("neck") +
       wearSVG("head") +
@@ -14220,7 +14282,9 @@
         "</small>" +
         (have
           ? '<span class="cost">' + (on ? "på ✓" : "i lådan") + "</span>"
-          : '<span class="cost">⭐ ' + it.price.toLocaleString("sv-SE") + "</span>") +
+          : afford
+            ? '<span class="cost">⭐ ' + it.price.toLocaleString("sv-SE") + "</span>"
+            : '<span class="cost cant">🔒 ⭐ ' + (it.price - S.stars).toLocaleString("sv-SE") + " kvar</span>") +
         (isLimited(it) && !have ? '<small style="color:var(--honey-deep)">säsong</small>' : "") +
         "</button>";
     }

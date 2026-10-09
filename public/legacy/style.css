@@ -3696,12 +3696,14 @@ body {
   background: color-mix(in srgb, var(--moss) 14%, var(--card));
 }
 
-.shopitem.locked {
-  opacity: 0.65;
+.shopitem.cant {
+  opacity: 0.55;
+  filter: grayscale(0.85);
+  cursor: not-allowed;
 }
 
-.shopitem.cant {
-  opacity: 0.45;
+.shopitem .cost.cant {
+  color: var(--berry);
 }
 
 .shopitem:active {
