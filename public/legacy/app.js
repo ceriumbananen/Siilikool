@@ -5090,10 +5090,10 @@
       c.rim +
       '"/>' +
       spikes +
-      shine +
       '<g clip-path="url(#back-clip)">' +
-      '<rect x="0" y="0" width="200" height="200" fill="url(#back-furtile)" opacity=".5"/>' +
+      '<rect x="0" y="0" width="200" height="200" fill="url(#back-furtile)" opacity=".95"/>' +
       "</g>" +
+      shine +
       '<ellipse cx="100" cy="150" rx="50" ry="40" fill="' +
       c.base +
       '"/>' +
