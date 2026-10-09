@@ -190,7 +190,7 @@ button {
 
 @media (min-width: 1000px) {
   .wrap {
-    max-width: 820px;
+    max-width: 900px;
   }
 
   body {
@@ -200,11 +200,17 @@ button {
 
 @media (min-width: 1400px) {
   .wrap {
-    max-width: 900px;
+    max-width: 1100px;
   }
 
   body {
     font-size: var(--fs-lg);
+  }
+}
+
+@media (min-width: 1800px) {
+  .wrap {
+    max-width: 1320px;
   }
 }
 
@@ -1579,6 +1585,28 @@ button {
   backdrop-filter: blur(10px);
   border-top: 3px solid var(--line);
   padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* på breda skärmar hålls navbaren lika bred som innehållet och centreras,
+   istället för att sträcka ut sex knappar över hela skärmen */
+@media (min-width: 1000px) {
+  .navbar {
+    max-width: 900px;
+    margin: 0 auto;
+    border-radius: var(--r-lg) var(--r-lg) 0 0;
+  }
+}
+
+@media (min-width: 1400px) {
+  .navbar {
+    max-width: 1100px;
+  }
+}
+
+@media (min-width: 1800px) {
+  .navbar {
+    max-width: 1320px;
+  }
 }
 
 .navbar button {
