@@ -1521,11 +1521,12 @@
     autoBackup("ny ort");
     var from = tripCur(),
       gift = SOUVENIR[from.id],
-      it = itemById(gift);
+      it = itemById(gift),
+      gifted = it && !owns(it.id); /* har barnet redan köpt den i butiken själv? då ges inget nytt */
     S.walkFrom = tripReached() - 1; /* varifrån hon vandrar */
     S.tripDone = Math.min(TRIP.length, tripDone() + 1);
     save();
-    if (it && !owns(it.id)) {
+    if (gifted) {
       if (!S.owned) S.owned = [];
       if (!S.wear) S.wear = {};
       S.owned.push(it.id);
@@ -1547,7 +1548,7 @@
         '<div class="oc" style="border-color:var(--berry)"><p class="kicker">🎒 Alla uppdrag klara i ' +
         esc(from.et) +
         "!</p>" +
-        (it
+        (gifted
           ? '<div style="font-size:64px">' +
             it.em +
             "</div><h3>" +
@@ -1558,7 +1559,18 @@
             " — souvenir från " +
             esc(from.et) +
             ", gratis till marknaden</p>"
-          : "") +
+          : it
+            ? '<div style="font-size:64px">' +
+              it.em +
+              "</div><h3>" +
+              esc(it.et) +
+              "</h3>" +
+              "<p>" +
+              esc(it.sv) +
+              " — du har redan den här souveniren från " +
+              esc(from.et) +
+              "</p>"
+            : "") +
         (last
           ? '<p class="qsub" style="margin-top:8px">Du har rest genom hela Estland!</p>'
           : '<p class="qsub" style="margin-top:8px">Siiri vandrar vidare till <b>' + esc(nx.et) + "</b>.</p>") +
@@ -2618,12 +2630,7 @@
       em: "🗺️",
       sv: "Halva Estland",
       test: function (s) {
-        var n = 0,
-          k;
-        for (k in s.best || {}) {
-          if (s.best[k] > 0) n++;
-        }
-        return n >= 5;
+        return (s.tripDone || 0) >= Math.ceil(TRIP.length / 2);
       },
     },
     {
@@ -2631,12 +2638,7 @@
       em: "🧭",
       sv: "Hela resan klar",
       test: function (s) {
-        var n = 0,
-          k;
-        for (k in s.best || {}) {
-          if (s.best[k] > 0) n++;
-        }
-        return n >= 11;
+        return (s.tripDone || 0) >= TRIP.length;
       },
     },
     {
@@ -6772,11 +6774,9 @@
       case "flame30":
         return [Math.min(s.flames || 0, 30), 30];
       case "trip6":
-        for (k in s.best || {}) if (s.best[k] > 0) n++;
-        return [Math.min(n, 5), 5];
+        return [Math.min(s.tripDone || 0, Math.ceil(TRIP.length / 2)), Math.ceil(TRIP.length / 2)];
       case "trip12":
-        for (k in s.best || {}) if (s.best[k] > 0) n++;
-        return [Math.min(n, 11), 11];
+        return [Math.min(s.tripDone || 0, TRIP.length), TRIP.length];
       case "wardrobe":
         return [Math.min((s.owned || []).length, 13), 13];
       case "wardrobeall":
@@ -13810,7 +13810,7 @@
     if (DU.rivalDbl === "now" && !listen) speak(taunt("dbl").et);
     var used = false;
     document.getElementById("hint").onclick = function () {
-      if (!DU.hint) return;
+      if (DU.lock || !DU.hint) return;
       DU.hint = false;
       this.disabled = true;
       var bs = app.querySelectorAll(".opt"),
@@ -13826,7 +13826,7 @@
       tone(700, 0.1, 0);
     };
     document.getElementById("dbl").onclick = function () {
-      if (DU.dbl) return;
+      if (DU.lock || DU.dbl) return;
       DU.dbl = true;
       this.disabled = true;
       this.className = "btn";
