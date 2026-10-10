@@ -3883,6 +3883,24 @@ body {
   margin-top: 12px;
 }
 
+.streaktip {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  background: color-mix(in srgb, var(--honey-deep) 16%, var(--card));
+  border: var(--bd) solid var(--honey-deep);
+  border-radius: var(--r-md);
+  padding: 10px 14px;
+  margin-top: 10px;
+  font-size: var(--fs-sm);
+  font-weight: 600;
+}
+
+.streaktip .em {
+  font-size: var(--fs-2xl);
+  flex: none;
+}
+
 .emptytip .arrow {
   font-size: var(--fs-2xl);
   animation: pointUp 1.4s ease-in-out infinite;
@@ -4587,6 +4605,11 @@ body {
   background: rgba(255, 255, 255, 0.28);
   margin-top: 8px;
   overflow: hidden;
+}
+
+.qbar.sm {
+  height: 6px;
+  margin-top: 5px;
 }
 
 .qbar i {
@@ -6014,6 +6037,12 @@ input.type.wrong {
   padding: 8px 12px;
   font-weight: 600;
   margin: 4px;
+}
+
+.badge small {
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  opacity: 0.75;
 }
 
 .note {

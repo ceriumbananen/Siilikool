@@ -6706,6 +6706,109 @@
     if (newOnes.length) save();
     return newOnes;
   }
+  /* hur nära en olåst bragd man är - visas som "x/y" så barnet ser målet
+     komma närmare (goal-gradient: synlig närhet ökar motivationen) */
+  function badgeProgress(b, s) {
+    var n = 0,
+      k,
+      i;
+    switch (b.id) {
+      case "first":
+        return [Math.min(s.correct || 0, 1), 1];
+      case "ten":
+        return [Math.min(s.correct || 0, 10), 10];
+      case "fifty":
+        return [Math.min(s.correct || 0, 50), 50];
+      case "talker":
+        return [Math.min(s.spoken || 0, 8), 8];
+      case "writer":
+        return [Math.min(s.typed || 0, 8), 8];
+      case "perfect":
+        return [Math.min(s.perfect || 0, 1), 1];
+      case "all":
+        for (k in s.best || {}) if (s.best[k] > 0) n++;
+        return [Math.min(n, THEMES.length), THEMES.length];
+      case "combo8":
+        return [Math.min(s.bestcombo || 0, 8), 8];
+      case "flame3":
+        return [Math.min(s.flames || 0, 3), 3];
+      case "stars100":
+        return [Math.min(s.stars || 0, 100), 100];
+      case "right250":
+        return [Math.min(s.correct || 0, 250), 250];
+      case "right1000":
+        return [Math.min(s.correct || 0, 1000), 1000];
+      case "spoken50":
+        return [Math.min(s.spoken || 0, 50), 50];
+      case "typed50":
+        return [Math.min(s.typed || 0, 50), 50];
+      case "sent25":
+        if ((s.sentbest || 0) / 6 <= (s.correct || 0) / 200) return [Math.min(s.sentbest || 0, 6), 6];
+        return [Math.min(s.correct || 0, 200), 200];
+      case "flame7":
+        return [Math.min(s.flames || 0, 7), 7];
+      case "flame30":
+        return [Math.min(s.flames || 0, 30), 30];
+      case "trip6":
+        for (k in s.best || {}) if (s.best[k] > 0) n++;
+        return [Math.min(n, 5), 5];
+      case "trip12":
+        for (k in s.best || {}) if (s.best[k] > 0) n++;
+        return [Math.min(n, 11), 11];
+      case "wardrobe":
+        return [Math.min((s.owned || []).length, 13), 13];
+      case "wardrobeall":
+        return [Math.min((s.owned || []).length, SHOP.length), SHOP.length];
+      case "hardwin":
+        return [Math.min(s.hardWins || 0, 1), 1];
+      case "hard10":
+        return [Math.min(s.hardWins || 0, 10), 10];
+      case "perfect5":
+        return [Math.min(s.perfect || 0, 5), 5];
+      case "stars5000":
+        return [Math.min(s.stars || 0, 5000), 5000];
+      case "duel1":
+        for (k in s.duels || {}) n += s.duels[k].w || 0;
+        return [Math.min(n, 1), 1];
+      case "duel10":
+        for (k in s.duels || {}) n += s.duels[k].w || 0;
+        return [Math.min(n, 10), 10];
+      case "duelall":
+        for (i = 0; i < RIVALS.length; i++) if (((s.duels || {})[RIVALS[i].id] || {}).w) n++;
+        return [n, 4];
+      default:
+        return null; /* kilpkonn m.fl. hemligheter förblir mystiska */
+    }
+  }
+  function badgeChip(b) {
+    var has = S.badges.indexOf(b.id) >= 0;
+    if (has) return '<span class="badge">' + b.em + " " + esc(b.sv) + "</span>";
+    var p = badgeProgress(b, S);
+    return (
+      '<span class="badge" style="opacity:.35;filter:grayscale(1)">' +
+      b.em +
+      " " +
+      esc(b.sv) +
+      (p ? '<small style="opacity:.8;font-weight:700">' + p[0] + "/" + p[1] + "</small>" : "") +
+      "</span>"
+    );
+  }
+  /* liten flytande toast, samma mönster som "Raske sõna ×2"-rutan - visas
+     direkt istället för att vänta till rundans slut */
+  function badgeToast(newOnes, i) {
+    i = i || 0;
+    if (i >= newOnes.length) return;
+    var b = newOnes[i];
+    var d = document.createElement("div");
+    d.className = "combo hardwin";
+    d.innerHTML = b.em + " Nytt märke: " + esc(b.sv);
+    document.body.appendChild(d);
+    sndLvl();
+    setTimeout(function () {
+      d.remove();
+    }, 1600);
+    if (i + 1 < newOnes.length) setTimeout(badgeToast, 1300, newOnes, i + 1);
+  }
 
   /* ============ SKÄRMAR ============ */
   var screen = "home";
@@ -6954,7 +7057,7 @@
     MODES.sort(function (x, y) {
       return (S.tried[x.k] || 0) - (S.tried[y.k] || 0);
     });
-    var showMode = S.allModes ? MODES.length : 3;
+    var showMode = S.allModes ? MODES.length : 5;
     html += '<div class="modes">';
     var newLeft = 2; /* märket betyder inget om allt är nytt */
     for (i = 0; i < showMode; i++) {
@@ -7074,6 +7177,13 @@
       Math.round((p.v / p.q.goal) * 100) +
       '%;background:var(--moss)"></i></span></button>' +
       "</div>";
+
+    /* svit i fara: varna innan den nollställs tyst imorgon, inte efteråt */
+    if (S.flames && !p.done)
+      html +=
+        '<div class="streaktip"><span class="em">🔥</span><span>' +
+        S.flames +
+        " dagar i rad – klara dagens utmaning idag så fortsätter den!</span></div>";
 
     /* teman */
     var lim = themesUnlocked(),
@@ -8012,15 +8122,7 @@
       "</div></div>";
     html += '<div class="card"><p class="q" style="text-align:left">Dina bragder</p>';
     for (i = 0; i < BADGES.length; i++) {
-      var has = S.badges.indexOf(BADGES[i].id) >= 0;
-      html +=
-        '<span class="badge" style="' +
-        (has ? "" : "opacity:.35;filter:grayscale(1)") +
-        '">' +
-        BADGES[i].em +
-        " " +
-        esc(BADGES[i].sv) +
-        "</span>";
+      html += badgeChip(BADGES[i]);
     }
     html += "</div>";
     var got = (S.secrets || []).length;
@@ -8563,7 +8665,7 @@
         if (!LS) return;
         LS.i++;
         sentRound();
-      }, 3000);
+      }, 2100);
     }
     refreshTop();
   }
@@ -11899,14 +12001,11 @@
           }
           wmemHit(w.et, ok, "choose", w.sv);
           speak(w.et);
-          setTimeout(
-            function () {
-              DP.i++;
-              DP.lock = false;
-              dipRound();
-            },
-            ok ? 900 : 1700,
-          );
+          setTimeout(function () {
+            DP.i++;
+            DP.lock = false;
+            dipRound();
+          }, 900);
         };
       })(bs[k]);
     }
@@ -12632,12 +12731,9 @@
           fb.className = "feedback " + (ok ? "ok" : "no");
           fb.textContent = ok ? "Rätt!" : w.et + " = " + w.sv;
           CH.i++;
-          setTimeout(
-            function () {
-              if (CH) chRound();
-            },
-            ok ? 900 : 1700,
-          );
+          setTimeout(function () {
+            if (CH) chRound();
+          }, 900);
         };
       })(bs[k]);
     }
@@ -14210,12 +14306,9 @@
             mood("oops");
           }
           RN.i++;
-          setTimeout(
-            function () {
-              if (RN) rainRound();
-            },
-            ok ? 800 : 1500,
-          );
+          setTimeout(function () {
+            if (RN) rainRound();
+          }, 800);
         };
       })(ds[i]);
     }
@@ -14514,6 +14607,11 @@
           : afford
             ? '<span class="cost">⭐ ' + it.price.toLocaleString("sv-SE") + "</span>"
             : '<span class="cost cant">🔒 ⭐ ' + (it.price - S.stars).toLocaleString("sv-SE") + " kvar</span>") +
+        (!have && !afford && it.price >= 700
+          ? '<span class="qbar sm"><i style="width:' +
+            Math.min(100, Math.round((S.stars / it.price) * 100)) +
+            '%;background:var(--honey-deep)"></i></span>'
+          : "") +
         (isLimited(it) && !have ? '<small style="color:var(--honey-deep)">säsong</small>' : "") +
         "</button>";
     }
@@ -14747,15 +14845,7 @@
       (S.name ? esc(S.name) + "s bragder" : "Dina bragder") +
       "</p>";
     for (i = 0; i < BADGES.length; i++) {
-      var has = S.badges.indexOf(BADGES[i].id) >= 0;
-      html +=
-        '<span class="badge" style="' +
-        (has ? "" : "opacity:.35;filter:grayscale(1)") +
-        '">' +
-        BADGES[i].em +
-        " " +
-        esc(BADGES[i].sv) +
-        "</span>";
+      html += badgeChip(BADGES[i]);
     }
     html +=
       '<p class="qsub" style="text-align:left;margin-top:12px">⭐ ' +
@@ -15653,6 +15743,10 @@
         }, 1000);
       }
       save();
+      /* kolla bragder direkt, inte bara vid rundans slut - den allra första
+         "Nytt märke!" ska komma inom sekunder, inte efter 10-12 frågor */
+      var newBadges = checkBadges();
+      if (newBadges.length) badgeToast(newBadges);
       sndOk();
       buzz(18);
       mood("cheer");
