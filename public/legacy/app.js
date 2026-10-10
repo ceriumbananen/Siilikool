@@ -6023,6 +6023,43 @@
     if (!s) return 0;
     return s.words.length - schoolLeft().length;
   }
+  /* läxord som redan mötts minst en gång (via läxkortet eller annars) - bara dessa vävs in
+       i vanliga teman och stationer, så ett helt nytt läxord alltid introduceras av läxkortet
+       först, aldrig kallt mitt i ett tidspressat spel */
+  function schoolReadyWords() {
+    var left = schoolLeft(),
+      out = [],
+      i,
+      mm;
+    for (i = 0; i < left.length; i++) {
+      mm = (S.wordmem || {})[mkey(left[i].et, left[i].sv)];
+      if (mm && (mm.r || 0) > 0) out.push(left[i]);
+    }
+    return out;
+  }
+  /* samma ord, men bytt mot ordbokens egen post om samma et-ord redan finns där sen innan -
+       stationsspelen bygger på att peka ut en bild, och läxord saknar en säker egen (se hasPic) */
+  function schoolPicWords() {
+    var left = schoolReadyWords();
+    if (!left.length) return [];
+    var all = allWords(),
+      out = [],
+      i,
+      j,
+      src;
+    for (i = 0; i < left.length; i++) {
+      src = null;
+      for (j = 0; j < all.length; j++) {
+        if (!all[j].school && all[j].et === left[i].et && hasPic(all[j])) {
+          src = all[j];
+          break;
+        }
+      }
+      /* behåller läxans egna et/sv (så ordminnet uppdateras på rätt post) - bara bilden lånas */
+      if (src) out.push({ et: left[i].et, sv: left[i].sv, em: src.em });
+    }
+    return out;
+  }
   /* städar bort hela omgången när tiden gått ut eller allt sitter */
   function schoolSweep() {
     var s = schoolSet();
@@ -9200,6 +9237,23 @@
     "kell",
     "lamp",
   ];
+  /* lägger till läxord som har en riktig bild (se schoolPicWords) och inte redan finns med */
+  function addSchoolPics(pool) {
+    var extra = schoolPicWords(),
+      add = [],
+      i,
+      j,
+      dup,
+      w;
+    for (i = 0; i < extra.length; i++) {
+      w = extra[i];
+      if (w.et.indexOf(" ") >= 0 || STSKIP.indexOf(w.et) >= 0) continue;
+      dup = false;
+      for (j = 0; j < pool.length; j++) if (pool[j].et === w.et) dup = true;
+      if (!dup) add.push(w);
+    }
+    return pool.concat(add);
+  }
   function stThings(n) {
     var pool = [],
       i,
@@ -9211,6 +9265,7 @@
         if (w.em && w.et.indexOf(" ") < 0 && STSKIP.indexOf(w.et) < 0) pool.push(w);
       }
     }
+    pool = addSchoolPics(pool);
     return pickWeighted(pool, Math.min(n, pool.length));
   }
   function stationOf(id) {
@@ -9244,6 +9299,7 @@
       }
     }
     if (pool.length < 6) pool = stThings(30);
+    pool = addSchoolPics(pool);
     return pickWeighted(pool, Math.min(n || 24, pool.length));
   }
   function stHead(id, extra) {
@@ -15571,6 +15627,19 @@
       if (isNew) continue;
       mm0 = (S.wordmem || {})[mkey(w0.et, w0.sv)];
       if (mm0 && (mm0.r || 0) > 0) rest.push(w0);
+    }
+    /* väv in läxord som redan mötts minst en gång, så de repeteras i vanliga teman också -
+       helt nya läxord introduceras bara av läxkortet, aldrig kallt mitt i ett pass */
+    if (!L.theme.school) {
+      var swords = schoolReadyWords(),
+        si1,
+        dup1,
+        ki1;
+      for (si1 = 0; si1 < swords.length; si1++) {
+        dup1 = false;
+        for (ki1 = 0; ki1 < tw.length; ki1++) if (tw[ki1].et === swords[si1].et) dup1 = true;
+        if (!dup1) rest.push(swords[si1]);
+      }
     }
     rest = pickWeighted(rest, rest.length);
     /* ord som blev fel en tidigare dag går före allt annat */
