@@ -1232,16 +1232,12 @@
       ],
     },
   ];
-  /* orter utan stopp – bara namn på kartan */
+  /* orter utan stopp – bara namn på kartan. Rakvere/Jõhvi/Paide/Võru/Valga är redan riktiga
+       TRIP-stopp med egen nål och namn på nästan samma plats, så de är inte med här (krockande text) */
   var MAPTOWNS = [
-    { et: "Rakvere", x: 228.0, y: 34.2, dy: -4 },
-    { et: "Jõhvi", x: 277.2, y: 33.0, dy: -4 },
-    { et: "Paide", x: 190.8, y: 75.4 },
     { et: "Rapla", x: 155.2, y: 65.5, end: true },
     { et: "Kärdla", x: 60.0, y: 65.3, end: true },
     { et: "Elva", x: 230.9, y: 134.7, end: true, dy: -3 },
-    { et: "Võru", x: 258.7, y: 169.4, dy: 9 },
-    { et: "Valga", x: 212.9, y: 174.5, dy: 9, end: true },
     { et: "Türi", x: 181.0, y: 83.0, end: true },
   ];
   /* varje ort har tre uppdrag och en souvenir */
@@ -10895,6 +10891,8 @@
     s +=
       '<div class="card stopcard' +
       (isHere ? " now" : "") +
+      '" data-city="' +
+      t.id +
       '">' +
       (isHere
         ? ""
@@ -11200,11 +11198,23 @@
         el.onclick = function () {
           var id = el.getAttribute("data-stop"),
             q;
-          for (q = 0; q < TRIP.length; q++) {
-            if (TRIP[q].id === id && q < tripReached()) speak(TRIP[q].et);
+          for (q = 0; q < TRIP.length; q++) if (TRIP[q].id === id) break;
+          if (q >= tripReached()) return; /* låst ort - inget att visa än */
+          speak(TRIP[q].et);
+          if (q === tripReached() - 1) {
+            var hereCard = app.querySelector(".stopcard.now");
+            if (hereCard) hereCard.scrollIntoView({ behavior: "smooth", block: "center" });
+            return;
           }
-          var card = app.querySelectorAll(".stopcard")[[].slice.call(ms).indexOf(el)];
-          if (card) card.scrollIntoView({ behavior: "smooth", block: "center" });
+          /* en äldre, redan klarad ort: öppna dess kort direkt (samma som "Besökta
+             orter"-listans egna knapp) istället för att bara scrolla till en hopfälld
+             rad - annars ser det ut som att klicket på kartan inte gör något */
+          S.tripVisited = true;
+          S.tripOpen = id;
+          save();
+          tripScreen();
+          var opened = app.querySelector('.stopcard[data-city="' + id + '"]');
+          if (opened) opened.scrollIntoView({ behavior: "smooth", block: "center" });
         };
       })(ms[k]);
     }
