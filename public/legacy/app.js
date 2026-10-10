@@ -2412,7 +2412,7 @@
     no: [
       { et: "Pole hullu!", sv: "Ingen fara!" },
       { et: "Proovi veel!", sv: "Försök igen!" },
-      { et: "Peaaegu!", sv: "Nästan!" },
+      { et: "Kuula hoolikalt!", sv: "Lyssna noga!" },
       { et: "Edasi!", sv: "Vi fortsätter!" },
     ],
   };
@@ -6556,6 +6556,28 @@
     }
     save();
   }
+  /* meningsbyggarens ord är ofta böjda former ("sõidame", inte "sõita"),
+     så bara de som exakt matchar ett riktigt ordförrådsord räknas in i
+     ordminnet - annars skulle böjningsformer skräpa ner S.wordmem utan
+     att någonsin repeteras på riktigt */
+  function wmemHitSentenceWords(words, ok) {
+    var pool = allWords(),
+      i,
+      j,
+      token,
+      match;
+    for (i = 0; i < words.length; i++) {
+      token = words[i].toLowerCase();
+      match = null;
+      for (j = 0; j < pool.length; j++) {
+        if (pool[j].et.toLowerCase() === token) {
+          match = pool[j];
+          break;
+        }
+      }
+      if (match) wmemHit(match.et, ok, "choose", match.sv);
+    }
+  }
   function wmemDue(et, sv) {
     var m = (S.wordmem || {})[mkey(et, sv)];
     if (!m) return 0;
@@ -6925,73 +6947,9 @@
     var ri = rankIndex(S.xp),
       nxt = RANKS[ri + 1];
 
-    /* säsong allra överst – det första man ser */
-    html +=
-      '<div class="seasonbar">' +
-      (hol ? hol.em : se.em) +
-      " <b>" +
-      esc(hol ? hol.et : se.et) +
-      "</b>" +
-      "<span>" +
-      (hol ? esc(hol.sv) : esc(se.sv) + " · " + esc(se.word.et) + " = " + esc(se.word.sv)) +
-      "</span></div>";
-
-    html +=
-      '<div class="zone play"><span class="zem">🎮</span><span><b>Mängime</b>' +
-      "<span>" +
-      (S.name ? esc(S.name) + " · " : "") +
-      esc(RANKS[ri].et) +
-      " · ⭐ " +
-      S.stars.toLocaleString("sv-SE") +
-      "</span></span></div>";
-    html +=
-      '<div class="hero"><div class="herorow">' +
-      siilSVG("small") +
-      '<div style="flex:1"><h1>' +
-      (S.name ? "Tere, " + esc(S.name) + "!" : "Tere!") +
-      "<span>" +
-      esc(RANKS[ri].et) +
-      " · " +
-      esc(RANKS[ri].sv) +
-      "</span></h1>" +
-      '<button class="bubble" id="hello" style="margin-top:8px">🔊 Tere' +
-      (S.name ? ", " + esc(S.name) : "") +
-      "!" +
-      "<small>hej" +
-      (S.name ? ", " + esc(S.name) : "") +
-      "</small></button></div></div></div>";
-
-    /* en enda stor knapp som väljer åt barnet */
-    html +=
-      '<button class="playbtn" id="play"><span class="pem">▶️</span>' +
-      "<span><b>" +
-      esc(UI.play.et) +
-      "</b><span>" +
-      esc(UI.play.sv) +
-      "</span>" +
-      "<small>" +
-      (n.kind === "theme" ? esc(n.t.em + " " + n.t.et + " · " + n.t.sv) : esc(n.et + " · " + n.sv)) +
-      "</small></span></button>";
-
-    if (!S.correct || S.correct < 3) {
-      html +=
-        '<div class="emptytip"><span class="arrow">☝️</span><span><b>Börja här!</b>' +
-        "<span>Tryck på den gröna knappen — Siiri visar vägen. Allt du klarar ger stjärnor att handla för på marknaden!</span></span></div>";
-    }
-
-    /* dagens överraskning */
-    if (bagReady()) {
-      html +=
-        '<button class="bagbtn" id="bag"><span class="bem">🎁</span>' +
-        "<span><b>" +
-        esc(UI.bag.et) +
-        "</b><span>" +
-        esc(UI.bag.sv) +
-        " – öppna dagens påse!</span></span></button>";
-    }
-
-    /* tre spellägen */
-    /* spellägen: tre synliga, resten bakom en knapp – och nyheter markeras */
+    /* spellägen: beräknas tidigt så den minst prövade leken kan erbjudas
+       som ett riktigt ALTERNATIV till den gröna knappens eget förslag -
+       annars väljer algoritmen allt och barnet får ingen egen vilja med. */
     var MODES = [
       /* åtta egna kulörer – ingen delas av två lekar */
       {
@@ -7057,6 +7015,84 @@
     MODES.sort(function (x, y) {
       return (S.tried[x.k] || 0) - (S.tried[y.k] || 0);
     });
+    var altMode = MODES[0];
+
+    /* säsong allra överst – det första man ser */
+    html +=
+      '<div class="seasonbar">' +
+      (hol ? hol.em : se.em) +
+      " <b>" +
+      esc(hol ? hol.et : se.et) +
+      "</b>" +
+      "<span>" +
+      (hol ? esc(hol.sv) : esc(se.sv) + " · " + esc(se.word.et) + " = " + esc(se.word.sv)) +
+      "</span></div>";
+
+    html +=
+      '<div class="zone play"><span class="zem">🎮</span><span><b>Mängime</b>' +
+      "<span>" +
+      (S.name ? esc(S.name) + " · " : "") +
+      esc(RANKS[ri].et) +
+      " · ⭐ " +
+      S.stars.toLocaleString("sv-SE") +
+      "</span></span></div>";
+    html +=
+      '<div class="hero"><div class="herorow">' +
+      siilSVG("small") +
+      '<div style="flex:1"><h1>' +
+      (S.name ? "Tere, " + esc(S.name) + "!" : "Tere!") +
+      "<span>" +
+      esc(RANKS[ri].et) +
+      " · " +
+      esc(RANKS[ri].sv) +
+      "</span></h1>" +
+      '<button class="bubble" id="hello" style="margin-top:8px">🔊 Tere' +
+      (S.name ? ", " + esc(S.name) : "") +
+      "!" +
+      "<small>hej" +
+      (S.name ? ", " + esc(S.name) : "") +
+      "</small></button></div></div></div>";
+
+    /* den gröna knappen föreslår, men barnet ska också kunna välja själv
+       (autonomi, inte bara ett enda påtvingat förslag) - därför en liten
+       andrahandsknapp bredvid som alltid pekar på en annan lek */
+    html +=
+      '<button class="playbtn" id="play"><span class="pem">▶️</span>' +
+      "<span><b>" +
+      esc(UI.play.et) +
+      "</b><span>" +
+      esc(UI.play.sv) +
+      "</span>" +
+      "<small>" +
+      (n.kind === "theme" ? esc(n.t.em + " " + n.t.et + " · " + n.t.sv) : esc(n.et + " · " + n.sv)) +
+      "</small></span></button>" +
+      '<button class="btn ghost wide" id="playalt" style="margin-top:6px">🔀 Eller: ' +
+      altMode.em +
+      " " +
+      esc(altMode.et) +
+      " · " +
+      esc(altMode.sv) +
+      "</button>";
+
+    if (!S.correct || S.correct < 3) {
+      html +=
+        '<div class="emptytip"><span class="arrow">☝️</span><span><b>Börja här!</b>' +
+        "<span>Tryck på den gröna knappen — Siiri visar vägen. Allt du klarar ger stjärnor att handla för på marknaden!</span></span></div>";
+    }
+
+    /* dagens överraskning */
+    if (bagReady()) {
+      html +=
+        '<button class="bagbtn" id="bag"><span class="bem">🎁</span>' +
+        "<span><b>" +
+        esc(UI.bag.et) +
+        "</b><span>" +
+        esc(UI.bag.sv) +
+        " – öppna dagens påse!</span></span></button>";
+    }
+
+    /* tre spellägen */
+    /* spellägen: tre synliga, resten bakom en knapp – och nyheter markeras */
     var showMode = S.allModes ? MODES.length : 5;
     html += '<div class="modes">';
     var newLeft = 2; /* märket betyder inget om allt är nytt */
@@ -7341,6 +7377,14 @@
           };
       })(keys[i]);
     }
+    var pa = document.getElementById("playalt");
+    if (pa)
+      pa.onclick = function () {
+        S.tried[altMode.k] = (S.tried[altMode.k] || 0) + 1;
+        save();
+        speak(altMode.et);
+        go(modes[altMode.k], true);
+      };
     var mm2 = document.getElementById("moremodes");
     if (mm2)
       mm2.onclick = function () {
@@ -8628,6 +8672,7 @@
     if (!LS.resList) LS.resList = [];
     LS.resList[LS.i] = ok;
     LS.done = true;
+    wmemHitSentenceWords(s.w, ok);
     if (ok) {
       LS.right++;
       S.correct++;
@@ -9555,6 +9600,7 @@
               var g = 10 + ST.round * 2;
               ST.stars += g;
               earnStars(g);
+              wmemHit(ST.target.et, true, "choose", ST.target.sv);
               save();
               refreshTop();
               if (tip) tip.innerHTML = '<b style="color:var(--moss)">Valmis!</b>';
@@ -9569,6 +9615,7 @@
             el.classList.add("nope");
             sndNo();
             buzz(24);
+            wmemHit(ST.target.et, false, "choose", ST.target.sv);
             if (tip) tip.innerHTML = "Det där är <b>" + esc(it.w.sv) + "</b>.";
             setTimeout(function () {
               el.classList.remove("nope");
@@ -9638,6 +9685,7 @@
             var g = 10 + ST.round * 2;
             ST.stars += g;
             earnStars(g);
+            wmemHit(w.et, true, "choose", w.sv);
             save();
             refreshTop();
             el.classList.add("caught");
@@ -9655,6 +9703,7 @@
             el.classList.add("nope");
             sndNo();
             buzz(24);
+            wmemHit(ST.target.et, false, "choose", ST.target.sv);
             if (tip) tip.innerHTML = "Det där är <b>" + esc(w.sv) + "</b>.";
             setTimeout(function () {
               el.classList.remove("nope");
@@ -9724,6 +9773,7 @@
             var g = 9 + ST.round * 2;
             ST.stars += g;
             earnStars(g);
+            wmemHit(ST.want.id, true, "choose", ST.want.sv);
             save();
             refreshTop();
             var pc = document.getElementById("pcs");
@@ -9741,6 +9791,7 @@
             el.classList.add("nope");
             sndNo();
             buzz(24);
+            wmemHit(ST.want.id, false, "choose", ST.want.sv);
             var f = null;
             for (i2 = 0; i2 < ST.bins.length; i2++) if (ST.bins[i2].id === bid) f = ST.bins[i2];
             if (tip) tip.innerHTML = "Den asken är <b>" + esc(f ? f.sv : "") + "</b>.";
@@ -9818,6 +9869,7 @@
             var g = 10 + ST.round * 2;
             ST.stars += g;
             earnStars(g);
+            wmemHitSentenceWords([NUMWORDS[ST.num - 1]], true);
             save();
             refreshTop();
             sndOk();
@@ -9834,6 +9886,7 @@
             el.className = "opt wrong";
             sndNo();
             buzz(24);
+            wmemHitSentenceWords([NUMWORDS[ST.num - 1]], false);
             if (tip) tip.innerHTML = "Räkna en gång till — tryck på sakerna medan du räknar.";
           }
         };
@@ -9908,6 +9961,12 @@
             sndOk();
             buzz(12);
             speak(key);
+            for (var pw = 0; pw < ST.set.length; pw++) {
+              if (ST.set[pw].et === key) {
+                wmemHit(ST.set[pw].et, true, "choose", ST.set[pw].sv);
+                break;
+              }
+            }
             if (tip) tip.innerHTML = '<b style="color:var(--moss)">Õige!</b>';
             if (ST.left <= 0) {
               ST.lock = true;
@@ -10008,6 +10067,7 @@
           var dots = document.getElementById("seqdots");
           if (et === ST.seq[ST.step].et) {
             if (dots && dots.children[ST.step]) dots.children[ST.step].className = "on";
+            wmemHit(ST.seq[ST.step].et, true, "choose", ST.seq[ST.step].sv);
             ST.step++;
             sndOk();
             buzz(10);
@@ -10028,6 +10088,7 @@
             }
           } else {
             ST.wrong++;
+            wmemHit(ST.seq[ST.step].et, false, "choose", ST.seq[ST.step].sv);
             ST.step = 0;
             el.classList.add("nope");
             sndNo();
@@ -10183,6 +10244,7 @@
               var g = 10 + ST.round * 2;
               ST.stars += g;
               earnStars(g);
+              wmemHit(ST.target.et, true, "choose", ST.target.sv);
               save();
               refreshTop();
               if (tip) tip.innerHTML = '<b style="color:var(--moss)">Tubli! Båten rullar vidare.</b>';
@@ -10197,6 +10259,7 @@
             el.classList.add("nope");
             sndNo();
             buzz(26);
+            wmemHit(ST.target.et, false, "choose", ST.target.sv);
             if (tip)
               tip.innerHTML = "Det där är <b>" + esc(c.w.sv) + "</b>. Siiri bad om <b>" + esc(ST.target.sv) + "</b>.";
             setTimeout(function () {
@@ -10305,6 +10368,7 @@
             var g = 9 + ST.round * 2;
             ST.stars += g;
             earnStars(g);
+            wmemHit(ST.want.id, true, "choose", ST.want.sv);
             save();
             refreshTop();
             var bkh = document.getElementById("bkhand");
@@ -10325,6 +10389,7 @@
             el.classList.add("nope");
             sndNo();
             buzz(26);
+            wmemHit(ST.want.id, false, "choose", ST.want.sv);
             var f = null;
             for (i2 = 0; i2 < ST.shelf.length; i2++) if (ST.shelf[i2].id === id) f = ST.shelf[i2];
             if (tip)
@@ -10431,6 +10496,7 @@
             var g = 10 + ST.round * 2;
             ST.stars += g;
             earnStars(g);
+            wmemHit(w.et, true, "choose", w.sv);
             save();
             refreshTop();
             el.classList.add("caught");
@@ -10448,6 +10514,7 @@
             el.classList.add("nope");
             sndNo();
             buzz(26);
+            wmemHit(ST.target.et, false, "choose", ST.target.sv);
             if (tip) tip.innerHTML = "Det där är <b>" + esc(w.sv) + "</b>.";
             setTimeout(function () {
               el.classList.remove("nope");
@@ -13221,7 +13288,7 @@
       '<ellipse cx="0" cy="-9" rx="17" ry="16" fill="#FFFFFF" opacity=".30"/>' +
       '<ellipse cx="0" cy="2" rx="12" ry="3.4" fill="#2A1B0C" opacity=".28"/>' +
       g +
-      '<circle class="ohit" cx="0" cy="-10" r="19" fill="transparent"/></g>'
+      '<circle class="ohit" cx="0" cy="-10" r="24" fill="transparent"/></g>'
     );
   }
   function otsiPick(n, arr) {
@@ -15928,7 +15995,10 @@
     screen = "q";
     var opts = distractors(r.w, optCount() - 1),
       i;
-    /* svenskan står alltid kvar: bilderna stämmer inte alltid, så ordet är ledtråden */
+    /* svenskan står alltid kvar: bilderna stämmer inte alltid, så ordet är ledtråden.
+       På Lätt (barn som kanske inte läser än) får varje alternativ ändå en liten
+       bild - annars är den som inte kan läsa orden helt utlämnad åt gissning. */
+    var withPics = diff().id === "latt";
     var html =
       dots() +
       meterHtml() +
@@ -15936,9 +16006,18 @@
       (r.gold ? " golden" : "") +
       '"><p class="q">Mis see on? · Vad heter det?</p>' +
       promptHtml(r.w, r.w.sv) +
-      '<div class="opts txt">';
+      '<div class="opts' +
+      (withPics ? "" : " txt") +
+      '">';
     for (i = 0; i < opts.length; i++) {
-      html += '<button class="opt" data-et="' + esc(opts[i].et) + '" lang="et">' + esc(opts[i].et) + "</button>";
+      html +=
+        '<button class="opt" data-et="' +
+        esc(opts[i].et) +
+        '" lang="et">' +
+        (withPics && hasPic(opts[i])
+          ? '<span class="oem">' + wIcon(opts[i]) + "</span><small lang=\"et\">" + esc(opts[i].et) + "</small>"
+          : esc(opts[i].et)) +
+        "</button>";
     }
     html +=
       '</div><div class="feedback" id="fb"></div><div class="ansslot" id="ansslot"></div></div><div class="center">' +
