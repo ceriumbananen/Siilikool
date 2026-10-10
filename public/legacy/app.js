@@ -4401,6 +4401,15 @@
             '<path d="M132 122 q15 7 19 22" stroke="#C8305A" stroke-width="3.6" fill="none" stroke-linecap="round"/>' +
             '<rect x="60" y="130" width="9" height="7" rx="2" fill="#E0C05A" stroke="#A8871F" stroke-width=".8"/>' +
             '<rect x="131" y="130" width="9" height="7" rx="2" fill="#E0C05A" stroke="#A8871F" stroke-width=".8"/></g>',
+          /* bakifrån går remmarna uppåt över axlarna (inte nedåt som "front"-
+             varianten, som bara stämmer sedd framifrån) - används av siilBackSVG */
+          rear:
+            '<g><path d="M82 119 Q55 100 58 48" stroke="#7A1430" stroke-width="6" fill="none" stroke-linecap="round"/>' +
+            '<path d="M82 119 Q55 100 58 48" stroke="#C8305A" stroke-width="3.6" fill="none" stroke-linecap="round"/>' +
+            '<path d="M118 119 Q145 100 142 48" stroke="#7A1430" stroke-width="6" fill="none" stroke-linecap="round"/>' +
+            '<path d="M118 119 Q145 100 142 48" stroke="#C8305A" stroke-width="3.6" fill="none" stroke-linecap="round"/>' +
+            '<rect x="73" y="110" width="9" height="7" rx="2" fill="#E0C05A" stroke="#A8871F" stroke-width=".8" transform="rotate(-20 77.5 113.5)"/>' +
+            '<rect x="118" y="110" width="9" height="7" rx="2" fill="#E0C05A" stroke="#A8871F" stroke-width=".8" transform="rotate(20 122.5 113.5)"/></g>',
         }[arguments[1] || "front"] || ""
       );
     if (id === "rukkilill")
@@ -5076,7 +5085,9 @@
     var f = myFur();
     var c = backFurColors();
     var backItem =
-      BACK_SPLIT.indexOf(wearing("back")) >= 0 ? wearSVG("back", "back") + wearSVG("back", "front") : wearSVG("back");
+      BACK_SPLIT.indexOf(wearing("back")) >= 0
+        ? wearSVG("back", "back") + (wearSVG("back", "rear") || wearSVG("back", "front"))
+        : wearSVG("back");
     /* sex ringar taggar, från spetsigast/ytterst till kortast/innerst - formerna
        är desamma som tidigare, men fylls nu med den riktiga pälstexturen istället
        för platt färg. HI-delmängden får en diskret vit glansfläck ovanpå. */
@@ -5142,7 +5153,9 @@
          Mönstret har genomskinliga luckor mellan strån, så det läggs som ett
          halvtransparent detaljlager - inte som själva bottenfärgen - annars
          lyser rummet bakom igenom luckorna. */
-      '<pattern id="back-furtile" patternUnits="userSpaceOnUse" x="0" y="0" width="64" height="54">' +
+      /* y=20 flyttar mönstrets skarv (64x54-rutan upprepas inte sömlöst) ner
+         så den hamnar dold under ryggsäcken istället för synlig mitt på ryggen */
+      '<pattern id="back-furtile" patternUnits="userSpaceOnUse" x="0" y="20" width="64" height="54">' +
       '<use href="#siiriPic" x="-68" y="-4"/>' +
       "</pattern>" +
       '<clipPath id="back-clip">' +
@@ -5180,7 +5193,7 @@
       '" stroke-width="1"/>' +
       /* ryggplagget förstoras ~30% och centreras över den taggiga mitten - precis
          där ansiktet hade legat på framsidan, så det täcker den tuffaste skarven */
-      '<g transform="translate(100,128) scale(1.3) translate(-100,-128)">' +
+      '<g transform="translate(100,122) scale(1.3) translate(-100,-122)">' +
       backItem +
       "</g>" +
       wearSVG("head") +
