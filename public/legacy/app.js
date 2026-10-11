@@ -3481,16 +3481,9 @@
     P.pending[part] = cb ? [cb] : [];
     loadingParts++;
     showLoading(true);
-    var done = function () {
-      loadingParts = Math.max(0, loadingParts - 1);
-      if (!loadingParts) showLoading(false);
-    };
-    var s = document.createElement("script");
-    s.addEventListener("load", done);
-    s.addEventListener("error", done);
-    s.src = "audio/" + part + ".js";
-    s.async = true;
-    s.onerror = function () {
+    /* delen gick inte att hämta (saknas helt, eller ett nätverksfel) - ge upp tyst istället
+       för att låta speak() vänta för evigt på ett anrop som aldrig kommer. */
+    var fail = function () {
       P.loaded[part] = 1;
       var q = P.pending[part] || [];
       delete P.pending[part];
@@ -3500,6 +3493,23 @@
         } catch (e) {}
       }
     };
+    var done = function () {
+      loadingParts = Math.max(0, loadingParts - 1);
+      if (!loadingParts) showLoading(false);
+      /* skriptet hämtades, men om addAudio() aldrig anropades (t.ex. om delen saknas och
+         servern svarade med sin egen felsida i stället för en riktig 404) har P.loaded[part]
+         fortfarande inte satts - då räknas det ändå som att delen inte gick att hämta. */
+      if (!P.loaded[part]) fail();
+    };
+    var s = document.createElement("script");
+    s.addEventListener("load", done);
+    s.addEventListener("error", function () {
+      loadingParts = Math.max(0, loadingParts - 1);
+      if (!loadingParts) showLoading(false);
+      fail();
+    });
+    s.src = "audio/" + part + ".js";
+    s.async = true;
     document.head.appendChild(s);
   }
   function prefetch(part) {
@@ -14822,7 +14832,7 @@
   }
   function listScreen() {
     screen = "list";
-    setNav("me"); /* ordlistan nås från profilen */
+    setNav("words");
     prefetch("trip");
     prefetchAllThemes();
     if (S.listOpen === undefined) S.listOpen = "";

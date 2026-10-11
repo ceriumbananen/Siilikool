@@ -63,6 +63,13 @@ onMounted(async () => {
             <path d="M9 3v16l6 2V5z" fill="currentColor" /></svg></span
         ><b>Teekond</b><small>Resan</small>
       </button>
+      <button data-nav="words">
+        <span class="nem"
+          ><svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M4 5.5A2.5 2.5 0 016.5 3H11v17H6.5A2.5 2.5 0 014 17.5z" fill="currentColor" opacity=".55" />
+            <path d="M20 5.5A2.5 2.5 0 0017.5 3H13v17h4.5a2.5 2.5 0 002.5-2.5z" fill="currentColor" /></svg></span
+        ><b>Sõnastik</b><small>Ordlistan</small>
+      </button>
       <button data-nav="shop">
         <span class="nem"
           ><svg viewBox="0 0 24 24" aria-hidden="true">

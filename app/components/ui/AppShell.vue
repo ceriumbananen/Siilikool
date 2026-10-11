@@ -3,13 +3,15 @@
  * skärmar har (LegacyApp.vue) - för Nuxt-sidor som migrerats ut ur app.js. Länkarna går till
  * hela sidladdningar (inte NuxtLink) eftersom den gamla appen bara kan starta en gång per
  * sidladdning (samma konvention som redan finns i app/app.vue). Profil- och märke-chipen samt
- * "Profiil"-fliken länkar till riktiga Nuxt-sidor (/profile, /trophy) - de andra flikarna
- * landar fortfarande på hemskärmen tills deras skärmar också flyttas ut ur app.js. */
+ * "Profiil"-fliken länkar till riktiga Nuxt-sidor (/profile, /trophy). "Sõnastik"-fliken går
+ * via markLegacyScreen() (app/utils/legacy-nav.ts) rakt in i ordlistan istället för att bara
+ * landa på hemskärmen - de två sista flikarna (Laat, Tuba) gör fortfarande bara det tills
+ * deras skärmar också flyttas ut ur app.js. */
 const { active = null } = defineProps<{
-  /** Vilken av de fem flikarna som ska visas som vald. Ingen flik representerar den här
+  /** Vilken av de sex flikarna som ska visas som vald. Ingen flik representerar den här
    * sidan specifikt förrän spelet har en riktig router för sina skärmar, så standard är
    * att ingen är vald. */
-  active?: "home" | "trip" | "shop" | "room" | "me" | null;
+  active?: "home" | "trip" | "words" | "shop" | "room" | "me" | null;
 }>();
 
 const profile = useProfileStore();
@@ -72,6 +74,20 @@ const xpPct = computed(() => {
           </svg>
         </span>
         <b>Teekond</b><small>Resan</small>
+      </a>
+      <a
+        href="/"
+        :class="{ 'app-shell__nav-btn--on': active === 'words' }"
+        class="app-shell__nav-btn"
+        @click="markLegacyScreen('words')"
+      >
+        <span class="app-shell__nav-emoji" aria-hidden="true">
+          <svg viewBox="0 0 24 24">
+            <path d="M4 5.5A2.5 2.5 0 016.5 3H11v17H6.5A2.5 2.5 0 014 17.5z" fill="currentColor" opacity=".55" />
+            <path d="M20 5.5A2.5 2.5 0 0017.5 3H13v17h4.5a2.5 2.5 0 002.5-2.5z" fill="currentColor" />
+          </svg>
+        </span>
+        <b>Sõnastik</b><small>Ordlistan</small>
       </a>
       <a href="/" :class="{ 'app-shell__nav-btn--on': active === 'shop' }" class="app-shell__nav-btn">
         <span class="app-shell__nav-emoji" aria-hidden="true">
@@ -223,7 +239,7 @@ const xpPct = computed(() => {
     max-width: 100vw;
     z-index: 40;
     display: grid;
-    grid-template-columns: repeat(5, 1fr);
+    grid-template-columns: repeat(6, 1fr);
     background: color-mix(in srgb, var(--card) 92%, transparent);
     backdrop-filter: blur(10px);
     border-top: $border-width solid var(--line);

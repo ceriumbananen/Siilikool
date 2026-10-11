@@ -1619,7 +1619,7 @@ button.chip {
   max-width: 100vw;
   z-index: 40;
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(6, 1fr);
   background: color-mix(in srgb, var(--card) 92%, transparent);
   backdrop-filter: blur(10px);
   border-top: 3px solid var(--line);
