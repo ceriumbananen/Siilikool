@@ -7042,7 +7042,7 @@
       '<button class="bubble" id="hello">🔊 Tere' +
       (S.name ? ", " + esc(S.name) : "") +
       "!" +
-      "<small>hej" +
+      "<small>Hej" +
       (S.name ? ", " + esc(S.name) : "") +
       "</small></button></div></div></div>";
 
