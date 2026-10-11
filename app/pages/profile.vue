@@ -10,8 +10,9 @@
    mycket större jobb än själva statistikraden, så det får vänta tills vokabuläret ändå
    porteras för någon annan skärm. "Hör Siiri säga ditt namn" är däremot portad (se
    app/utils/name-audio.ts) - namnbanken (public/audio/names-*.js) är liten och fristående,
-   ingen vokabulärdata behövs. Utan legacy-versionens inledande "Tere," (den kräver
-   temats egen ljudbank) - bara namnet spelas upp.
+   ingen vokabulärdata behövs. Inledande "Tere," spelas också upp - det klippet
+   (audio/clips/normal/tere.mp3) ligger i basljudbanken som alltid finns
+   (public/legacy/data.js, LEADS.tere), ingen temafil behöver hämtas för det.
 
    Länkar till skärmar som ännu inte flyttats till Vue (rummet, läxorna, "för vuxna", redigera
    namn/figur, marknaden, ordlistan) går till / och hoppar direkt till rätt skärm där - se
@@ -41,9 +42,12 @@ watch(
   },
   { immediate: true },
 );
+const GREETING_CLIP = "/audio/clips/normal/tere.mp3"; /* LEADS.tere, se filens topp-kommentar */
 function playName() {
   if (!profile.state.sound || !nameClipUrl.value) return;
-  new Audio(`/${nameClipUrl.value}`).play().catch(() => {});
+  const greeting = new Audio(GREETING_CLIP);
+  greeting.addEventListener("ended", () => new Audio(`/${nameClipUrl.value}`).play().catch(() => {}));
+  greeting.play().catch(() => {});
 }
 
 const themesDone = computed(
@@ -130,10 +134,12 @@ function tapSettingsTitle() {
       <UiAppCard class="profile-page__section profile-page__me">
         <span class="profile-page__avatar" aria-hidden="true">{{ profile.state.avatar || "🦔" }}</span>
         <p class="profile-page__name">{{ profile.state.name || "Ingen spelare än" }}</p>
-        <UiAppButton v-if="nameClipUrl" variant="ghost" @click="playName">🔊 Hör Siiri säga ditt namn</UiAppButton>
-        <p v-else-if="profile.state.name" class="profile-page__rank-sv">
-          Siiri kan inte säga just det namnet högt än, men skriver det överallt.
-        </p>
+        <div v-if="nameClipUrl || profile.state.name" class="profile-page__name-audio">
+          <UiAppButton v-if="nameClipUrl" variant="ghost" @click="playName">🔊 Hör Siiri säga ditt namn</UiAppButton>
+          <p v-else class="profile-page__rank-sv">
+            Siiri kan inte säga just det namnet högt än, men skriver det överallt.
+          </p>
+        </div>
         <UiMedalBadge :rank="rank" :locked="false" :medal-style="medalStyleOf(profile.state.mstyle, rank.id)" />
         <p class="profile-page__rank-name" lang="et">{{ rank.et }}</p>
         <p class="profile-page__rank-sv">{{ rank.sv }}</p>
@@ -416,6 +422,10 @@ function tapSettingsTitle() {
     font-size: 1.625rem; // 26px
     font-weight: 700;
     margin: 0.125rem 0; // 2px
+  }
+
+  &__name-audio {
+    margin: 0.5rem 0; // 8px
   }
 
   &__rank-name {
