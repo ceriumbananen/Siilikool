@@ -1,0 +1,11 @@
+// Delade SCSS-mixins för nya Vue-komponenter. Tillgänglig automatiskt, se _tokens.scss.
+
+// Samma fokusring som .legacy :focus-visible i public/legacy/style.css, så tangentbords-
+// och skärmläsarfokus ser likadant ut oavsett om elementet hör till den gamla appen eller
+// en ny Vue-komponent. Syns bara vid tangentbordsnavigering, inte vid tryck/klick.
+@mixin focus-visible {
+  &:focus-visible {
+    outline: $border-width solid var(--blue);
+    outline-offset: $border-width;
+  }
+}

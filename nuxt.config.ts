@@ -39,6 +39,19 @@ export default defineNuxtConfig({
   },
   /* föräldrasidornas stil (avgränsad till .page, så den inte påverkar spelet) */
   css: ["~/assets/css/konto.css"],
+  /* design-tokens (typsnitt, avstånd, radier, skuggor) och mixins för nya Vue-komponenter:
+     tillgängliga i alla <style lang="scss">-block automatiskt, ingen manuell @use behövs.
+     Färger hör inte hit - de är redan CSS custom properties i public/legacy/style.css,
+     eftersom de växlar i realtid för dark mode och färgteman (se app/assets/scss/_tokens.scss). */
+  vite: {
+    css: {
+      preprocessorOptions: {
+        scss: {
+          additionalData: '@use "~/assets/scss/_tokens.scss" as *; @use "~/assets/scss/_mixins.scss" as *;',
+        },
+      },
+    },
+  },
   /* föräldrakonton (Supabase): sätts med NUXT_PUBLIC_SUPABASE_URL och NUXT_PUBLIC_SUPABASE_KEY
      vid bygget (lokalt i .env, på Cloudflare Pages som miljövariabler). Tomma = inga konton. */
   runtimeConfig: {
@@ -46,7 +59,7 @@ export default defineNuxtConfig({
   },
   /* sidorna utöver spelet får egna filer, så att Cloudflare svarar 200 på dem direkt */
   nitro: {
-    prerender: { routes: ["/parent", "/join", "/connect", "/invite"] },
+    prerender: { routes: ["/parent", "/join", "/connect", "/invite", "/trophy"] },
   },
   /* ingen Nuxt-laddningsskärm – appen har sin egen bakgrund i style.css */
   spaLoadingTemplate: false,

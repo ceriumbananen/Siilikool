@@ -7257,7 +7257,9 @@
       mood("cheer");
     };
     document.getElementById("questbtn").onclick = function () {
-      go(trophyScreen, true);
+      /* Skattkammaren är flyttad till en egen Nuxt-sida (app/pages/trophy.vue) - en vanlig
+         navigering dit, precis som länken till /parent redan gör */
+      location.href = "/trophy";
     };
     var sbn = document.getElementById("schoolbtn");
     if (sbn)
@@ -8537,7 +8539,7 @@
       setupScreen(false);
     });
     on("toTroph", function () {
-      go(trophyScreen, true);
+      location.href = "/trophy"; /* egen Nuxt-sida, se app/pages/trophy.vue */
     });
     on("toWords", function () {
       go(listScreen, true);
@@ -14896,134 +14898,8 @@
     if (wearing(it.slot) === id) speak(it.et);
   }
 
-  /* ---------- SKATTKAMMAREN ---------- */
-  function trophyScreen() {
-    screen = "trophy";
-    setNav("me");
-    newDay();
-    var ri = rankIndex(S.xp),
-      i;
-    var p = questProgress();
-    var html =
-      '<div class="zone treasure"><span class="zem">🏆</span><span><b>Aarded</b><span>Skattkammaren</span></span></div>' +
-      '<div class="card">' +
-      '<p class="qsub" style="text-align:left">' +
-      RANKS.length +
-      " märken att samla, från bronsigelkotten till kungsigelkotten på 100 000 poäng. " +
-      "Medaljen ser olika ut beroende på vilken nivå du spelade när du tog den: 🍃 grönt löv, ⭐ rött band eller 🔥 lila stjärna.</p>" +
-      '<p class="qsub" style="text-align:left"><b>' +
-      S.xp.toLocaleString("sv-SE") +
-      "</b> poäng · " +
-      (RANKS[rankIndex(S.xp) + 1]
-        ? "nästa märke om <b>" + (RANKS[rankIndex(S.xp) + 1].xp - S.xp).toLocaleString("sv-SE") + "</b> poäng"
-        : "du har alla märken!") +
-      "</p>" +
-      '<div class="medalgrid">';
-    for (i = 0; i < RANKS.length; i++) {
-      var locked = i > ri;
-      html +=
-        '<div class="medalcell' +
-        (locked ? " locked" : "") +
-        (i === ri ? " now" : "") +
-        '">' +
-        medalSVG(RANKS[i], "t" + i, locked, locked ? diff().id : medalStyleOf(RANKS[i].id)) +
-        "<b>" +
-        esc(RANKS[i].et) +
-        "</b>" +
-        '<span style="font-weight:600;color:var(--ink)">' +
-        esc(RANKS[i].sv) +
-        "</span>" +
-        "<span>" +
-        (locked
-          ? RANKS[i].xp + " poäng"
-          : (function () {
-              var st = medalStyleOf(RANKS[i].id),
-                dd;
-              for (var q = 0; q < DIFFS.length; q++) {
-                if (DIFFS[q].id === st) dd = DIFFS[q];
-              }
-              return dd ? dd.em + " " + dd.sv : esc(RANKS[i].et);
-            })()) +
-        "</span></div>";
-    }
-    html += "</div></div>";
-
-    html +=
-      '<div class="card"><p class="q" style="text-align:left">' +
-      p.q.em +
-      " Dagens utmaning</p>" +
-      '<p class="qsub" style="text-align:left">' +
-      esc(p.q.sv) +
-      " – " +
-      p.v +
-      " av " +
-      p.q.goal +
-      (p.done ? " ✓ klar!" : "") +
-      (S.flames ? " · 🌟 " + S.flames + " klarade hittills" : "") +
-      "</p>" +
-      '<span class="qbar" style="background:var(--line)"><i style="width:' +
-      Math.round((p.v / p.q.goal) * 100) +
-      '%;background:var(--moss)"></i></span></div>';
-
-    var hw = hardWords(8);
-    if (hw.length) {
-      html += '<div class="card"><p class="q" style="text-align:left">Ord Siiri övar extra med dig</p>';
-      for (i = 0; i < hw.length; i++) {
-        html +=
-          '<span class="badge" style="background:var(--bg2);color:var(--ink)">' +
-          hw[i].w.em +
-          " " +
-          esc(hw[i].w.et) +
-          " – " +
-          esc(hw[i].w.sv) +
-          "</span>";
-      }
-      html +=
-        '<p class="qsub" style="text-align:left;margin-top:8px">De här kommer tillbaka oftare i spelet tills de sitter.</p></div>';
-    }
-    var dtot = 0,
-      dk;
-    for (dk in S.duels || {}) dtot += S.duels[dk].w || 0;
-    if (dtot) {
-      html += '<div class="card"><p class="q" style="text-align:left">⚔️ Duellhyllan</p><div class="duelwall">';
-      for (i = 0; i < RIVALS.length; i++) {
-        var rr = RIVALS[i],
-          rc = (S.duels || {})[rr.id];
-        if (!rc || (!rc.w && !rc.l)) continue;
-        html +=
-          '<div class="duelrow"><span class="dem">' +
-          rr.em +
-          (rc.w >= 5 ? '<span class="cup">🏆</span>' : "") +
-          "</span>" +
-          "<span><b>" +
-          esc(rr.et) +
-          "</b><small>" +
-          rc.w +
-          " vinster · " +
-          rc.l +
-          " förluster" +
-          (rc.best ? " · bästa " + starStr(rc.best) : "") +
-          "</small></span></div>";
-      }
-      html += "</div></div>";
-    }
-    html +=
-      '<div class="card"><p class="q" style="text-align:left">' +
-      (S.name ? esc(S.name) + "s bragder" : "Dina bragder") +
-      "</p>";
-    for (i = 0; i < BADGES.length; i++) {
-      html += badgeChip(BADGES[i]);
-    }
-    html +=
-      '<p class="qsub" style="text-align:left;margin-top:12px">⭐ ' +
-      S.stars +
-      " stjärnor · " +
-      S.correct +
-      " rätta svar · 🔥 bästa kombo: " +
-      (S.bestcombo || 0) +
-      " i rad</p></div>";
-    app.innerHTML = html;
-  }
+  /* Skattkammaren är flyttad till en egen Nuxt-sida, se app/pages/trophy.vue (pilotskärmen
+     för Vue-migreringen, docs/vue-conventions.md). trophyScreen() fanns här tidigare. */
 
   /* ---------- BLANDADE ORD (lugn runda, ingen klocka) ---------- */
   var SP = null;
@@ -17027,7 +16903,7 @@
       rankLong = false;
       return;
     }
-    go(trophyScreen, true);
+    location.href = "/trophy"; /* egen Nuxt-sida, se app/pages/trophy.vue */
   };
   var starTaps = 0,
     starTimer = null;

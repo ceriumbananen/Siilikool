@@ -1,0 +1,40 @@
+// Statisk design-skala (typsnitt, avstånd, radier, skuggor, kantlinjer) för nya Vue-komponenter.
+// Porterad från den statiska delen av :root i public/legacy/style.css (rad 1-48).
+//
+// Färger hör INTE hemma här: appen växlar dem i realtid för dark mode och färgteman
+// (`@media (prefers-color-scheme: dark)`, `:root[data-color="..."]`), vilket SCSS-variabler
+// (kompileringstid, inte körtid) inte kan göra. Komponenter använder `var(--ink)` m.fl. för
+// färg, och de token-variablerna nedan bara för skala. Se public/legacy/style.css :root.
+//
+// Tillgänglig i alla <style lang="scss">-block automatiskt (nuxt.config.ts: vite.css.
+// preprocessorOptions.scss.additionalData) - importera aldrig denna fil manuellt.
+
+// Typskala
+$font-size-xs: 12.5px;
+$font-size-sm: 14px;
+$font-size-md: 16px;
+$font-size-lg: 19px;
+$font-size-xl: clamp(21px, 3.4vw, 25px);
+$font-size-2xl: clamp(26px, 5vw, 34px);
+$font-size-3xl: clamp(34px, 8vw, 52px);
+
+// Avstånd
+$spacing-1: 6px;
+$spacing-2: 10px;
+$spacing-3: 14px;
+$spacing-4: 20px;
+$spacing-5: 28px;
+
+// Form
+$radius-sm: 14px;
+$radius-md: 18px;
+$radius-lg: 24px;
+$radius-card: 22px;
+$radius-pill: 999px;
+$border-width: 3px;
+
+// Skuggor (samma recept som --sh-* i style.css: mörk, ofärgad - komponenter tonar dem
+// efter sin egen bakgrund vid behov)
+$shadow-1: 0 2px 0 rgba(31, 61, 43, 0.12);
+$shadow-2: 0 6px 0 rgba(31, 61, 43, 0.18);
+$shadow-3: 0 10px 30px rgba(31, 61, 43, 0.12);
