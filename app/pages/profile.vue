@@ -6,8 +6,12 @@
    Medvetet utelämnat tills vidare, med samma motivering som Skattkammaren
    (app/pages/trophy.vue): Siiri-portträttet (siilSVG) - visar avatar-emojin stort istället,
    precis som AppShell redan gör i toppfältet - och "ord att öva"-statistiken (hardWords()),
-   som bygger på hela ordförrådet. "Hör Siiri säga ditt namn" (hasVoiceName/TTS-ljudbanken)
-   är också utelämnad av samma skäl.
+   som kräver att hela ordförrådet (THEMES/TRIP, ~1600 rader) porteras till TS först -
+   mycket större jobb än själva statistikraden, så det får vänta tills vokabuläret ändå
+   porteras för någon annan skärm. "Hör Siiri säga ditt namn" är däremot portad (se
+   app/utils/name-audio.ts) - namnbanken (public/audio/names-*.js) är liten och fristående,
+   ingen vokabulärdata behövs. Utan legacy-versionens inledande "Tere," (den kräver
+   temats egen ljudbank) - bara namnet spelas upp.
 
    Länkar till skärmar som ännu inte flyttats till Vue (rummet, läxorna, "för vuxna", redigera
    namn/figur, marknaden, ordlistan) går till / och hoppar direkt till rätt skärm där - se
@@ -27,6 +31,20 @@ const { busy: lockBusy, err: lockErr, run: runLock } = useBusy();
 const ri = computed(() => rankIndex(profile.state.xp));
 const rank = computed(() => RANKS[ri.value]!);
 const nextRank = computed(() => RANKS[ri.value + 1]);
+
+const nameClipUrl = ref<string | null>(null);
+watch(
+  () => profile.state.name,
+  name => {
+    nameClipUrl.value = null;
+    if (name) findNameClip(name).then(url => (nameClipUrl.value = url));
+  },
+  { immediate: true },
+);
+function playName() {
+  if (!profile.state.sound || !nameClipUrl.value) return;
+  new Audio(`/${nameClipUrl.value}`).play().catch(() => {});
+}
 
 const themesDone = computed(
   () => Object.values((profile.state.best as Record<string, number> | undefined) || {}).filter(v => v > 0).length,
@@ -112,6 +130,10 @@ function tapSettingsTitle() {
       <UiAppCard class="profile-page__section profile-page__me">
         <span class="profile-page__avatar" aria-hidden="true">{{ profile.state.avatar || "🦔" }}</span>
         <p class="profile-page__name">{{ profile.state.name || "Ingen spelare än" }}</p>
+        <UiAppButton v-if="nameClipUrl" variant="ghost" @click="playName">🔊 Hör Siiri säga ditt namn</UiAppButton>
+        <p v-else-if="profile.state.name" class="profile-page__rank-sv">
+          Siiri kan inte säga just det namnet högt än, men skriver det överallt.
+        </p>
         <UiMedalBadge :rank="rank" :locked="false" :medal-style="medalStyleOf(profile.state.mstyle, rank.id)" />
         <p class="profile-page__rank-name" lang="et">{{ rank.et }}</p>
         <p class="profile-page__rank-sv">{{ rank.sv }}</p>
