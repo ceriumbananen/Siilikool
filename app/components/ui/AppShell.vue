@@ -114,6 +114,9 @@ const xpPct = computed(() => {
         <b>Profiil</b><small>Profil</small>
       </a>
     </nav>
+    <!-- konfetti och "Nytt märke upplåst!" - samma lager som spelets egna skärmar har -->
+    <UiConfettiLayer />
+    <UiRankUpOverlay />
   </div>
 </template>
 

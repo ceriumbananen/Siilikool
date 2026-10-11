@@ -5,26 +5,44 @@
    till public/images/siiri/siiri-body.webp en gång för alla - se git-historiken för
    extraheringen - istället för att hämta hela data.js (566kB, mest ljudbanker) bara för en bild.
 
-   Tre hemligheter är portade, alla kopplade till samma figur precis som i legacy
-   (public/legacy/app.js rad 5478-5814, 5570-5583):
+   Hon lever som förut (public/legacy/app.js rad 5211-5456, style.css rad 400-1037):
+   - andas och blinkar, ögonen följer fingret/muspekaren och hela figuren lutar sig mot det
+   - munnen rör sig när hon pratar (useSiiriVoice), humör (glad/ledsen/lyssnar) syns på
+     ögonbrynen, hopp och vickning, dans (useSiiri().dance() från resten av appen)
+   - solglasögon på svår nivå
+
+   Tre hemligheter sitter på figuren (rad 5459-5583, 5693-5814):
    - "Kõdi" (tickle): håll in och vicka fram och tillbaka över figuren 10 gånger, eller knacka
      6 gånger snabbt (inom 1,2s).
-   - "Kuldne Siiri" (gold): håll in i 1,1 sekunder utan att vicka.
+   - "Kuldne Siiri" (gold): håll in i 1,1 sekunder utan att vicka (fingret får glida högst 12px).
    - "Aptsihh" (sneeze): knacka 3 gånger snabbt (inom 1,5s) på nosen.
+   De säger sin replik högt, med konfetti och belöning (useRewards: nytt märke visas av
+   UiRankUpOverlay i AppShell).
 
-   Medvetet utelämnat (kosmetiska lager ovanpå spelmekaniken, inte kärnan i hemligheterna):
-   - Konfettin (burst()) - hör till en helt egen canvas-partikelmotor (public/legacy/app.js,
-     <canvas id="fx"> i LegacyApp.vue) som bara finns på hemskärmen.
-   - "+40"-texten som flyger iväg (flyXp) och den stora rang-upp-overlayn (rankUp) när ett
-     hemlighets-XP råkar trigga en ny rang - XP:t och rangen uppdateras ändå korrekt och syns
-     direkt i AppShell:s nivåmätare, bara utan fanfaren.
-   - Ögonen som följer muspekaren (mLook) och den synkade munrörelsen när hon "pratar"
-     (mJaw/speak) - hemligheterna visar sin replik som text istället för att läsa upp den,
-     eftersom speak() hör till hela tal-ut-motorn (ordförråd + ljudbanker), inte bara namn
-     (jfr app/utils/name-audio.ts, som är fristående och redan portad).
-   - Dansens detaljerade arm/öra-koreografi (bara helfigursanimationen siiridance är med). */
+   Att använda henne på en skärm: <UiSiiriPortrait size="small" /> (eller "big"); humör och dans
+   styrs från skärmen med useSiiri().mood("cheer" | "oops" | "listen" | "think" | "") och
+   useSiiri().dance(big), och hon pratar med useSiiriVoice().say([...klipp]). Flera figurer på
+   samma sida går bra - delarna har klasser i stället för id:n, och gesterna gäller den figur man
+   rör vid.
+
+   Inte med, eftersom de inte syntes ens i legacy: armarnas, örats och blommans rörelser
+   (s-armL/R, s-ear, s-flower är tomma platshållare där också) och humöret "think" (trasig
+   CSS-selektor i style.css). */
+
+const { size = "normal" } = defineProps<{
+  /** Hur stor figuren är: "normal" (profil, hem), "big" (slutskärmar) eller "small" (bredvid en
+   * uppgift) - samma tre storlekar som siilSVG(size) hade. */
+  size?: "normal" | "big" | "small";
+}>();
 
 const profile = useProfileStore();
+const { tone, buzz, sndLvl } = useSiiriSound();
+const { burst } = useConfetti();
+const voice = useSiiriVoice();
+const { foundSecret, secretReward, addXp } = useRewards();
+const { danceRequest, moodRequest } = useSiiri();
+/* egna id:n till pälsens färglager, så att flera figurer på samma sida inte delar dem */
+const uid = useId().replace(/[^a-zA-Z0-9]/g, "");
 
 const furObj = computed(() => myFur(profile.state.fur as string | undefined));
 const eyeObj = computed(() => myEye(profile.state.eye as string | undefined));
@@ -50,114 +68,111 @@ const wearOutfit = computed(() => wearSVG(wear.value, owned.value, "outfit"));
 const wearNeck = computed(() => wearSVG(wear.value, owned.value, "neck"));
 const wearHead = computed(() => wearSVG(wear.value, owned.value, "head"));
 const wearHand = computed(() => wearSVG(wear.value, owned.value, "hand"));
-const furHtml = computed(() => furLayer(furObj.value, "s"));
+const furHtml = computed(() => furLayer(furObj.value, `s${uid}`));
 
 function wearing(w: Wear | undefined, slot: string): string | null {
   return (w || {})[slot] || null;
 }
 
-/* ---------- ljud (tone/buzz), fristående Web Audio - ingen legacy-motor behövs ---------- */
-let audioCtx: AudioContext | null = null;
-function tone(freq: number, dur: number, when = 0, type: OscillatorType = "sine") {
-  if (!profile.state.sound) return;
-  try {
-    if (!audioCtx) audioCtx = new AudioContext();
-    if (audioCtx.state === "suspended") audioCtx.resume();
-    const o = audioCtx.createOscillator();
-    const g = audioCtx.createGain();
-    o.type = type;
-    o.frequency.value = freq;
-    o.connect(g);
-    g.connect(audioCtx.destination);
-    const t = audioCtx.currentTime + when;
-    g.gain.setValueAtTime(0.0001, t);
-    g.gain.exponentialRampToValueAtTime(0.18, t + 0.02);
-    g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
-    o.start(t);
-    o.stop(t + dur + 0.03);
-  } catch {
-    /* ljud är en bonus, aldrig kritiskt */
-  }
-}
-function buzz(pattern: number) {
-  try {
-    if (profile.state.sound && navigator.vibrate) navigator.vibrate(pattern);
-  } catch {
-    /* vibration saknas på många enheter/webbläsare - strunta i det då */
-  }
-}
-function sndLvl() {
-  tone(523, 0.14, 0);
-  tone(659, 0.14, 0.12);
-  tone(784, 0.14, 0.24);
-  tone(1047, 0.3, 0.36);
-}
-
-/* ---------- hemligheter: hitta, belöna, visa ---------- */
-function foundSecret(id: string): boolean {
-  const secrets = (profile.state.secrets as string[] | undefined) || [];
-  if (secrets.includes(id)) return false;
-  profile.state.secrets = [...secrets, id];
-  profile.save();
-  return true;
-}
-function addXp(n: number) {
-  profile.state.xp = (profile.state.xp || 0) + n;
-  profile.save();
-}
-
-const secretOverlay = ref<{ em: string; et: string; sv: string } | null>(null);
-function showSecret(em: string, et: string, sv: string) {
-  secretOverlay.value = { em, et, sv };
+/* ---------- hemlighetsrutan: repliken visas och sägs högt, stängs själv efter 6s ---------- */
+type SecretLine = { em: string; et: string; sv: string; clip: string };
+const SECRET_LINES: Record<string, SecretLine> = {
+  gold: {
+    em: "🌟",
+    et: "Vaata, ma olen kuldne siil!",
+    sv: "Titta, jag är en gyllene igelkott!",
+    clip: "/audio/clips/normal/vaata-ma-olen-kuldne-siil.mp3",
+  },
+  tickle: {
+    em: "🤭",
+    et: "Kõdi! Ära kõdista mind!",
+    sv: "Det kittlas! Sluta kittla mig!",
+    clip: "/audio/clips/normal/kodi-ara-kodista-mind.mp3",
+  },
+  sneeze: {
+    em: "🤧",
+    et: "Aptsihh! Vabandust.",
+    sv: "Atjo! Ursäkta.",
+    clip: "/audio/clips/normal/aptsihh-vabandust.mp3",
+  },
+};
+const secretOverlay = ref<SecretLine | null>(null);
+let secretTimer: ReturnType<typeof setTimeout> | undefined;
+function showSecret(id: string) {
+  const line = SECRET_LINES[id];
+  if (!line) return;
+  voice.say([line.clip]);
+  secretOverlay.value = line;
+  clearTimeout(secretTimer);
+  secretTimer = setTimeout(closeSecret, 6000);
 }
 function closeSecret() {
+  clearTimeout(secretTimer);
   secretOverlay.value = null;
 }
 
-/* ---------- figurens tillstånd (CSS-klasser + inline eye-squint) ---------- */
+/* ---------- figurens tillstånd (klasser på svg:n) ---------- */
 const golden = ref(false);
 const giggle = ref(false);
-const wob = ref(false);
 const dancing = ref(false);
-const mood = ref("");
+const pulse = ref<"" | "hop" | "wob">("");
+const mood = ref<"" | "happy" | "sad" | "listen" | "think" | "talk" | "cheer">("");
+const squint = ref(false);
 let danceTimer: ReturnType<typeof setTimeout> | undefined;
+let pulseTimer: ReturnType<typeof setTimeout> | undefined;
+let moodTimer: ReturnType<typeof setTimeout> | undefined;
 
 const svgClasses = computed(() => [
   "siiri-portrait__svg",
+  size !== "normal" && `siiri-portrait__svg--${size}`,
   isCool.value && "siiri-portrait__svg--cool",
   golden.value && "siiri-portrait__svg--golden",
   giggle.value && "siiri-portrait__svg--giggle",
-  wob.value && "siiri-portrait__svg--wob",
+  pulse.value && `siiri-portrait__svg--${pulse.value}`,
   dancing.value && "siiri-portrait__svg--dance",
   mood.value && `siiri-portrait__svg--mood-${mood.value}`,
 ]);
 
-function mMood(m: string) {
-  mood.value = m;
+/* restartar en kort animation (hopp/vickning) även om samma redan pågår */
+function mPulse(cls: "hop" | "wob", ms = 1200) {
+  pulse.value = "";
+  clearTimeout(pulseTimer);
+  requestAnimationFrame(() => {
+    pulse.value = cls;
+    pulseTimer = setTimeout(() => (pulse.value = ""), ms);
+  });
 }
-function happyEyes(on: boolean) {
-  const el = document.getElementById("s-eyeL");
-  const er = document.getElementById("s-eyeR");
-  const l = document.getElementById("s-irisL");
-  const r = document.getElementById("s-irisR");
-  if (!el || !er) return;
-  el.style.transform = on ? "scaleY(.55)" : "";
-  er.style.transform = on ? "scaleY(.55)" : "";
-  el.style.transformOrigin = "76.4px 91.4px";
-  er.style.transformOrigin = "123.2px 90.7px";
-  if (l) l.style.opacity = on ? ".25" : "";
-  if (r) r.style.opacity = on ? ".25" : "";
+/* glad: ögonbrynen upp och två hopp. Humöret släpps efter en stund, om hon inte pratar. */
+function cheer() {
+  mood.value = "happy";
+  mPulse("hop");
+  clearTimeout(moodTimer);
+  moodTimer = setTimeout(() => {
+    if (!voice.talking.value) mood.value = "";
+  }, 1600);
 }
+/* medan hon pratar har hon humöret "talk" (neutrala ögonbryn), som förut */
+watch(voice.talking, on => {
+  if (on) mood.value = "talk";
+  else if (mood.value === "talk") mood.value = "";
+});
+
+/* glada, kisande ögon - samma inline-stil som legacy (blinkningen ligger ovanpå, så det som
+ * syns är framför allt de dämpade irisarna) */
+const eyeStyleL = computed(() => (squint.value ? { transform: "scaleY(.55)" } : {}));
+const eyeStyleR = computed(() => (squint.value ? { transform: "scaleY(.55)" } : {}));
+const irisOpacity = computed(() => (squint.value ? 0.25 : undefined));
+
 function dance(big: boolean) {
   dancing.value = false;
   requestAnimationFrame(() => (dancing.value = true));
-  mMood("cheer");
-  happyEyes(true);
+  mood.value = "cheer";
+  squint.value = true;
   clearTimeout(danceTimer);
   danceTimer = setTimeout(() => {
     dancing.value = false;
-    happyEyes(false);
-    mMood("");
+    squint.value = false;
+    mood.value = "";
   }, 2200);
   if (profile.state.sound) {
     [523, 659, 784, 1047].forEach((f, i) => tone(f, 0.12, i * 0.16));
@@ -167,14 +182,85 @@ function dance(big: boolean) {
     }
   }
 }
+watch(
+  () => danceRequest.n,
+  () => dance(danceRequest.big),
+);
+/* ledsen: ögonbrynen ner och en vickning, släpps efter en stund om hon inte pratar */
+function oops() {
+  mood.value = "sad";
+  mPulse("wob");
+  clearTimeout(moodTimer);
+  moodTimer = setTimeout(() => {
+    if (!voice.talking.value) mood.value = "";
+  }, 1800);
+}
+watch(
+  () => moodRequest.n,
+  () => {
+    const k = moodRequest.kind;
+    if (k === "cheer") cheer();
+    else if (k === "oops") oops();
+    else {
+      clearTimeout(moodTimer);
+      mood.value = k;
+    }
+  },
+);
 
+/* ---------- munnen: illustrationens leende, eller en öppen mun när hon pratar ---------- */
+const MOUTH_Y = 117;
+const mouth = computed(() => {
+  const v = voice.jaw.value;
+  if (v <= 0.04) return null;
+  const ry = 1.8 + 8.5 * v;
+  return {
+    ry,
+    rx: 9 + 2.6 * v,
+    tongueCy: MOUTH_Y + ry * 0.42,
+    tongueRy: 1.0 + 1.8 * v,
+    tongueRx: 4.5 + 1.6 * v,
+    tongueOpacity: v > 0.35 ? 1 : 0,
+  };
+});
+
+/* ---------- ögonen följer pekaren, och hela figuren lutar sig mot den ---------- */
+const svgEl = ref<SVGSVGElement | null>(null);
+const noseEl = ref<SVGCircleElement | null>(null);
+const look = ref("translate(0,0)");
+const tilt = ref("");
+function mLook(cx: number, cy: number) {
+  const s = svgEl.value;
+  if (!s) return;
+  const r = s.getBoundingClientRect();
+  const ex = r.left + r.width / 2,
+    ey = r.top + r.height * 0.52;
+  const W = window.innerWidth || 600,
+    H = window.innerHeight || 600;
+  /* mät åt vänster och åt höger var för sig: hon sitter sällan mitt på skärmen,
+   * så samma måttstock åt båda håll gör att blicken slår i taket åt ena sidan */
+  const spanL = Math.max(ex, 60),
+    spanR = Math.max(W - ex, 60);
+  const spanU = Math.max(ey, 60),
+    spanD = Math.max(H - ey, 60);
+  const dx = Math.max(-1, Math.min(1, (cx - ex) / (cx < ex ? spanL : spanR)));
+  const dy = Math.max(-1, Math.min(1, (cy - ey) / (cy < ey ? spanU : spanD)));
+  look.value = `translate(${(dx * 3.2).toFixed(1)},${(dy * 2.8).toFixed(1)})`;
+  /* hela figuren vrider sig en aning mot pekaren - djup utan 3D-modell (inte medan hon dansar) */
+  if (!dancing.value)
+    tilt.value = `perspective(700px) rotateY(${(dx * 7).toFixed(1)}deg) rotateX(${(dy * -4).toFixed(1)}deg)`;
+}
+
+/* ---------- hemligheterna ---------- */
 function goldenSiiri() {
   golden.value = true;
   setTimeout(() => (golden.value = false), 4200);
+  burst(220);
+  setTimeout(() => burst(160), 500);
   sndLvl();
-  mMood("cheer");
+  cheer();
   const isNew = foundSecret("gold");
-  showSecret("🌟", "Vaata, ma olen kuldne siil!", "Titta, jag är en gyllene igelkott!");
+  showSecret("gold");
   if (isNew) addXp(40);
 }
 function tickleSiiri() {
@@ -184,25 +270,29 @@ function tickleSiiri() {
   tone(880, 0.08, 0);
   tone(1100, 0.08, 0.09);
   tone(1320, 0.12, 0.18);
+  burst(50);
   const isNew = foundSecret("tickle");
-  showSecret("🤭", "Kõdi! Ära kõdista mind!", "Det kittlas! Sluta kittla mig!");
+  showSecret("tickle");
   if (isNew) addXp(40);
 }
 function sneeze() {
-  wob.value = true;
-  setTimeout(() => (wob.value = false), 700);
+  mPulse("wob", 700);
   tone(880, 0.07, 0, "triangle");
   tone(420, 0.22, 0.08, "triangle");
-  const isNew = foundSecret("sneeze");
-  showSecret("🤧", "Aptsihh! Vabandust.", "Atjo! Ursäkta.");
-  if (isNew) addXp(40);
+  burst(40);
+  secretReward("sneeze", 40);
+  showSecret("sneeze");
 }
 
 /* ---------- gest-igenkänning: håll+vicka eller 6 snabba knack = kittla, 1,1s långt
  * tryck = gyllene, 3 snabba knack på nosen = nysning. Samma trösklar som legacy
  * (public/legacy/app.js rad 5700-5814). Lyssnar på hela dokumentet, precis som förut,
  * eftersom pekaren ofta hinner utanför den lilla SVG:n mellan två vickningar. */
-const TK = { on: false, x: 0, turns: 0, lastDir: 0, level: 0 };
+const TK = { on: false, x: 0, turns: 0, lastDir: 0, level: 0, startX: 0, startY: 0 };
+/* Så långt (px) fingret får glida innan det inte längre räknas som att hålla still. Utan gränsen
+ * (som i legacy) utlöstes "Kuldne Siiri" mitt i en kittling, eller när man drog runt på henne -
+ * vickandet tar längre än 1,1s. */
+const HOLD_SLOP = 12;
 let pressTimer: ReturnType<typeof setTimeout> | undefined;
 let tapCount = 0;
 let tapTimer: ReturnType<typeof setTimeout> | undefined;
@@ -215,8 +305,14 @@ function tickleReset() {
   TK.lastDir = 0;
   TK.level = 0;
 }
+function cancelHold() {
+  clearTimeout(pressTimer);
+  pressTimer = undefined;
+}
 function onPointerMove(e: PointerEvent) {
+  mLook(e.clientX, e.clientY);
   if (!TK.on) return;
+  if (pressTimer && Math.hypot(e.clientX - TK.startX, e.clientY - TK.startY) > HOLD_SLOP) cancelHold();
   const dx = e.clientX - TK.x;
   if (Math.abs(dx) < 16) return;
   const dir = dx > 0 ? 1 : -1;
@@ -226,12 +322,12 @@ function onPointerMove(e: PointerEvent) {
   if (TK.turns >= 3 && TK.level < 1) {
     TK.level = 1;
     giggle.value = true;
-    mMood("cheer");
+    mood.value = "cheer";
   }
   if (TK.turns >= 6 && TK.level < 2) {
     TK.level = 2;
     tone(1100, 0.06, 0);
-    happyEyes(true);
+    squint.value = true;
   }
   if (TK.turns >= 10 && TK.level < 3) {
     TK.level = 3;
@@ -242,8 +338,8 @@ function onPointerMove(e: PointerEvent) {
   }
 }
 function onPointerDown(e: PointerEvent) {
-  const target = e.target as HTMLElement | null;
-  if (target?.closest?.("#s-nose-hit")) {
+  const target = e.target as Element | null;
+  if (target && noseEl.value?.contains(target)) {
     noseTaps++;
     clearTimeout(noseTimer);
     noseTimer = setTimeout(() => (noseTaps = 0), 1500);
@@ -254,9 +350,10 @@ function onPointerDown(e: PointerEvent) {
     }
     return;
   }
-  if (!target?.closest?.("#s-svg")) return;
+  if (!target || !svgEl.value?.contains(target)) return;
   TK.on = true;
-  TK.x = e.clientX;
+  TK.x = TK.startX = e.clientX;
+  TK.startY = e.clientY;
   TK.turns = 0;
   TK.lastDir = 0;
   TK.level = 0;
@@ -271,16 +368,16 @@ function onPointerUp(e: PointerEvent) {
   if (TK.on) {
     giggle.value = false;
     if (TK.level > 0 && TK.level < 3) {
-      happyEyes(false);
-      mMood("");
+      squint.value = false;
+      mood.value = "";
     }
     tickleReset();
   }
   if (pressTimer) {
     clearTimeout(pressTimer);
     pressTimer = undefined;
-    const target = e.target as HTMLElement | null;
-    if (target?.closest?.("#s-svg")) {
+    const target = e.target as Element | null;
+    if (target && svgEl.value?.contains(target)) {
       tapCount++;
       clearTimeout(tapTimer);
       tapTimer = setTimeout(() => (tapCount = 0), 1200);
@@ -292,37 +389,54 @@ function onPointerUp(e: PointerEvent) {
     }
   }
 }
+/* scroll som tar över fingret, eller fönstret som tappar fokus (släppt utanför fönstret) */
 function onPointerCancel() {
-  clearTimeout(pressTimer);
-  pressTimer = undefined;
+  cancelHold();
+  if (TK.on) {
+    giggle.value = false;
+    tickleReset();
+  }
 }
 
 onMounted(() => {
-  document.addEventListener("pointermove", onPointerMove, { passive: true });
+  voice.preload(Object.values(SECRET_LINES).map(l => l.clip)); /* så att replikerna kommer direkt */
+  window.addEventListener("pointermove", onPointerMove, { passive: true });
   document.addEventListener("pointerdown", onPointerDown, { passive: true });
   document.addEventListener("pointerup", onPointerUp, { passive: true });
   document.addEventListener("pointercancel", onPointerCancel, { passive: true });
+  window.addEventListener("blur", onPointerCancel);
 });
 onUnmounted(() => {
-  document.removeEventListener("pointermove", onPointerMove);
+  window.removeEventListener("pointermove", onPointerMove);
   document.removeEventListener("pointerdown", onPointerDown);
   document.removeEventListener("pointerup", onPointerUp);
   document.removeEventListener("pointercancel", onPointerCancel);
-  clearTimeout(pressTimer);
-  clearTimeout(tapTimer);
-  clearTimeout(noseTimer);
-  clearTimeout(danceTimer);
+  window.removeEventListener("blur", onPointerCancel);
+  [pressTimer, tapTimer, noseTimer, danceTimer, pulseTimer, moodTimer, secretTimer].forEach(t => clearTimeout(t));
+  voice.hush();
 });
 </script>
 
 <template>
   <span class="siiri-portrait">
-    <svg id="s-svg" :class="svgClasses" viewBox="0 0 200 200" role="img" aria-label="Igelkotten Siiri">
+    <svg
+      ref="svgEl"
+      :class="svgClasses"
+      :style="tilt ? { transform: tilt } : undefined"
+      viewBox="0 0 200 200"
+      role="img"
+      aria-label="Igelkotten Siiri"
+    >
       <defs>
         <radialGradient id="sg-aura" cx="50%" cy="50%" r="50%">
           <stop offset="55%" stop-color="rgba(255,214,110,0)" />
           <stop offset="80%" stop-color="rgba(255,206,92,.38)" />
           <stop offset="100%" stop-color="rgba(255,186,40,0)" />
+        </radialGradient>
+        <!-- natthimlen (bakgrunden "taevas" i garderoben) -->
+        <radialGradient id="sg-night" cx="38%" cy="26%" r="80%">
+          <stop offset="0%" stop-color="#31467F" />
+          <stop offset="100%" stop-color="#101B3C" />
         </radialGradient>
         <radialGradient id="sg-lid" cx="50%" cy="38%" r="62%">
           <stop offset="0%" stop-color="#FFFDF8" />
@@ -349,8 +463,14 @@ onUnmounted(() => {
           preserve-aspect-ratio="xMidYMid meet"
         />
       </defs>
-      <g id="s-all">
-        <g id="s-head">
+      <g class="siiri-portrait__all">
+        <!-- ljudvågor när hon lyssnar (humöret "listen") -->
+        <g class="siiri-portrait__wave">
+          <circle cx="14" cy="52" r="6" fill="#3B6CD4" opacity="0" />
+          <circle cx="14" cy="52" r="6" fill="#3B6CD4" opacity="0" />
+          <circle cx="14" cy="52" r="6" fill="#3B6CD4" opacity="0" />
+        </g>
+        <g class="siiri-portrait__head">
           <g v-html="wearScene" />
           <g v-html="wearBackBehind" />
           <use href="#siiriPic" />
@@ -361,11 +481,12 @@ onUnmounted(() => {
           <g v-html="wearNeck" />
           <g v-html="wearHead" />
           <g v-html="wearHand" />
-          <!-- platshållare som minspelet (happyEyes/dance) animerar -->
-          <g id="s-armL" />
-          <g id="s-armR" />
-          <g id="s-flower" />
-          <g id="s-browL">
+          <!-- platshållare som minspelet animerar (tomma även i legacy) -->
+          <g class="siiri-portrait__ear" />
+          <g class="siiri-portrait__arm-l" />
+          <g class="siiri-portrait__arm-r" />
+          <g class="siiri-portrait__flower" />
+          <g class="siiri-portrait__brow-l">
             <path
               d="M66 75 q9 -4 17 -1"
               stroke="#C3A88C"
@@ -375,7 +496,7 @@ onUnmounted(() => {
               opacity=".45"
             />
           </g>
-          <g id="s-browR">
+          <g class="siiri-portrait__brow-r">
             <path
               d="M116 74 q9 -4 17 1"
               stroke="#C3A88C"
@@ -388,24 +509,57 @@ onUnmounted(() => {
           <!-- ögonlock: samma färg som pälsen, syns när hon blinkar -->
           <ellipse cx="76.4" cy="91.4" rx="10.3" ry="11" fill="url(#sg-lid)" />
           <ellipse cx="123.2" cy="90.7" rx="10.3" ry="11" fill="url(#sg-lid)" />
-          <g id="s-eyeL">
+          <!-- ögon: iris, pupill och glansprickar flyttas mot pekaren (look) -->
+          <g class="siiri-portrait__eye-l" :style="eyeStyleL">
             <ellipse cx="76.4" cy="91.4" rx="9.2" ry="9.9" fill="#080605" />
-            <circle id="s-irisL" cx="76.4" cy="91.4" r="5.6" :fill="eyeObj.c" />
-            <circle cx="76.4" cy="91.4" r="3.0" fill="#000" />
-            <circle cx="74.2" cy="88.8" r="2.6" fill="#fff" />
-            <circle cx="79.1" cy="94.2" r="1.5" fill="#fff" opacity=".6" />
+            <circle
+              class="siiri-portrait__iris"
+              cx="76.4"
+              cy="91.4"
+              r="5.6"
+              :fill="eyeObj.c"
+              :opacity="irisOpacity"
+              :transform="look"
+            />
+            <circle class="siiri-portrait__pupil" cx="76.4" cy="91.4" r="3.0" fill="#000" :transform="look" />
+            <circle class="siiri-portrait__gleam" cx="74.2" cy="88.8" r="2.6" fill="#fff" :transform="look" />
+            <circle
+              class="siiri-portrait__gleam-small"
+              cx="79.1"
+              cy="94.2"
+              r="1.5"
+              fill="#fff"
+              opacity=".6"
+              :transform="look"
+            />
             <path d="M70.4 95.4 q6 5 12 1" stroke="#6E5F55" stroke-width="1" fill="none" opacity=".3" />
           </g>
-          <g id="s-eyeR">
+          <g class="siiri-portrait__eye-r" :style="eyeStyleR">
             <ellipse cx="123.2" cy="90.7" rx="9.2" ry="9.9" fill="#080605" />
-            <circle id="s-irisR" cx="123.2" cy="90.7" r="5.6" :fill="eyeObj.c" />
-            <circle cx="123.2" cy="90.7" r="3.0" fill="#000" />
-            <circle cx="121.0" cy="88.1" r="2.6" fill="#fff" />
-            <circle cx="125.9" cy="93.5" r="1.5" fill="#fff" opacity=".6" />
+            <circle
+              class="siiri-portrait__iris"
+              cx="123.2"
+              cy="90.7"
+              r="5.6"
+              :fill="eyeObj.c"
+              :opacity="irisOpacity"
+              :transform="look"
+            />
+            <circle class="siiri-portrait__pupil" cx="123.2" cy="90.7" r="3.0" fill="#000" :transform="look" />
+            <circle class="siiri-portrait__gleam" cx="121.0" cy="88.1" r="2.6" fill="#fff" :transform="look" />
+            <circle
+              class="siiri-portrait__gleam-small"
+              cx="125.9"
+              cy="93.5"
+              r="1.5"
+              fill="#fff"
+              opacity=".6"
+              :transform="look"
+            />
             <path d="M117.2 94.7 q6 5 12 1" stroke="#6E5F55" stroke-width="1" fill="none" opacity=".3" />
           </g>
           <!-- solglasögon (svår nivå) -->
-          <g id="s-shades">
+          <g class="siiri-portrait__shades">
             <path
               d="M59 87 Q67 82 73 85"
               stroke="url(#sg-frame)"
@@ -441,26 +595,59 @@ onUnmounted(() => {
             />
             <path d="M71 85 l9 0 -11 11 0 -7 Z" fill="#fff" opacity=".45" />
             <path d="M113 84 l9 0 -11 11 0 -7 Z" fill="#fff" opacity=".45" />
-            <g id="s-glint">
+            <g class="siiri-portrait__shades-glint">
               <path d="M128 83 l1.9 4 4.2 .6 -3 3 .8 4.2 -3.9 -2.1 -3.8 2.1 .7 -4.2 -3 -3 4.2 -.6 Z" fill="#FFF7C4" />
             </g>
           </g>
-          <!-- munnen: illustrationens leende syns som det är, ingen pratanimation här -->
-          <circle id="s-nose-hit" cx="99.5" cy="106" r="13" fill="#fff" opacity="0" style="cursor: pointer" />
+          <!-- munnen: illustrationens leende syns som det är, och när hon pratar läggs en öppen mun över -->
+          <circle
+            ref="noseEl"
+            class="siiri-portrait__nose"
+            cx="99.5"
+            cy="106"
+            r="13"
+            fill="#fff"
+            opacity="0"
+            style="cursor: pointer"
+          />
+          <path class="siiri-portrait__smile" d="M0 0" stroke="none" fill="none" :opacity="mouth ? 0 : 1" />
+          <g class="siiri-portrait__mouth" :opacity="mouth ? 1 : 0">
+            <ellipse
+              class="siiri-portrait__mouth-open"
+              cx="100"
+              :cy="MOUTH_Y"
+              :rx="mouth ? mouth.rx.toFixed(2) : 9.5"
+              :ry="mouth ? mouth.ry.toFixed(2) : 2"
+              fill="#6E3540"
+            />
+            <ellipse
+              class="siiri-portrait__tongue"
+              cx="100"
+              :cy="mouth ? mouth.tongueCy.toFixed(2) : 120"
+              :rx="mouth ? mouth.tongueRx.toFixed(2) : 5.5"
+              :ry="mouth ? mouth.tongueRy.toFixed(2) : 1.3"
+              :opacity="mouth ? mouth.tongueOpacity : 1"
+              fill="#E28EA0"
+            />
+          </g>
         </g>
       </g>
     </svg>
     <span class="siiri-portrait__shadow" />
 
-    <div v-if="secretOverlay" class="siiri-portrait__overlay" role="dialog" aria-modal="true" @click="closeSecret">
-      <div class="siiri-portrait__overlay-card" @click.stop>
-        <p class="siiri-portrait__overlay-kicker">🤫 Hemlighet!</p>
-        <div class="siiri-portrait__overlay-emoji" aria-hidden="true">{{ secretOverlay.em }}</div>
-        <h3 lang="et">{{ secretOverlay.et }}</h3>
-        <p>{{ secretOverlay.sv }}</p>
-        <UiAppButton variant="primary" wide @click="closeSecret">Hihi!</UiAppButton>
+    <!-- till <body>: omslagets perspective (lutningen) skulle annars hålla rutan inom figuren -->
+    <Teleport to="body">
+      <!-- stängs bara med knappen (eller av sig själv) - barnen trycker ofta många gånger i rad -->
+      <div v-if="secretOverlay" class="siiri-portrait__overlay" role="dialog" aria-modal="true">
+        <div class="siiri-portrait__overlay-card">
+          <p class="siiri-portrait__overlay-kicker">🤫 Hemlighet!</p>
+          <div class="siiri-portrait__overlay-emoji" aria-hidden="true">{{ secretOverlay.em }}</div>
+          <h3 lang="et">{{ secretOverlay.et }}</h3>
+          <p>{{ secretOverlay.sv }}</p>
+          <UiAppButton variant="primary" wide @click="closeSecret">Hihi!</UiAppButton>
+        </div>
       </div>
-    </div>
+    </Teleport>
   </span>
 </template>
 
@@ -470,6 +657,7 @@ onUnmounted(() => {
   position: relative;
   line-height: 0;
   max-width: 100%;
+  perspective: 700px; // djupet när hon lutar sig mot pekaren (legacy .siiri3d)
 
   &__svg {
     width: clamp(9.375rem, 44vw, 13.125rem); // 150-210px
@@ -481,74 +669,94 @@ onUnmounted(() => {
     -webkit-user-select: none;
     user-select: none;
     touch-action: manipulation;
+    transform-style: preserve-3d;
+    transition: transform 0.22s ease-out;
+    will-change: transform;
 
-    :deep(g[id]) {
+    /* figurens egna delar vrids/flyttas kring sig själva (legacy: .siiri g[id]) */
+    :deep(.siiri-portrait__head),
+    :deep(.siiri-portrait__wave),
+    :deep(.siiri-portrait__ear),
+    :deep(.siiri-portrait__arm-l),
+    :deep(.siiri-portrait__arm-r),
+    :deep(.siiri-portrait__flower),
+    :deep(.siiri-portrait__brow-l),
+    :deep(.siiri-portrait__brow-r),
+    :deep(.siiri-portrait__shades),
+    :deep(.siiri-portrait__shades-glint) {
       transform-box: fill-box;
     }
 
-    :deep(#s-all) {
+    :deep(.siiri-portrait__all) {
       transform-box: fill-box;
       transform-origin: 50% 100%;
       animation: siiri-breathe 3.6s ease-in-out infinite;
       filter: drop-shadow(0 0.375rem 0.625rem rgba(31, 61, 43, 0.22)); // 6px, 10px
     }
 
-    :deep(#s-eyeL),
-    :deep(#s-eyeR) {
+    :deep(.siiri-portrait__eye-l),
+    :deep(.siiri-portrait__eye-r) {
       transform-box: view-box;
       animation: siiri-blink 5.4s infinite;
     }
-    :deep(#s-eyeL) {
+    :deep(.siiri-portrait__eye-l) {
       transform-origin: 76.4px 91.4px;
     }
-    :deep(#s-eyeR) {
+    :deep(.siiri-portrait__eye-r) {
       transform-origin: 123.2px 90.7px;
     }
 
-    :deep(#s-browL),
-    :deep(#s-browR),
-    :deep(#s-armL),
-    :deep(#s-armR),
-    :deep(#s-flower) {
+    :deep(.siiri-portrait__brow-l),
+    :deep(.siiri-portrait__brow-r),
+    :deep(.siiri-portrait__arm-l),
+    :deep(.siiri-portrait__arm-r),
+    :deep(.siiri-portrait__flower) {
       transform-origin: 50% 50%;
       transition: transform 0.28s cubic-bezier(0.3, 1.4, 0.5, 1);
     }
-    :deep(#s-armL) {
+    :deep(.siiri-portrait__arm-l) {
       transform-origin: 80% 10%;
     }
-    :deep(#s-armR) {
+    :deep(.siiri-portrait__arm-r) {
       transform-origin: 20% 10%;
     }
-    :deep(#s-flower) {
+    :deep(.siiri-portrait__flower) {
       transform-origin: 50% 100%;
       animation: siiri-sway 2.8s ease-in-out infinite;
     }
 
-    :deep(#s-shades) {
+    :deep(.siiri-portrait__shades) {
       opacity: 0;
-      transform: translateY(-1.375rem) rotate(-6deg); // -22px
+      transform: translateY(-22px) rotate(-6deg); // px = SVG:ns ritenheter
       transform-origin: 50% 50%;
       transition:
         opacity 0.3s ease,
         transform 0.45s cubic-bezier(0.2, 1.5, 0.45, 1);
       pointer-events: none;
     }
-    :deep(#s-glint) {
+    :deep(.siiri-portrait__shades-glint) {
       transform-box: fill-box;
       transform-origin: center;
       opacity: 0;
     }
 
+    &--big {
+      width: clamp(11.875rem, 62vw, 18.75rem); // 190-300px
+    }
+    &--small {
+      width: clamp(6rem, 22vw, 8.25rem); // 96-132px
+    }
+
     &--cool {
-      :deep(#s-shades) {
+      :deep(.siiri-portrait__shades) {
         opacity: 1;
         transform: translateY(0) rotate(0);
       }
-      :deep(#s-browL),
-      :deep(#s-browR) {
+      :deep(.siiri-portrait__brow-l),
+      :deep(.siiri-portrait__brow-r) {
         opacity: 0;
       }
-      :deep(#s-glint) {
+      :deep(.siiri-portrait__shades-glint) {
         animation: siiri-glint 3.4s ease-in-out infinite;
       }
     }
@@ -569,12 +777,61 @@ onUnmounted(() => {
 
     &--dance {
       animation: siiri-dance 2.1s cubic-bezier(0.34, 1.3, 0.5, 1) 1;
+
+      /* inuti: hopp, vridning och svikt med studs i landningen */
+      :deep(.siiri-portrait__all) {
+        animation: siiri-dance-body 1.9s cubic-bezier(0.3, 0.7, 0.3, 1) 2;
+      }
+    }
+
+    &--hop {
+      animation: siiri-hop 0.55s ease 2;
+    }
+
+    /* humör: ögonbrynen (och ljudvågorna när hon lyssnar). Flyttningar inuti SVG:n anges i px,
+     * som här är SVG:ns egna ritenheter (som cx/cy) - inte skärmpixlar, så inte rem. */
+    &--mood-happy {
+      :deep(.siiri-portrait__brow-l) {
+        transform: translateY(-4px) rotate(-8deg);
+      }
+      :deep(.siiri-portrait__brow-r) {
+        transform: translateY(-4px) rotate(8deg);
+      }
+    }
+    &--mood-sad {
+      :deep(.siiri-portrait__brow-l) {
+        transform: translateY(5px) rotate(16deg);
+      }
+      :deep(.siiri-portrait__brow-r) {
+        transform: translateY(5px) rotate(-16deg);
+      }
+    }
+    &--mood-listen {
+      :deep(.siiri-portrait__brow-l),
+      :deep(.siiri-portrait__brow-r) {
+        transform: translateY(-5px);
+      }
+      :deep(.siiri-portrait__wave circle) {
+        opacity: 1;
+        animation: siiri-waves 1.4s infinite;
+      }
+      :deep(.siiri-portrait__wave circle:nth-child(2)) {
+        animation-delay: 0.25s;
+      }
+      :deep(.siiri-portrait__wave circle:nth-child(3)) {
+        animation-delay: 0.5s;
+      }
     }
 
     @media (prefers-reduced-motion: reduce) {
+      transition: none;
+
       &--dance,
       &--wob {
         animation: none !important;
+      }
+      &--dance :deep(.siiri-portrait__all) {
+        animation: none;
       }
     }
   }
@@ -720,6 +977,64 @@ onUnmounted(() => {
   }
   75% {
     transform: rotate(6deg);
+  }
+}
+
+@keyframes siiri-hop {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  40% {
+    transform: translateY(-1.125rem); // -18px
+  }
+  70% {
+    transform: translateY(0);
+  }
+}
+
+@keyframes siiri-waves {
+  0% {
+    opacity: 0.9;
+    r: 6;
+  }
+  100% {
+    opacity: 0;
+    r: 26;
+  }
+}
+
+/* inuti SVG:n: px = ritenheter, se humörerna ovan */
+@keyframes siiri-dance-body {
+  0% {
+    transform: translateY(0) rotate(0deg) scale(1, 1);
+  }
+  8% {
+    transform: translateY(2px) rotate(0deg) scale(1.06, 0.93);
+  }
+  20% {
+    transform: translateY(-16px) rotate(-7deg) scale(0.95, 1.07);
+  }
+  32% {
+    transform: translateY(0) rotate(0deg) scale(1.05, 0.95);
+  }
+  44% {
+    transform: translateY(-14px) rotate(7deg) scale(0.96, 1.06);
+  }
+  56% {
+    transform: translateY(0) rotate(0deg) scale(1.05, 0.95);
+  }
+  68% {
+    transform: translateY(-18px) rotate(-5deg) scale(0.94, 1.08);
+  }
+  80% {
+    transform: translateY(0) rotate(3deg) scale(1.04, 0.96);
+  }
+  90% {
+    transform: translateY(-6px) rotate(-2deg) scale(0.98, 1.02);
+  }
+  100% {
+    transform: translateY(0) rotate(0deg) scale(1, 1);
   }
 }
 

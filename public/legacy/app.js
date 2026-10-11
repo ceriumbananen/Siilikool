@@ -5707,6 +5707,11 @@
   }
   function tickleMove(e) {
     if (!TK.on) return;
+    /* fingret har glidit iväg: det är inte längre "håll in" (annars blev hon gyllene mitt i en kittling) */
+    if (pressTimer && Math.abs(e.clientX - TK.sx) + Math.abs(e.clientY - TK.sy) > 12) {
+      clearTimeout(pressTimer);
+      pressTimer = null;
+    }
     var dx = e.clientX - TK.x;
     if (Math.abs(dx) < 16) return; /* små darrningar räknas inte */
     var dir = dx > 0 ? 1 : -1;
@@ -5758,7 +5763,8 @@
       var t = e.target.closest ? e.target.closest("#s-svg") : null;
       if (!t) return;
       TK.on = true;
-      TK.x = e.clientX;
+      TK.x = TK.sx = e.clientX;
+      TK.sy = e.clientY;
       TK.dist = 0;
       TK.turns = 0;
       TK.lastDir = 0;
@@ -5804,14 +5810,13 @@
     }
   }
   document.addEventListener("pointerup", endPress, { passive: true });
-  document.addEventListener(
-    "pointercancel",
-    function () {
-      clearTimeout(pressTimer);
-      pressTimer = null;
-    },
-    { passive: true },
-  );
+  function cancelPress() {
+    clearTimeout(pressTimer);
+    pressTimer = null;
+  }
+  document.addEventListener("pointercancel", cancelPress, { passive: true });
+  /* släppt utanför fönstret: inget pointerup kommer */
+  window.addEventListener("blur", cancelPress);
 
   /* ============ EGNA BILDER TILL ORD ============ */
   /* emojier räcker inte: 🏞️ betyder både sjö, flod och nationalpark.

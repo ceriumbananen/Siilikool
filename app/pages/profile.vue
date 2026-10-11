@@ -35,21 +35,25 @@ const ri = computed(() => rankIndex(profile.state.xp));
 const rank = computed(() => RANKS[ri.value]!);
 const nextRank = computed(() => RANKS[ri.value + 1]);
 
+const GREETING_CLIP = "/audio/clips/normal/tere.mp3"; /* LEADS.tere, se filens topp-kommentar */
+/* genom Siiris röst, så att munnen rör sig medan hon säger det */
+const voice = useSiiriVoice();
 const nameClipUrl = ref<string | null>(null);
 watch(
   () => profile.state.name,
   name => {
     nameClipUrl.value = null;
-    if (name) findNameClip(name).then(url => (nameClipUrl.value = url));
+    if (name)
+      findNameClip(name).then(url => {
+        nameClipUrl.value = url;
+        if (url) voice.preload([GREETING_CLIP, `/${url}`]); /* så att hälsningen kommer direkt */
+      });
   },
   { immediate: true },
 );
-const GREETING_CLIP = "/audio/clips/normal/tere.mp3"; /* LEADS.tere, se filens topp-kommentar */
 function playName() {
-  if (!profile.state.sound || !nameClipUrl.value) return;
-  const greeting = new Audio(GREETING_CLIP);
-  greeting.addEventListener("ended", () => new Audio(`/${nameClipUrl.value}`).play().catch(() => {}));
-  greeting.play().catch(() => {});
+  if (!nameClipUrl.value) return;
+  voice.say([GREETING_CLIP, `/${nameClipUrl.value}`]);
 }
 
 const themesDone = computed(
