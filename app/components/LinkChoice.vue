@@ -15,7 +15,7 @@ const emit = defineEmits<{ choose: [choice: LinkChoice] }>();
     <button class="btn green wide" :disabled="busy" @click="emit('choose', 'merge')">
       🤝 Slå ihop (rekommenderas)
     </button>
-    <p class="qsub">Stjärnor, köp, märken och ord från båda behålls.</p>
+    <p class="qsub">Stjärnor, köp, märken, diplom, resan och ord från båda behålls.</p>
     <button class="btn ghost wide" :disabled="busy" @click="emit('choose', 'local')">📱 Behåll enhetens spel</button>
     <button class="btn ghost wide" :disabled="busy" @click="emit('choose', 'remote')">
       ☁️ Använd spelet från kontot

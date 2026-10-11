@@ -618,6 +618,8 @@ export const useCloudStore = defineStore("cloud", () => {
         await linkSlot(pending.member, "remote").catch(fail);
       }
       if (link.value && session.value) await pull().catch(fail);
+      /* diplom m.m. som en tidigare sammanslagning tappade – sparas och skickas upp som vanligt */
+      if (link.value) profile.healFromBackup();
       if (isLocked.value) familyChildren().catch(() => {});
       startPicker();
     })();

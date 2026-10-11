@@ -189,6 +189,24 @@ export const useProfileStore = defineStore("profile", () => {
     write(slotKey(slot.value), JSON.stringify(p.data));
     return true;
   }
+  /* Diplom, rekord, resan och samlingar som finns i reservkopian men saknas i spelet läggs tillbaka –
+     en tidigare version av synken tappade dem när två enheters spel slogs ihop. Bara om kopian är samma
+     spelare (samma namn); stjärnor och andra räknare rörs inte. Returnerar true om något lades tillbaka. */
+  function healFromBackup() {
+    const p = backupInfo();
+    const name = (state.name || "").trim().toLowerCase();
+    if (!p?.data || !name || (p.data.name || "").trim().toLowerCase() !== name) return false;
+    const merged = mergeSaves(null, toRaw(state), p.data);
+    let changed = false;
+    for (const k of ACHIEVEMENTS) {
+      if (merged[k] === undefined || JSON.stringify(merged[k]) === JSON.stringify(state[k])) continue;
+      state[k] = merged[k];
+      changed = true;
+    }
+    if (changed) save();
+    return changed;
+  }
+
   /* en profil som ser tom ut trots att det finns en kopia = något gick fel */
   function backupLooksBetter() {
     const p = backupInfo();
@@ -237,6 +255,7 @@ export const useProfileStore = defineStore("profile", () => {
     backupAge,
     restoreBackup,
     backupLooksBetter,
+    healFromBackup,
     exportCode,
     importCode,
     wipe,
