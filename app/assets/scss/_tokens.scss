@@ -32,10 +32,6 @@ $radius-sm: 0.875rem;
 $radius-md: 1.125rem;
 $radius-lg: 1.5rem;
 $radius-card: 1.375rem;
-// Medvetet KVAR i px: inget verkligt mått, bara ett värde garanterat större än halva höjden
-// på allt vi bygger, så border-radius blir en fullständig pil oavsett elementets storlek.
-// Som rem skulle den växa med textstorleken och sluta vara "oändlig" - exakt buggen en
-// tidigare (obehörig) ändring råkade introducera här (999px blev av misstag 5rem/80px).
 $radius-pill: 999px;
 $border-width: 0.1875rem; // 3px
 
