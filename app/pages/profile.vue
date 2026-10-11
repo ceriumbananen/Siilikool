@@ -157,48 +157,36 @@ function tapSettingsTitle() {
         <h2>Dina siffror</h2>
         <div class="profile-page__stats">
           <div class="profile-page__stat">
-            <b>{{ profile.state.xp }}</b
-            ><span>poäng</span>
+            <b>{{ profile.state.xp }}</b><span>poäng</span>
           </div>
           <div class="profile-page__stat">
-            <b>{{ profile.state.stars }}</b
-            ><span>stjärnor</span>
+            <b>{{ profile.state.stars }}</b><span>stjärnor</span>
           </div>
           <div class="profile-page__stat">
-            <b>{{ profile.state.correct }}</b
-            ><span>rätta svar</span>
+            <b>{{ profile.state.correct }}</b><span>rätta svar</span>
           </div>
           <div class="profile-page__stat">
-            <b>{{ profile.state.bestcombo || 0 }}</b
-            ><span>bästa kombo</span>
+            <b>{{ profile.state.bestcombo || 0 }}</b><span>bästa kombo</span>
           </div>
           <div class="profile-page__stat">
-            <b>{{ themesDone }} / {{ THEMES_LENGTH }}</b
-            ><span>teman klara</span>
+            <b>{{ themesDone }} / {{ THEMES_LENGTH }}</b><span>teman klara</span>
           </div>
           <div class="profile-page__stat">
             <b>{{ profile.state.flames || 0 }} 🌟</b><span>dagsutmaningar klarade</span>
           </div>
           <div class="profile-page__stat">
-            <b>{{ profile.state.spoken }}</b
-            ><span>sagt högt</span>
+            <b>{{ profile.state.spoken }}</b><span>sagt högt</span>
           </div>
           <div class="profile-page__stat">
-            <b>{{ profile.state.typed }}</b
-            ><span>skrivna ord</span>
+            <b>{{ profile.state.typed }}</b><span>skrivna ord</span>
           </div>
         </div>
       </UiAppCard>
 
       <UiAppCard class="profile-page__section">
         <h2>Dina bragder</h2>
-        <UiBadgeChip
-          v-for="row in badgeRows"
-          :key="row.badge.id"
-          :badge="row.badge"
-          :earned="row.earned"
-          :progress="row.progress"
-        />
+        <UiBadgeChip v-for="row in badgeRows" :key="row.badge.id" :badge="row.badge" :earned="row.earned"
+          :progress="row.progress" />
       </UiAppCard>
 
       <div v-if="profile.state.secretsOpen" class="profile-page__secrets">
@@ -206,12 +194,8 @@ function tapSettingsTitle() {
           🤫 {{ secretsFound.length }} av {{ SECRETS.length }}
           <span class="profile-page__secrets-close">✕ dölj</span>
         </h3>
-        <div
-          v-for="secret in SECRETS"
-          :key="secret.id"
-          class="profile-page__secret"
-          :class="{ 'profile-page__secret--hidden': !secretsFound.includes(secret.id) }"
-        >
+        <div v-for="secret in SECRETS" :key="secret.id" class="profile-page__secret"
+          :class="{ 'profile-page__secret--hidden': !secretsFound.includes(secret.id) }">
           <span aria-hidden="true">{{ secretsFound.includes(secret.id) ? secret.em : "❔" }}</span>
           <span>
             <template v-if="secretsFound.includes(secret.id)">{{ secret.sv }}</template>
@@ -226,18 +210,12 @@ function tapSettingsTitle() {
         <h2>Mängijad · Spelare</h2>
         <p>Varje spelare har egna poäng, egen figur och egen garderob.</p>
         <div class="profile-page__slots">
-          <button
-            v-for="s in slots"
-            :key="s.i"
-            class="profile-page__slot"
-            :class="{ 'profile-page__slot--on': s.current }"
-            @click="cloud.requestSlot(s.i)"
-          >
+          <button v-for="s in slots" :key="s.i" class="profile-page__slot"
+            :class="{ 'profile-page__slot--on': s.current }" @click="cloud.requestSlot(s.i)">
             <span aria-hidden="true">{{ s.info ? s.info.avatar : "➕" }}</span>
             <b>{{ s.info ? s.info.name || "Namnlös" : "Ny spelare" }}</b>
-            <small v-if="s.info"
-              >{{ s.info.xp.toLocaleString("sv-SE") }} p · ⭐{{ s.info.stars.toLocaleString("sv-SE") }}</small
-            >
+            <small v-if="s.info">{{ s.info.xp.toLocaleString("sv-SE") }} p · ⭐{{ s.info.stars.toLocaleString("sv-SE")
+            }}</small>
             <small v-else>tom plats</small>
             <small v-if="s.kind === 'child-pin'">☁️ 🔒 PIN</small>
             <small v-else-if="s.kind === 'child'">☁️ familjen</small>
@@ -284,7 +262,8 @@ function tapSettingsTitle() {
             {{
               cloud.link
                 ? "Spelet hör till familjen, men enheten är utloggad. Skriv familjekoden igen så sparas det som vanligt."
-                : "Spela med familjen: spelet sparas i familjekontot och följer med till andra enheter, och glosorna kommer från de vuxna."
+                : `Spela med familjen: spelet sparas i familjekontot och följer med till andra enheter, och glosorna kommer
+            från de vuxna.`
             }}
           </p>
           <div class="profile-page__row">
@@ -311,50 +290,40 @@ function tapSettingsTitle() {
         </p>
       </UiAppCard>
 
-      <button
-        v-if="!profile.state.secretsOpen"
-        class="profile-page__peek"
-        aria-label="Visa dolda hemligheter"
-        @click="toggleSecrets"
-      >
-        🤫
-      </button>
+      <section class="profile-page__actions">
+        <button v-if="!profile.state.secretsOpen" class="profile-page__peek" aria-label="Visa dolda hemligheter"
+          @click="toggleSecrets">
+          🤫
+        </button>
 
-      <a class="profile-page__btn profile-page__btn--wide" href="/" @click="markLegacyScreen('room')"
-        >🏠 Siiri tuba · välj Siiris färg och kläder</a
-      >
-      <a v-if="profile.state.school" class="profile-page__bigcard" href="/" @click="markLegacyScreen('school')">
-        <span class="profile-page__bigcard-emoji" aria-hidden="true">📝</span>
-        <span class="profile-page__bigcard-text">
-          <b>Läxorden · ▶️ Öva</b>
-          <small>{{ profile.state.school.name }}</small>
-        </span>
-        <span aria-hidden="true">›</span>
-      </a>
-      <a
-        v-if="!(cloud.link?.kind === 'child' || cloud.isLocked)"
-        class="profile-page__btn profile-page__btn--wide profile-page__btn--ghost"
-        href="/"
-        @click="markLegacyScreen('parent')"
-      >
-        🔐 För vuxna
-      </a>
-      <a class="profile-page__btn profile-page__btn--wide" href="/" @click="markLegacyScreen('edit')"
-        >✏️ Ändra namn, figur och färg</a
-      >
-      <a
-        class="profile-page__btn profile-page__btn--wide profile-page__btn--ghost"
-        href="/"
-        @click="markLegacyScreen('shop')"
-        >🎪 Laat · Marknaden</a
-      >
-      <a class="profile-page__btn profile-page__btn--wide profile-page__btn--ghost" href="/trophy">🏆 Skattkammaren</a>
-      <a
-        class="profile-page__btn profile-page__btn--wide profile-page__btn--ghost"
-        href="/"
-        @click="markLegacyScreen('words')"
-        >📖 Sõnastik · Ordlistan</a
-      >
+        <a class="profile-page__btn profile-page__btn--wide" href="/" @click="markLegacyScreen('room')">🏠 Siiri tuba ·
+          välj
+          Siiris färg och kläder</a>
+        <a class="profile-page__btn profile-page__btn--wide" href="/" @click="markLegacyScreen('edit')">✏️ Ändra namn,
+          figur och
+          färg</a>
+        <!-- Tillfälligt utkommenterade tills vi vet vad vi vill göra med denna actions meny -->
+        <!-- <a class="profile-page__btn profile-page__btn--wide profile-page__btn--ghost" href="/"
+            @click="markLegacyScreen('shop')">🎪 Laat · Marknaden</a> -->
+        <a class="profile-page__btn profile-page__btn--wide profile-page__btn--ghost" href="/trophy">🏆
+          Skattkammaren</a>
+        <!-- Tillfälligt utkommenterade tills vi vet vad vi vill göra med denna actions meny -->
+        <!-- <a class="profile-page__btn profile-page__btn--wide profile-page__btn--ghost" href="/"
+              @click="markLegacyScreen('words')">📖 Sõnastik · Ordlistan</a> -->
+        <a v-if="!(cloud.link?.kind === 'child' || cloud.isLocked)"
+          class="profile-page__btn profile-page__btn--wide profile-page__btn--ghost" href="/"
+          @click="markLegacyScreen('parent')">
+          🔐 För vuxna
+        </a>
+        <a v-if="profile.state.school" class="profile-page__bigcard" href="/" @click="markLegacyScreen('school')">
+          <span class="profile-page__bigcard-emoji" aria-hidden="true">📝</span>
+          <span class="profile-page__bigcard-text">
+            <b>Läxorden · ▶️ Öva</b>
+            <small>{{ profile.state.school.name }}</small>
+          </span>
+          <span aria-hidden="true">›</span>
+        </a>
+      </section>
     </main>
   </UiAppShell>
 </template>
@@ -495,7 +464,7 @@ function tapSettingsTitle() {
     padding: 0.5rem 0; // 8px
     font-weight: 600;
 
-    > span:first-child {
+    >span:first-child {
       font-size: $font-size-xl;
       width: 1.875rem; // 30px
       text-align: center;
@@ -508,7 +477,7 @@ function tapSettingsTitle() {
       font-size: $font-size-xs;
     }
 
-    &--hidden > span:first-child {
+    &--hidden>span:first-child {
       filter: grayscale(1);
       opacity: 0.5;
     }
@@ -535,7 +504,7 @@ function tapSettingsTitle() {
     font: inherit;
     @include focus-visible;
 
-    > span:first-child {
+    >span:first-child {
       font-size: $font-size-2xl;
       line-height: 1.1;
     }
@@ -595,7 +564,6 @@ function tapSettingsTitle() {
     background: var(--blue);
     color: #fff;
     box-shadow: 0 0.3125rem 0 var(--blue-ink); // 5px
-    margin-top: $spacing-3;
     @include focus-visible;
 
     &--green {
@@ -651,6 +619,13 @@ function tapSettingsTitle() {
       font-size: $font-size-sm;
       opacity: 0.8;
     }
+  }
+
+  &__actions {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin-top: $spacing-3;
   }
 }
 </style>
