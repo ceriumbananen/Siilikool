@@ -33,8 +33,9 @@ export type Badge = {
 const TRIP_LENGTH = 20;
 const SHOP_LENGTH = 49;
 const RIVAL_IDS = ["hiir", "rebane", "karu", "draakon"] as const;
-/** Hur många teman appen har totalt (THEMES.length i legacy-koden) - badgen "all" jämför mot den. */
-const THEMES_LENGTH = 25;
+/** Hur många teman appen har totalt (THEMES.length i legacy-koden) - badgen "all" och
+ * profilsidans "X av Y teman klara"-statistik jämför båda mot den. */
+export const THEMES_LENGTH = 25;
 
 export const BADGES: Badge[] = [
   { id: "first", em: "🌱", sv: "Första ordet", test: s => s.correct >= 1 },

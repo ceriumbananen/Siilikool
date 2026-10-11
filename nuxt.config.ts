@@ -59,7 +59,7 @@ export default defineNuxtConfig({
   },
   /* sidorna utöver spelet får egna filer, så att Cloudflare svarar 200 på dem direkt */
   nitro: {
-    prerender: { routes: ["/parent", "/join", "/connect", "/invite", "/trophy"] },
+    prerender: { routes: ["/parent", "/join", "/connect", "/invite", "/trophy", "/profile"] },
   },
   /* ingen Nuxt-laddningsskärm – appen har sin egen bakgrund i style.css */
   spaLoadingTemplate: false,

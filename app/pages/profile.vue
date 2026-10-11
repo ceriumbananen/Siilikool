@@ -1,0 +1,586 @@
+<script setup lang="ts">
+/* Profilen - porterat från profileScreen() i public/legacy/app.js (rad 8225-8550).
+   UiAppShell ger samma toppfält/nivåmätare/bottennav som spelets egna skärmar, se
+   app/components/ui/AppShell.vue. "me" markerad som vald flik.
+
+   Medvetet utelämnat tills vidare, med samma motivering som Skattkammaren
+   (app/pages/trophy.vue): Siiri-portträttet (siilSVG) - visar avatar-emojin stort istället,
+   precis som AppShell redan gör i toppfältet - och "ord att öva"-statistiken (hardWords()),
+   som bygger på hela ordförrådet. "Hör Siiri säga ditt namn" (hasVoiceName/TTS-ljudbanken)
+   är också utelämnad av samma skäl.
+
+   Länkar till skärmar som ännu inte flyttats till Vue (rummet, läxorna, "för vuxna", redigera
+   namn/figur, marknaden, ordlistan) går till / (hel sidladdning) - ingen riktig router för
+   spelets skärmar finns än, se app/components/ui/AppShell.vue. Skattkammaren är redan en
+   egen sida och länkas dit på riktigt. Familjekortet och spelarväxlaren återanvänder
+   useCloudStore() och WhoPlays.vue rakt av - de är redan riktiga Vue-byggstenar, inget att
+   portera. */
+
+const profile = useProfileStore();
+const cloud = useCloudStore();
+const { busy: lockBusy, err: lockErr, run: runLock } = useBusy();
+
+const ri = computed(() => rankIndex(profile.state.xp));
+const rank = computed(() => RANKS[ri.value]!);
+const nextRank = computed(() => RANKS[ri.value + 1]);
+
+const themesDone = computed(
+  () => Object.values((profile.state.best as Record<string, number> | undefined) || {}).filter(v => v > 0).length,
+);
+
+const badgeRows = computed(() =>
+  BADGES.map(badge => ({
+    badge,
+    earned: (profile.state.badges as string[]).includes(badge.id),
+    progress: badgeProgress(badge, profile.state as unknown as BadgeProfile),
+  })),
+);
+
+const secretsFound = computed(() => (profile.state.secrets as string[] | undefined) || []);
+
+/** Samma tre fasta platser som slotgrid i profileScreen (inte cloud.devicePlayers(), som
+ * filtrerar bort tomma platser - den är till för "Vem spelar?", inte den här listan). */
+const slots = computed(() =>
+  Array.from({ length: 3 }, (_, i) => {
+    const info = profile.slotInfo(i);
+    const link = cloud.links[String(i)];
+    const kind = !link ? "" : link.kind === "child" ? (link.pin ? "child-pin" : "child") : "adult";
+    return { i, info, current: i === profile.slot, kind };
+  }),
+);
+
+function toggleSound() {
+  profile.state.sound = !profile.state.sound;
+  profile.save();
+}
+function toggleTheme() {
+  const cur = document.documentElement.getAttribute("data-theme");
+  const isDark = cur ? cur === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
+  const next = isDark ? "light" : "dark";
+  document.documentElement.setAttribute("data-theme", next);
+  profile.state.theme = next;
+  profile.save();
+}
+function toggleAmbience() {
+  profile.state.amb = profile.state.amb ? 0 : 1;
+  profile.save();
+}
+function toggleSecrets() {
+  profile.state.secretsOpen = profile.state.secretsOpen ? 0 : 1;
+  profile.save();
+}
+
+const doLock = () =>
+  runLock(async () => {
+    await cloud.lock();
+    location.href = "/"; /* till spelet – nu som barnenhet */
+  });
+</script>
+
+<template>
+  <UiAppShell active="me">
+    <main class="profile-page">
+      <header class="profile-page__hero">
+        <span class="profile-page__hero-emoji" aria-hidden="true">🦔</span>
+        <div>
+          <h1>Minu profiil</h1>
+          <p>Min profil</p>
+        </div>
+      </header>
+
+      <UiAppCard class="profile-page__section profile-page__me">
+        <span class="profile-page__avatar" aria-hidden="true">{{ profile.state.avatar || "🦔" }}</span>
+        <p class="profile-page__name">{{ profile.state.name || "Ingen spelare än" }}</p>
+        <UiMedalBadge :rank="rank" :locked="false" :medal-style="medalStyleOf(profile.state.mstyle, rank.id)" />
+        <p class="profile-page__rank-name" lang="et">{{ rank.et }}</p>
+        <p class="profile-page__rank-sv">{{ rank.sv }}</p>
+        <p v-if="nextRank">Nästa märke om {{ nextRank.xp - profile.state.xp }} poäng</p>
+        <p v-else>Alla märken tagna!</p>
+      </UiAppCard>
+
+      <UiAppCard class="profile-page__section">
+        <h2>Dina siffror</h2>
+        <div class="profile-page__stats">
+          <div class="profile-page__stat">
+            <b>{{ profile.state.xp }}</b
+            ><span>poäng</span>
+          </div>
+          <div class="profile-page__stat">
+            <b>{{ profile.state.stars }}</b
+            ><span>stjärnor</span>
+          </div>
+          <div class="profile-page__stat">
+            <b>{{ profile.state.correct }}</b
+            ><span>rätta svar</span>
+          </div>
+          <div class="profile-page__stat">
+            <b>{{ profile.state.bestcombo || 0 }}</b
+            ><span>bästa kombo</span>
+          </div>
+          <div class="profile-page__stat">
+            <b>{{ themesDone }} / {{ THEMES_LENGTH }}</b
+            ><span>teman klara</span>
+          </div>
+          <div class="profile-page__stat">
+            <b>{{ profile.state.flames || 0 }} 🌟</b><span>dagsutmaningar klarade</span>
+          </div>
+          <div class="profile-page__stat">
+            <b>{{ profile.state.spoken }}</b
+            ><span>sagt högt</span>
+          </div>
+          <div class="profile-page__stat">
+            <b>{{ profile.state.typed }}</b
+            ><span>skrivna ord</span>
+          </div>
+        </div>
+      </UiAppCard>
+
+      <UiAppCard class="profile-page__section">
+        <h2>Dina bragder</h2>
+        <UiBadgeChip
+          v-for="row in badgeRows"
+          :key="row.badge.id"
+          :badge="row.badge"
+          :earned="row.earned"
+          :progress="row.progress"
+        />
+      </UiAppCard>
+
+      <div v-if="profile.state.secretsOpen" class="profile-page__secrets">
+        <h3 @click="toggleSecrets">
+          🤫 {{ secretsFound.length }} av {{ SECRETS.length }}
+          <span class="profile-page__secrets-close">✕ dölj</span>
+        </h3>
+        <div
+          v-for="secret in SECRETS"
+          :key="secret.id"
+          class="profile-page__secret"
+          :class="{ 'profile-page__secret--hidden': !secretsFound.includes(secret.id) }"
+        >
+          <span aria-hidden="true">{{ secretsFound.includes(secret.id) ? secret.em : "❔" }}</span>
+          <span>
+            <template v-if="secretsFound.includes(secret.id)">{{ secret.sv }}</template>
+            <i v-else>{{ secret.hint }}</i>
+            <small>{{ secretsFound.includes(secret.id) ? "Hittad" : "" }}</small>
+          </span>
+        </div>
+        <p class="profile-page__secrets-note">Siiri gömmer saker i appen. Vissa hittar man av en slump.</p>
+      </div>
+
+      <UiAppCard class="profile-page__section">
+        <h2>Mängijad · Spelare</h2>
+        <p>Varje spelare har egna poäng, egen figur och egen garderob.</p>
+        <div class="profile-page__slots">
+          <button
+            v-for="s in slots"
+            :key="s.i"
+            class="profile-page__slot"
+            :class="{ 'profile-page__slot--on': s.current }"
+            @click="cloud.requestSlot(s.i)"
+          >
+            <span aria-hidden="true">{{ s.info ? s.info.avatar : "➕" }}</span>
+            <b>{{ s.info ? s.info.name || "Namnlös" : "Ny spelare" }}</b>
+            <small v-if="s.info"
+              >{{ s.info.xp.toLocaleString("sv-SE") }} p · ⭐{{ s.info.stars.toLocaleString("sv-SE") }}</small
+            >
+            <small v-else>tom plats</small>
+            <small v-if="s.kind === 'child-pin'">☁️ 🔒 PIN</small>
+            <small v-else-if="s.kind === 'child'">☁️ familjen</small>
+            <small v-else-if="s.kind === 'adult'">☁️ vuxen</small>
+            <small v-if="s.current" class="profile-page__slot-current">spelar nu</small>
+          </button>
+        </div>
+      </UiAppCard>
+      <WhoPlays />
+
+      <UiAppCard v-if="cloud.enabled" class="profile-page__section">
+        <h2>Perekond · Familj</h2>
+        <template v-if="cloud.isAdult">
+          <p>
+            Du är inloggad som vuxen{{ cloud.familyName ? ` i ${cloud.familyName}` : "" }}. Barn, glosor och familjekod
+            finns i föräldraläget.
+          </p>
+          <div class="profile-page__row">
+            <a class="profile-page__btn profile-page__btn--green" href="/parent">👨‍👩‍👧 Föräldraläget</a>
+            <UiAppButton variant="ghost" :disabled="lockBusy" @click="doLock">🔒 Lås enheten</UiAppButton>
+          </div>
+          <p v-if="lockErr" role="alert">{{ lockErr }}</p>
+        </template>
+        <template v-else-if="cloud.isFamilyDevice">
+          <p>
+            {{ cloud.isLocked ? "🔒 Enheten är låst av en vuxen. " : "" }}
+            {{ cloud.familyName ? `Ni spelar i ${cloud.familyName}.` : "Ni spelar i familjen." }}
+            Spelet sparas i familjekontot och glosorna kommer från de vuxna.
+          </p>
+          <div class="profile-page__row">
+            <UiAppButton variant="green" @click="cloud.openPicker()">👥 Byt spelare</UiAppButton>
+            <a class="profile-page__btn profile-page__btn--ghost" href="/join">➕ Lägg till spelare</a>
+            <a v-if="cloud.isLocked" class="profile-page__btn profile-page__btn--ghost" href="/parent">🔓 Lås upp</a>
+          </div>
+        </template>
+        <template v-else-if="cloud.session">
+          <p>Du är inloggad men inte med i någon familj än.</p>
+          <div class="profile-page__row">
+            <a class="profile-page__btn profile-page__btn--green" href="/parent">👨‍👩‍👧 Föräldraläget</a>
+          </div>
+        </template>
+        <template v-else>
+          <p>
+            {{
+              cloud.link
+                ? "Spelet hör till familjen, men enheten är utloggad. Skriv familjekoden igen så sparas det som vanligt."
+                : "Spela med familjen: spelet sparas i familjekontot och följer med till andra enheter, och glosorna kommer från de vuxna."
+            }}
+          </p>
+          <div class="profile-page__row">
+            <a class="profile-page__btn profile-page__btn--green" href="/join">🔑 Jag har en familjekod</a>
+            <a class="profile-page__btn profile-page__btn--ghost" href="/parent">👩 Jag är vuxen</a>
+          </div>
+        </template>
+      </UiAppCard>
+
+      <UiAppCard class="profile-page__section">
+        <h2>Seaded · Inställningar</h2>
+        <div class="profile-page__row">
+          <UiAppButton variant="ghost" @click="toggleSound">{{
+            profile.state.sound ? "🔊 Ljud på" : "🔇 Ljud av"
+          }}</UiAppButton>
+          <UiAppButton variant="ghost" @click="toggleTheme">🌙 Ljust / mörkt</UiAppButton>
+          <UiAppButton variant="ghost" @click="toggleAmbience">{{
+            profile.state.amb ? "🎵 Ljudmiljö på" : "🎵 Ljudmiljö av"
+          }}</UiAppButton>
+        </div>
+        <p>
+          Siiri talar med den estniska rösten Mari, byggd på studioinspelningar från Tartu universitet. 🐢 ger en
+          långsammare inläsning av samma ord.
+        </p>
+      </UiAppCard>
+
+      <button
+        v-if="!profile.state.secretsOpen"
+        class="profile-page__peek"
+        aria-label="Visa dolda hemligheter"
+        @click="toggleSecrets"
+      >
+        🤫
+      </button>
+
+      <a class="profile-page__btn profile-page__btn--wide" href="/">🏠 Siiri tuba · välj Siiris färg och kläder</a>
+      <a v-if="profile.state.school" class="profile-page__bigcard" href="/">
+        <span class="profile-page__bigcard-emoji" aria-hidden="true">📝</span>
+        <span class="profile-page__bigcard-text">
+          <b>Läxorden · ▶️ Öva</b>
+          <small>{{ profile.state.school.name }}</small>
+        </span>
+        <span aria-hidden="true">›</span>
+      </a>
+      <a
+        v-if="!(cloud.link?.kind === 'child' || cloud.isLocked)"
+        class="profile-page__btn profile-page__btn--wide profile-page__btn--ghost"
+        href="/"
+      >
+        🔐 För vuxna
+      </a>
+      <a class="profile-page__btn profile-page__btn--wide" href="/">✏️ Ändra namn, figur och färg</a>
+      <a class="profile-page__btn profile-page__btn--wide profile-page__btn--ghost" href="/">🎪 Laat · Marknaden</a>
+      <a class="profile-page__btn profile-page__btn--wide profile-page__btn--ghost" href="/trophy">🏆 Skattkammaren</a>
+      <a class="profile-page__btn profile-page__btn--wide profile-page__btn--ghost" href="/">📖 Sõnastik · Ordlistan</a>
+    </main>
+  </UiAppShell>
+</template>
+
+<style lang="scss" scoped>
+// Bredd-begränsningen kommer från UiAppShell:s __content-omslag, inte härifrån.
+.profile-page {
+  &__hero {
+    display: flex;
+    align-items: center;
+    gap: $spacing-2;
+    margin: $spacing-1 0 $spacing-2;
+    border-radius: $radius-lg;
+    padding: $spacing-3;
+    color: #fff;
+    box-shadow: $shadow-3;
+    background: linear-gradient(140deg, #7b5ad8, #412c86);
+
+    h1 {
+      font-size: $font-size-xl;
+      line-height: 1.1;
+      margin: 0;
+    }
+
+    p {
+      font-size: $font-size-sm;
+      opacity: 0.9;
+      font-weight: 500;
+      margin: 0;
+    }
+  }
+
+  &__hero-emoji {
+    font-size: 2.125rem; // 34px
+    line-height: 1;
+  }
+
+  &__section {
+    margin-top: $spacing-3;
+    text-align: left;
+
+    h2 {
+      font-size: $font-size-lg;
+      margin: 0 0 $spacing-1;
+    }
+
+    p {
+      margin: 0 0 $spacing-1;
+    }
+  }
+
+  &__me {
+    text-align: center;
+
+    .profile-page__avatar {
+      font-size: 2.5rem; // 40px
+      display: block;
+    }
+  }
+
+  &__avatar {
+    font-size: 2.5rem; // 40px
+  }
+
+  &__name {
+    font-size: 1.625rem; // 26px
+    font-weight: 700;
+    margin: 0.125rem 0; // 2px
+  }
+
+  &__rank-name {
+    font-size: $font-size-lg;
+    font-weight: 700;
+    margin: 0.25rem 0; // 4px
+  }
+
+  &__rank-sv {
+    color: var(--muted);
+    margin: 0;
+  }
+
+  &__stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(5.75rem, 1fr)); // 92px
+    gap: 0.5rem; // 8px
+    margin-top: 0.5rem; // 8px
+  }
+
+  &__stat {
+    background: var(--bg2);
+    border-radius: $radius-md;
+    padding: 0.5rem 0.25rem; // 8px, 4px
+    text-align: center;
+
+    b {
+      display: block;
+      font-size: $font-size-xl;
+      line-height: 1.1;
+    }
+
+    span {
+      font-size: $font-size-xs;
+      color: var(--muted);
+    }
+  }
+
+  &__secrets {
+    background: linear-gradient(150deg, #6b4fd8, #39236f);
+    color: #fff;
+    border-radius: $radius-card;
+    padding: $spacing-4;
+    box-shadow: $shadow-3;
+    margin-top: $spacing-3;
+    text-align: left;
+
+    h3 {
+      margin: 0 0 0.25rem; // 4px
+      font-size: $font-size-md;
+      cursor: pointer;
+    }
+  }
+
+  &__secrets-close {
+    float: right;
+    opacity: 0.65;
+    font-weight: 500;
+  }
+
+  &__secrets-note {
+    color: #c9bcef;
+    margin-top: 0.5rem; // 8px
+  }
+
+  &__secret {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem; // 8px
+    padding: 0.5rem 0; // 8px
+    font-weight: 600;
+
+    > span:first-child {
+      font-size: $font-size-xl;
+      width: 1.875rem; // 30px
+      text-align: center;
+    }
+
+    small {
+      display: block;
+      font-weight: 500;
+      opacity: 0.8;
+      font-size: $font-size-xs;
+    }
+
+    &--hidden > span:first-child {
+      filter: grayscale(1);
+      opacity: 0.5;
+    }
+  }
+
+  &__slots {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(6rem, 1fr)); // 96px
+    gap: 0.625rem; // 10px
+    margin-top: 0.5rem; // 8px
+  }
+
+  &__slot {
+    background: var(--bg2);
+    border: $border-width solid var(--line);
+    border-radius: $radius-md;
+    padding: 0.625rem 0.375rem; // 10px, 6px
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.0625rem; // 1px
+    color: var(--ink);
+    font: inherit;
+    @include focus-visible;
+
+    > span:first-child {
+      font-size: $font-size-2xl;
+      line-height: 1.1;
+    }
+
+    b {
+      font-size: $font-size-sm;
+    }
+
+    small {
+      font-size: $font-size-xs;
+      color: var(--muted);
+    }
+
+    &--on {
+      border-color: var(--moss);
+      background: color-mix(in srgb, var(--moss) 14%, var(--card));
+    }
+  }
+
+  &__slot-current {
+    color: var(--moss) !important;
+  }
+
+  &__row {
+    display: flex;
+    gap: 0.5rem; // 8px
+    flex-wrap: wrap;
+    margin-top: $spacing-3;
+  }
+
+  &__peek {
+    display: block;
+    margin: $spacing-4 auto 0.25rem; // 4px
+    background: none;
+    border: none;
+    font-size: $font-size-lg;
+    opacity: 0.28;
+    cursor: pointer;
+    padding: 0.25rem 0.75rem; // 4px, 12px
+    line-height: 1;
+    @include focus-visible;
+
+    &:active {
+      opacity: 0.7;
+    }
+  }
+
+  &__btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: $spacing-1;
+    border-radius: $radius-md;
+    padding: 0.75rem $spacing-4; // 12px, 18px
+    font-weight: 600;
+    text-decoration: none;
+    background: var(--blue);
+    color: #fff;
+    box-shadow: 0 0.3125rem 0 var(--blue-ink); // 5px
+    margin-top: $spacing-3;
+    @include focus-visible;
+
+    &--green {
+      background: var(--moss);
+      box-shadow: 0 0.3125rem 0 color-mix(in srgb, var(--moss) 60%, black); // 5px
+    }
+
+    &--ghost {
+      background: var(--card);
+      color: var(--ink);
+      border: $border-width solid var(--line);
+      box-shadow: $shadow-2;
+    }
+
+    &--wide {
+      width: 100%;
+    }
+  }
+
+  &__bigcard {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem; // 12px
+    width: 100%;
+    text-align: left;
+    text-decoration: none;
+    padding: 0.875rem 1rem; // 14px, 16px
+    margin-top: $spacing-3;
+    border-radius: $radius-lg;
+    border: $border-width solid var(--honey);
+    background: linear-gradient(160deg, #fff3d2, #ffe4a8);
+    color: #4a3200;
+    box-shadow: 0 0.3125rem 0 rgba(0, 0, 0, 0.14); // 5px
+    @include focus-visible;
+  }
+
+  &__bigcard-emoji {
+    font-size: 2rem; // 32px
+    line-height: 1;
+  }
+
+  &__bigcard-text {
+    flex: 1;
+    min-width: 0;
+
+    b {
+      display: block;
+      font-size: $font-size-lg;
+    }
+
+    small {
+      display: block;
+      font-size: $font-size-sm;
+      opacity: 0.8;
+    }
+  }
+}
+</style>

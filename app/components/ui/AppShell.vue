@@ -1,9 +1,10 @@
 <script setup lang="ts">
 /* Samma toppfält (profil/märke/stjärnor), nivåmätare och bottennavigering som spelets egna
  * skärmar har (LegacyApp.vue) - för Nuxt-sidor som migrerats ut ur app.js. Länkarna går till
- * / (hela sidladdning, inte NuxtLink) eftersom den gamla appen bara kan starta en gång per
- * sidladdning (samma konvention som redan finns i app/app.vue). Ingen av flikarna kan ännu
- * länka direkt till en specifik skärm i spelet - de landar alla på hemskärmen. */
+ * hela sidladdningar (inte NuxtLink) eftersom den gamla appen bara kan starta en gång per
+ * sidladdning (samma konvention som redan finns i app/app.vue). Profil- och märke-chipen samt
+ * "Profiil"-fliken länkar till riktiga Nuxt-sidor (/profile, /trophy) - de andra flikarna
+ * landar fortfarande på hemskärmen tills deras skärmar också flyttas ut ur app.js. */
 const { active = null } = defineProps<{
   /** Vilken av de fem flikarna som ska visas som vald. Ingen flik representerar den här
    * sidan specifikt förrän spelet har en riktig router för sina skärmar, så standard är
@@ -27,7 +28,7 @@ const xpPct = computed(() => {
     <div class="app-shell__content">
       <div class="app-shell__topbar">
         <a class="app-shell__iconbtn" href="/" aria-label="Till startskärmen">←</a>
-        <a class="app-shell__chip app-shell__chip--me" href="/" aria-label="Öppna din profil">
+        <a class="app-shell__chip app-shell__chip--me" href="/profile" aria-label="Öppna din profil">
           <i aria-hidden="true">{{ profile.state.avatar || "🦔" }}</i>
           <b>{{ profile.state.name || "Profil" }}</b>
         </a>
@@ -87,7 +88,7 @@ const xpPct = computed(() => {
         </span>
         <b>Tuba</b><small>Rummet</small>
       </a>
-      <a href="/" :class="{ 'app-shell__nav-btn--on': active === 'me' }" class="app-shell__nav-btn">
+      <a href="/profile" :class="{ 'app-shell__nav-btn--on': active === 'me' }" class="app-shell__nav-btn">
         <span class="app-shell__nav-emoji" aria-hidden="true">
           <svg viewBox="0 0 24 24">
             <circle cx="12" cy="8" r="4" fill="currentColor" />
