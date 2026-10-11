@@ -3,10 +3,12 @@
    UiAppShell ger samma toppfält/nivåmätare/bottennav som spelets egna skärmar, se
    app/components/ui/AppShell.vue. "me" markerad som vald flik.
 
+   Siiri-portträttet (siilSVG/wearSVG, med kittel-/guld-/nys-hemligheterna) är portat, se
+   app/components/ui/SiiriPortrait.vue och app/utils/siiri-portrait.ts.
+
    Medvetet utelämnat tills vidare, med samma motivering som Skattkammaren
-   (app/pages/trophy.vue): Siiri-portträttet (siilSVG) - visar avatar-emojin stort istället,
-   precis som AppShell redan gör i toppfältet - och "ord att öva"-statistiken (hardWords()),
-   som kräver att hela ordförrådet (THEMES/TRIP, ~1600 rader) porteras till TS först -
+   (app/pages/trophy.vue): "ord att öva"-statistiken (hardWords()), som kräver att hela
+   ordförrådet (THEMES/TRIP, ~1600 rader) porteras till TS först -
    mycket större jobb än själva statistikraden, så det får vänta tills vokabuläret ändå
    porteras för någon annan skärm. "Hör Siiri säga ditt namn" är däremot portad (se
    app/utils/name-audio.ts) - namnbanken (public/audio/names-*.js) är liten och fristående,
@@ -132,7 +134,7 @@ function tapSettingsTitle() {
       </header>
 
       <UiAppCard class="profile-page__section profile-page__me">
-        <span class="profile-page__avatar" aria-hidden="true">{{ profile.state.avatar || "🦔" }}</span>
+        <UiSiiriPortrait />
         <p class="profile-page__name">{{ profile.state.name || "Ingen spelare än" }}</p>
         <div v-if="nameClipUrl || profile.state.name" class="profile-page__name-audio">
           <UiAppButton v-if="nameClipUrl" variant="ghost" @click="playName">🔊 Hör Siiri säga ditt namn</UiAppButton>
@@ -407,15 +409,6 @@ function tapSettingsTitle() {
 
   &__me {
     text-align: center;
-
-    .profile-page__avatar {
-      font-size: 2.5rem; // 40px
-      display: block;
-    }
-  }
-
-  &__avatar {
-    font-size: 2.5rem; // 40px
   }
 
   &__name {
