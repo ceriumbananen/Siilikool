@@ -6,10 +6,15 @@ const emit = defineEmits<{ changed: [] }>();
 const api = useParentApi();
 const { busy, err, run } = useBusy();
 
-const tab = ref<"" | "progress" | "lists" | "edit" | "pin" | "devices">("");
-const toggle = (t: typeof tab.value, open?: () => Promise<void>) => {
+type Tab = "" | "progress" | "lists" | "edit" | "pin" | "devices";
+/* den öppna fliken minns under besöket, så den är kvar när sidan laddas om eller man kommer tillbaka */
+const tabKey = `siilikool:childtab:${props.member.id}`;
+const tab = ref<Tab>("");
+const toggle = (t: Tab) => {
   tab.value = tab.value === t ? "" : t;
-  if (tab.value && open) run(open);
+  sessionStorage.setItem(tabKey, tab.value);
+  if (tab.value === "progress") run(openProgress);
+  if (tab.value === "devices") run(openDevices);
 };
 
 /* ---------- framsteg ---------- */
@@ -59,32 +64,35 @@ const devices = ref<Device[]>([]);
 const openDevices = async () => {
   devices.value = await api.devices(props.member.id);
 };
-async function removeDevice(d: Device) {
-  if (
-    !confirm(
-      `Ta bort ${props.member.name} från "${d.label || "enheten"}"? Spelet finns kvar där men sparas inte längre.`,
-    )
-  )
-    return;
-  await run(async () => {
+const removeDevice = (d: Device) =>
+  run(async () => {
     await api.removeDevice(d.session_id, props.member.id);
     await openDevices();
   });
-}
+const deviceQuestion = (d: Device) =>
+  `Ta bort ${props.member.name} från ”${d.label || "enheten"}”? Spelet finns kvar där men sparas inte längre.`;
 
 /* ---------- barnet ---------- */
-async function removeChild() {
-  if (
-    !confirm(
-      `Ta bort ${props.member.name} och allt sparat i kontot (poäng, ord, glosor)? Spel som finns kvar på enheter påverkas inte.`,
-    )
-  )
-    return;
-  await run(async () => {
+const removeChild = () =>
+  run(async () => {
     await api.deleteChild(props.member.id);
     emit("changed");
   });
-}
+const removeQuestion = computed(
+  () =>
+    `Ta bort ${props.member.name} och allt sparat i kontot (poäng, ord, glosor)? Spel som finns kvar på enheter påverkas inte.`,
+);
+onMounted(() => {
+  const saved = sessionStorage.getItem(tabKey) as Tab | null;
+  if (saved) toggle(saved);
+});
+const tabs: { id: Tab; label: string }[] = [
+  { id: "progress", label: "Framsteg" },
+  { id: "lists", label: "Glosor" },
+  { id: "pin", label: "PIN" },
+  { id: "devices", label: "Enheter" },
+  { id: "edit", label: "Ändra" },
+];
 const lastSeen = computed(() =>
   new Date(props.member.updated_at).toLocaleDateString("sv-SE", { day: "numeric", month: "short" }),
 );
@@ -99,20 +107,21 @@ const lastSeen = computed(() =>
         <small>⭐ {{ member.stars ?? 0 }} · senast sparat {{ lastSeen }}{{ member.has_pin ? " · 🔒 PIN" : "" }}</small>
       </span>
     </div>
-    <div class="tabs">
-      <button class="btn ghost" :class="{ green: tab === 'progress' }" @click="toggle('progress', openProgress)">
-        📊 Framsteg
-      </button>
-      <button class="btn ghost" :class="{ green: tab === 'lists' }" @click="toggle('lists')">📝 Glosor</button>
-      <button class="btn ghost" :class="{ green: tab === 'edit' }" @click="toggle('edit')">✏️ Ändra</button>
-      <button class="btn ghost" :class="{ green: tab === 'pin' }" @click="toggle('pin')">🔒 PIN</button>
-      <button class="btn ghost" :class="{ green: tab === 'devices' }" @click="toggle('devices', openDevices)">
-        📱 Enheter
+    <div class="tabs" role="group" :aria-label="`${member.name}: visa`">
+      <button
+        v-for="t in tabs"
+        :key="t.id"
+        class="tab"
+        :class="{ on: tab === t.id }"
+        :aria-expanded="tab === t.id"
+        @click="toggle(t.id)"
+      >
+        {{ t.label }}
       </button>
     </div>
 
     <!-- framsteg (bara läsning) -->
-    <div v-if="tab === 'progress'" style="text-align: left; margin-top: 12px">
+    <div v-if="tab === 'progress'" class="tabbody">
       <p v-if="!progress" class="qsub">Hämtar …</p>
       <template v-else>
         <div class="stats">
@@ -134,9 +143,9 @@ const lastSeen = computed(() =>
           {{ progress.badges }} märken
         </p>
         <template v-if="progress.school">
-          <p class="kicker" style="margin-top: 12px">
+          <h3 class="sub">
             Glosor: {{ progress.school.name }} – {{ schoolKnown }} av {{ progress.school.words.length }} sitter
-          </p>
+          </h3>
           <p class="qsub">{{ schoolDays }}</p>
           <ul class="wlist">
             <li v-for="w in progress.school.words" :key="w.et">
@@ -146,7 +155,7 @@ const lastSeen = computed(() =>
         </template>
         <p v-if="progress.doneLists" class="qsub">{{ progress.doneLists }} tidigare glosor klara.</p>
         <template v-if="progress.hard.length">
-          <p class="kicker" style="margin-top: 12px">Svårast just nu</p>
+          <h3 class="sub">Svårast just nu</h3>
           <ul class="wlist">
             <li v-for="h in progress.hard" :key="h.et">
               <b lang="et">{{ h.et }}</b> <small class="qsub">{{ h.misses }} fel</small>
@@ -161,31 +170,43 @@ const lastSeen = computed(() =>
     </div>
 
     <!-- egna glosor -->
-    <div v-if="tab === 'lists'" style="margin-top: 12px">
+    <div v-if="tab === 'lists'" class="tabbody">
       <ParentWordListEditor :family-id="familyId" :member-id="member.id" :who="member.name" />
     </div>
 
     <!-- namn och figur -->
-    <div v-if="tab === 'edit'" style="text-align: left; margin-top: 12px">
-      <input v-model="editName" class="field" type="text" maxlength="40" placeholder="Barnets namn" />
+    <div v-if="tab === 'edit'" class="tabbody">
+      <label class="flabel">Barnets namn <input v-model="editName" class="field" type="text" maxlength="40" /></label>
       <AvatarPicker v-model="editAvatar" />
       <button class="btn green wide" :disabled="busy" @click="saveEdit">Spara</button>
       <p class="qsub">Det nya namnet och figuren syns i spelet nästa gång {{ member.name }}s enheter öppnar appen.</p>
+      <div class="dangerzone">
+        <ConfirmAction
+          :label="`Ta bort ${member.name} från familjen`"
+          :question="removeQuestion"
+          yes="Ja, ta bort"
+          danger
+          wide
+          :busy="busy"
+          @confirm="removeChild"
+        />
+      </div>
     </div>
 
     <!-- PIN -->
-    <div v-if="tab === 'pin'" style="text-align: left; margin-top: 12px">
+    <div v-if="tab === 'pin'" class="tabbody">
       <p class="qsub">{{ pinText }}</p>
-      <input
-        v-model="pin"
-        class="field code"
-        type="password"
-        inputmode="numeric"
-        pattern="[0-9]*"
-        autocomplete="new-password"
-        maxlength="8"
-        placeholder="4–8 siffror"
-      />
+      <label class="flabel"
+        >Ny PIN-kod (4–8 siffror)
+        <input
+          v-model="pin"
+          class="field code"
+          type="password"
+          inputmode="numeric"
+          pattern="[0-9]*"
+          autocomplete="new-password"
+          maxlength="8"
+      /></label>
       <button class="btn green wide" :disabled="busy || pin.length < 4" @click="savePin">
         {{ member.has_pin ? "Byt PIN-kod" : "Sätt PIN-kod" }}
       </button>
@@ -195,22 +216,26 @@ const lastSeen = computed(() =>
     </div>
 
     <!-- enheter -->
-    <div v-if="tab === 'devices'" style="text-align: left; margin-top: 12px">
+    <div v-if="tab === 'devices'" class="tabbody">
       <div v-for="d in devices" :key="d.session_id" class="devrow">
         <span>
           📱 {{ d.label || "Enhet" }}
           <small class="qsub">sedan {{ new Date(d.created_at).toLocaleDateString("sv-SE") }}</small>
         </span>
-        <button class="btn ghost" :disabled="busy" @click="removeDevice(d)">Ta bort</button>
+        <ConfirmAction
+          label="Ta bort"
+          :question="deviceQuestion(d)"
+          yes="Ja, ta bort"
+          danger
+          :busy="busy"
+          @confirm="removeDevice(d)"
+        />
       </div>
       <p v-if="!devices.length" class="qsub">
         {{ member.name }} spelar inte på någon enhet än. Skriv familjekoden på enheten och välj {{ member.name }}.
       </p>
     </div>
 
-    <p v-if="err" class="err">{{ err }}</p>
-    <button v-if="tab" class="btn ghost wide" style="margin-top: 14px" :disabled="busy" @click="removeChild">
-      Ta bort {{ member.name }} från familjen
-    </button>
+    <p v-if="err" class="err" role="alert">{{ err }}</p>
   </div>
 </template>

@@ -15,7 +15,7 @@ const children = computed(() => members.value.filter(m => m.kind === "child"));
 const adults = computed(() => members.value.filter(m => m.kind === "adult"));
 
 const load = () =>
-  run(async () => {
+  act("", async () => {
     family.value = await api!.family();
     members.value = family.value ? await api!.members() : [];
     loaded.value = true;
@@ -34,20 +34,18 @@ onMounted(async () => {
 });
 
 /* ---------- barnens enhet → vuxen ---------- */
-async function leaveDeviceMode() {
-  if (
-    !confirm(
-      "Det här är en barnenhet i familjen. Om du loggar in som vuxen här tas barnen bort från enheten – spelen finns kvar på enheten. Fortsätta?",
-    )
-  )
-    return;
-  await run(() => cloud.leaveFamilyDevice());
-}
+/* fel visas i kortet där åtgärden gjordes, inte längst ned på sidan */
+const errAt = ref("");
+const act = (where: string, fn: () => Promise<void>) => {
+  errAt.value = where;
+  return run(fn);
+};
+const leaveDeviceMode = () => act("device", () => cloud.leaveFamilyDevice());
 
 /* ---------- låst enhet ---------- */
 const unlockPin = ref("");
 const unlock = () =>
-  run(async () => {
+  act("unlock", async () => {
     const r = await cloud.unlock(unlockPin.value);
     unlockPin.value = "";
     if (!r.ok)
@@ -63,7 +61,7 @@ const unlock = () =>
 const familyName = ref(""),
   adultName = ref("");
 const createFamily = () =>
-  run(async () => {
+  act("create", async () => {
     if (!familyName.value.trim()) throw new Error("Skriv familjens namn.");
     await api!.createFamily(familyName.value, adultName.value);
     await cloud.refreshSession();
@@ -74,7 +72,7 @@ const createFamily = () =>
 const newName = ref(""),
   newAvatar = ref("🦊");
 const addChild = () =>
-  run(async () => {
+  act("add", async () => {
     if (!newName.value.trim()) throw new Error("Skriv barnets namn.");
     await api!.addChild(family.value!.id, newName.value, newAvatar.value);
     newName.value = "";
@@ -91,17 +89,20 @@ const addTitle = computed(() => (children.value.length ? "Lägg till ett barn" :
 const userEmail = computed(() => cloud.session?.user.email || "");
 const lastAdult = computed(() => adults.value.length <= 1);
 const signOut = () =>
-  run(async () => {
+  act("account", async () => {
     await cloud.signOut();
     family.value = null;
     members.value = [];
   });
-async function deleteAccount() {
-  const what = lastAdult.value
-    ? "Du är den enda vuxna – hela familjen raderas: barnen, deras spel i kontot, glosor och enheter."
-    : "Ditt konto och ditt spel i kontot raderas. Familjen och de andra vuxna finns kvar.";
-  if (prompt(`${what} Spelen på enheterna finns kvar. Skriv RADERA för att bekräfta.`) !== "RADERA") return;
-  await run(async () => {
+const deleteQuestion = computed(
+  () =>
+    (lastAdult.value
+      ? "Du är den enda vuxna – hela familjen raderas: barnen, deras spel i kontot, glosor och enheter."
+      : "Ditt konto och ditt spel i kontot raderas. Familjen och de andra vuxna finns kvar.") +
+    " Spelen på enheterna finns kvar.",
+);
+function deleteAccount() {
+  return act("account", async () => {
     await api!.deleteAccount();
     await cloud.signOut().catch(() => {
       /* sessionen är redan borta */
@@ -115,64 +116,91 @@ async function deleteAccount() {
 
 <template>
   <div class="wrap page">
-    <div class="zone me">
-      <span class="zem">👨‍👩‍👧</span>
-      <span
-        ><b>Föräldrar</b><span>{{ family?.name || "Familjen i Siilikool" }}</span></span
-      >
-    </div>
-    <a href="/" class="btn ghost">← Till spelet</a>
+    <header class="pagehead">
+      <a href="/" class="back">← Till spelet</a>
+      <h1>Föräldrar</h1>
+      <p>{{ family?.name || "Familjen i Siilikool" }}</p>
+    </header>
 
     <div v-if="!cloud.enabled" class="card">
-      <p class="qsub">Konton är inte påslagna i den här versionen av Siilikool.</p>
+      <h2 class="q">Spelet fungerar utan konto</h2>
+      <p class="qsub">
+        Den här versionen av Siilikool har inga familjekonton. Allt i spelet fungerar ändå, och framstegen sparas på
+        enheten.
+      </p>
+      <p class="qsub">
+        Glosor från skolan lägger du in i spelet: <b>Profil → För vuxna</b>. Där finns också framsteg och reservkopia av
+        spelet.
+      </p>
     </div>
 
     <!-- barnens enhet -->
-    <div v-else-if="cloud.isAnonymous" class="card" style="text-align: left">
-      <p class="q" style="text-align: left">Det här är en barnenhet</p>
+    <div v-else-if="cloud.isAnonymous" class="card">
+      <h2 class="q">Det här är en barnenhet</h2>
       <p class="qsub">{{ deviceNote }} Föräldraläget öppnar du på din egen enhet.</p>
-      <button class="btn ghost wide" :disabled="busy" @click="leaveDeviceMode">Logga in som vuxen här ändå</button>
+      <ConfirmAction
+        label="Logga in som vuxen här ändå"
+        question="Om du loggar in som vuxen här tas barnen bort från enheten. Spelen finns kvar på enheten."
+        yes="Logga in som vuxen"
+        wide
+        :busy="busy"
+        @confirm="leaveDeviceMode"
+      />
+      <p v-if="err && errAt === 'device'" class="err" role="alert">{{ err }}</p>
     </div>
 
     <!-- logga in -->
     <LoginCard v-else-if="!cloud.isEmailUser" />
 
     <!-- låst enhet -->
-    <div v-else-if="cloud.isLocked" class="card" style="text-align: left">
-      <p class="q" style="text-align: left">🔒 Enheten är låst</p>
+    <div v-else-if="cloud.isLocked" class="card">
+      <h2 class="q">🔒 Enheten är låst</h2>
       <p class="qsub">Skriv vuxen-PIN-koden för att låsa upp föräldraläget på den här enheten.</p>
-      <input
-        v-model="unlockPin"
-        class="field code"
-        type="password"
-        inputmode="numeric"
-        pattern="[0-9]*"
-        autocomplete="off"
-        maxlength="8"
-        placeholder="••••"
-        @keydown.enter="unlock"
-      />
+      <label class="flabel"
+        >Vuxen-PIN
+        <input
+          v-model="unlockPin"
+          class="field code"
+          type="password"
+          inputmode="numeric"
+          pattern="[0-9]*"
+          autocomplete="off"
+          maxlength="8"
+          placeholder="••••"
+          @keydown.enter="unlock"
+      /></label>
       <button class="btn green wide" :disabled="busy || unlockPin.length < 4" @click="unlock">Lås upp</button>
+      <p v-if="err && errAt === 'unlock'" class="err" role="alert">{{ err }}</p>
+      <details class="more">
+        <summary>Glömt vuxen-PIN?</summary>
+        <p class="qsub">
+          Logga ut och logga in igen med e-postlänken. En ny inloggning är alltid olåst. Välj sedan en ny vuxen-PIN
+          under
+          <b>Lås den här enheten</b>.
+        </p>
+        <button class="btn ghost wide" :disabled="busy" @click="signOut">Logga ut</button>
+      </details>
     </div>
 
     <p v-else-if="!loaded" class="qsub">Hämtar familjen …</p>
 
     <!-- ingen familj än -->
-    <div v-else-if="!family" class="card" style="text-align: left">
-      <p class="q" style="text-align: left">Skapa er familj</p>
+    <div v-else-if="!family" class="card">
+      <h2 class="q">Skapa er familj</h2>
       <p class="qsub">
         Familjen samlar alla: vuxna loggar in med e-post, barnen med familjekoden. Har du fått en inbjudan från en annan
         vuxen? Öppna länken i den i stället.
       </p>
-      <input
-        v-model="familyName"
-        class="field"
-        type="text"
-        maxlength="60"
-        placeholder="Familjens namn, t.ex. Familjen Ek"
-      />
-      <input v-model="adultName" class="field" type="text" maxlength="40" placeholder="Ditt namn, t.ex. Mamma" />
+      <label class="flabel"
+        >Familjens namn
+        <input v-model="familyName" class="field" type="text" maxlength="60" placeholder="t.ex. Familjen Ek"
+      /></label>
+      <label class="flabel"
+        >Ditt namn i familjen
+        <input v-model="adultName" class="field" type="text" maxlength="40" placeholder="t.ex. Mamma"
+      /></label>
       <button class="btn green wide" :disabled="busy" @click="createFamily">Skapa familjen</button>
+      <p v-if="err && errAt === 'create'" class="err" role="alert">{{ err }}</p>
     </div>
 
     <!-- familjen -->
@@ -181,23 +209,19 @@ async function deleteAccount() {
 
       <ParentChildPanel v-for="c in children" :key="c.id" :member="c" :family-id="family.id" @changed="load" />
 
-      <div class="card" style="text-align: left">
-        <p class="q" style="text-align: left">{{ addTitle }}</p>
-        <input
-          v-model="newName"
-          class="field"
-          type="text"
-          maxlength="40"
-          placeholder="Barnets namn"
-          @keydown.enter="addChild"
-        />
+      <div class="card">
+        <h2 class="q">{{ addTitle }}</h2>
+        <label class="flabel"
+          >Barnets namn <input v-model="newName" class="field" type="text" maxlength="40" @keydown.enter="addChild"
+        /></label>
         <AvatarPicker v-model="newAvatar" />
         <button class="btn green wide" :disabled="busy" @click="addChild">Lägg till</button>
+        <p v-if="err && errAt === 'add'" class="err" role="alert">{{ err }}</p>
         <p class="qsub">PIN-kod sätter du på barnet efteråt (valfritt).</p>
       </div>
 
       <div v-if="children.length" class="card">
-        <p class="q" style="text-align: left">Glosor för alla barn</p>
+        <h2 class="q">Glosor för alla barn</h2>
         <ParentWordListEditor :family-id="family.id" :member-id="null" who="alla barn" />
       </div>
 
@@ -205,17 +229,28 @@ async function deleteAccount() {
       <ParentAdultsCard :adults="adults" />
       <ParentLockCard />
 
-      <div class="card" style="text-align: left">
-        <p class="q" style="text-align: left">Kontot</p>
+      <div class="card">
+        <h2 class="q">Kontot</h2>
         <p class="qsub">Inloggad som {{ userEmail }}</p>
-        <div class="row" style="justify-content: flex-start">
-          <button class="btn ghost" :disabled="busy" @click="signOut">Logga ut</button>
-          <button class="btn ghost" :disabled="busy" @click="deleteAccount">Radera kontot</button>
+        <button class="btn ghost wide" :disabled="busy" @click="signOut">Logga ut</button>
+        <div class="dangerzone">
+          <ConfirmAction
+            label="Radera kontot"
+            :question="deleteQuestion"
+            yes="Radera kontot"
+            word="RADERA"
+            danger
+            wide
+            :busy="busy"
+            @confirm="deleteAccount"
+          />
         </div>
+        <p v-if="err && errAt === 'account'" class="err" role="alert">{{ err }}</p>
       </div>
     </template>
 
-    <p v-if="err" class="err">{{ err }}</p>
-    <p v-if="msg" class="ok">{{ msg }}</p>
+    <!-- fel som inte hör till ett visst kort (t.ex. när familjen hämtas) -->
+    <p v-if="err && !errAt" class="err" role="alert">{{ err }}</p>
+    <p v-if="msg" class="ok" role="status">{{ msg }}</p>
   </div>
 </template>

@@ -92,25 +92,24 @@ function close() {
         </a>
       </div>
       <template v-if="pinFor">
-        <p class="qsub" style="margin-top: 12px">{{ pinFor.name }}s PIN-kod</p>
-        <input
-          ref="pinInput"
-          v-model="pin"
-          class="field code"
-          type="password"
-          inputmode="numeric"
-          pattern="[0-9]*"
-          autocomplete="off"
-          maxlength="8"
-          placeholder="••••"
-          @keydown.enter="play(pinFor)"
-        />
+        <label class="flabel"
+          >{{ pinFor.name }}s PIN-kod
+          <input
+            ref="pinInput"
+            v-model="pin"
+            class="field code"
+            type="password"
+            inputmode="numeric"
+            pattern="[0-9]*"
+            autocomplete="off"
+            maxlength="8"
+            placeholder="••••"
+            @keydown.enter="play(pinFor)"
+        /></label>
         <button class="btn green wide" :disabled="busy || pin.length < 4" @click="play(pinFor)">Spela</button>
       </template>
       <p v-if="err" class="err">{{ err }}</p>
-      <button v-if="!cloud.picker.mandatory" class="btn ghost wide" style="margin-top: 12px" @click="close">
-        Stäng
-      </button>
+      <button v-if="!cloud.picker.mandatory" class="btn ghost wide closebtn" @click="close">Stäng</button>
     </div>
   </div>
 </template>

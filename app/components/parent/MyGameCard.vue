@@ -17,8 +17,8 @@ const link = (choice?: LinkChoice) =>
 
 <template>
   <LinkChoice v-if="needsChoice" :name="playerName" :busy="busy" @choose="link" />
-  <div v-else class="card" style="text-align: left">
-    <p class="q" style="text-align: left">Ditt eget spel</p>
+  <div v-else class="card">
+    <h2 class="q">Ditt eget spel</h2>
     <p v-if="state === 'mine'" class="qsub">
       ☁️ Ditt spel ({{ playerName }}) sparas i familjekontot och följer med till dina andra enheter.
     </p>
@@ -33,6 +33,6 @@ const link = (choice?: LinkChoice) =>
       </p>
       <button class="btn green wide" :disabled="busy" @click="link()">Spara mitt spel i familjekontot</button>
     </template>
-    <p v-if="err" class="err">{{ err }}</p>
+    <p v-if="err" class="err" role="alert">{{ err }}</p>
   </div>
 </template>

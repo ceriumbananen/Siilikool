@@ -35,11 +35,10 @@ onMounted(async () => {
           <i id="meav">🦔</i><b id="mename">Profil</b>
         </button>
         <button class="rankchip" id="rankchip" aria-label="Öppna skattkammaren"><span id="rankmini"></span></button>
-        <span class="chip">⭐ <b id="stars">0</b></span>
+        <button class="chip" id="starchip" aria-label="Dina stjärnor – öppna marknaden">⭐ <b id="stars">0</b></button>
         <span class="spacer"></span>
         <button class="iconbtn" id="sound" aria-label="Ljud på eller av" hidden>🔊</button>
         <button class="iconbtn" id="theme" aria-label="Byt mellan ljust och mörkt" hidden>🌙</button>
-        <button class="iconbtn" id="starchip" aria-label="Öppna garderoben">⭐</button>
       </div>
       <div class="meter">
         <div class="meter-top"><span id="lvltext">Nivå 1</span><span id="xptext">0 / 100</span></div>
@@ -63,13 +62,6 @@ onMounted(async () => {
             <path d="M9 3L3 5v16l6-2 6 2 6-2V3l-6 2z" fill="currentColor" opacity=".55" />
             <path d="M9 3v16l6 2V5z" fill="currentColor" /></svg></span
         ><b>Teekond</b><small>Resan</small>
-      </button>
-      <button data-nav="words">
-        <span class="nem"
-          ><svg viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M4 5.5A2.5 2.5 0 016.5 3H11v17H6.5A2.5 2.5 0 014 17.5z" fill="currentColor" opacity=".55" />
-            <path d="M20 5.5A2.5 2.5 0 0017.5 3H13v17h4.5a2.5 2.5 0 002.5-2.5z" fill="currentColor" /></svg></span
-        ><b>Sõnastik</b><small>Ordlistan</small>
       </button>
       <button data-nav="shop">
         <span class="nem"

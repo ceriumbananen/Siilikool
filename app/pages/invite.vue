@@ -19,15 +19,16 @@ onMounted(() => cloud.init());
 
 <template>
   <div class="wrap page">
-    <div class="zone me">
-      <span class="zem">💌</span>
-      <span><b>Inbjudan</b><span>Gå med i familjen i Siilikool</span></span>
-    </div>
+    <header class="pagehead">
+      <a href="/" class="back">← Till spelet</a>
+      <h1>Inbjudan</h1>
+      <p>Gå med i familjen i Siilikool</p>
+    </header>
 
     <div v-if="!cloud.enabled || !token" class="card">
       <p class="qsub">Inbjudan saknas eller går inte att läsa. Be om en ny länk.</p>
     </div>
-    <div v-else-if="cloud.isAnonymous" class="card" style="text-align: left">
+    <div v-else-if="cloud.isAnonymous" class="card">
       <p class="qsub">
         Det här är en barnenhet i en familj. Öppna inbjudan på din egen enhet, eller logga in som vuxen i föräldraläget
         först.
@@ -39,16 +40,18 @@ onMounted(() => cloud.init());
       title="Logga in för att gå med"
       intro="Skriv din e-post så skickar vi en inloggningslänk. Den leder tillbaka hit."
     />
-    <div v-else-if="cloud.me?.adult" class="card" style="text-align: left">
+    <div v-else-if="cloud.me?.adult" class="card">
       <p class="qsub">Du är redan med i en familj. En vuxen kan bara vara med i en familj.</p>
       <a href="/parent" class="btn ghost wide">Till föräldraläget</a>
     </div>
-    <div v-else class="card" style="text-align: left">
-      <p class="q" style="text-align: left">Gå med i familjen</p>
-      <input v-model="name" class="field" type="text" maxlength="40" placeholder="Ditt namn, t.ex. Pappa" />
+    <div v-else class="card">
+      <h2 class="q">Gå med i familjen</h2>
+      <label class="flabel"
+        >Ditt namn i familjen <input v-model="name" class="field" type="text" maxlength="40" placeholder="t.ex. Pappa"
+      /></label>
       <button class="btn green wide" :disabled="busy" @click="accept">Gå med</button>
       <p class="qsub">Inbjudan gäller i 7 dagar och kan användas en gång.</p>
     </div>
-    <p v-if="err" class="err">{{ err }}</p>
+    <p v-if="err" class="err" role="alert">{{ err }}</p>
   </div>
 </template>

@@ -22,17 +22,20 @@ async function copy() {
 </script>
 
 <template>
-  <div class="card" style="text-align: left">
-    <p class="q" style="text-align: left">Vuxna i familjen</p>
+  <div class="card">
+    <h2 class="q">Vuxna i familjen</h2>
     <ul class="wlist">
       <li v-for="a in adults" :key="a.id">{{ a.avatar }} {{ a.name || "Vuxen" }}</li>
     </ul>
     <template v-if="link">
       <p class="qsub">Skicka länken till den vuxna du vill bjuda in. Den gäller i 7 dagar och kan användas en gång.</p>
-      <input class="field" :value="link" readonly @focus="($event.target as HTMLInputElement).select()" />
+      <label class="flabel"
+        >Inbjudningslänk
+        <input class="field" :value="link" readonly @focus="($event.target as HTMLInputElement).select()"
+      /></label>
       <button class="btn ghost wide" @click="copy">{{ copied ? "Kopierad ✓" : "Kopiera länken" }}</button>
     </template>
     <button v-else class="btn ghost wide" :disabled="busy" @click="invite">Bjud in en vuxen</button>
-    <p v-if="err" class="err">{{ err }}</p>
+    <p v-if="err" class="err" role="alert">{{ err }}</p>
   </div>
 </template>

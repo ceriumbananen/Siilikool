@@ -2419,7 +2419,7 @@
     ],
     no: [
       { et: "Pole hullu!", sv: "Ingen fara!" },
-      { et: "Proovi veel!", sv: "Försök igen!" },
+      { et: "Proovi veel!", sv: "Fortsätt försöka!" },
       { et: "Kuula hoolikalt!", sv: "Lyssna noga!" },
       { et: "Edasi!", sv: "Vi fortsätter!" },
     ],
@@ -2551,8 +2551,8 @@
     },
     {
       id: "flame3",
-      em: "🔥",
-      sv: "Tre dagar i rad",
+      em: "🌟",
+      sv: "Tre dagsutmaningar klarade",
       test: function (s) {
         return (s.flames || 0) >= 3;
       },
@@ -2608,7 +2608,7 @@
     {
       id: "flame7",
       em: "📅",
-      sv: "En hel vecka i rad",
+      sv: "Sju dagsutmaningar klarade",
       test: function (s) {
         return (s.flames || 0) >= 7;
       },
@@ -2616,7 +2616,7 @@
     {
       id: "flame30",
       em: "🗓️",
-      sv: "Trettio dagar i rad",
+      sv: "Trettio dagsutmaningar klarade",
       test: function (s) {
         return (s.flames || 0) >= 30;
       },
@@ -2973,10 +2973,8 @@
   function newDay() {
     var t = today();
     if (S.day !== t) {
-      var y = new Date();
-      y.setDate(y.getDate() - 1);
-      var ystr = y.getFullYear() + "-" + (y.getMonth() + 1) + "-" + y.getDate();
-      if (S.day !== ystr) S.flames = 0;
+      /* S.flames räknar dagar då dagens utmaning klarats – den nollställs aldrig,
+         så en missad dag tar inte bort något barnet redan klarat (ingen svit, ingen press) */
       S.day = t;
       S.dayp = { correct: 0, spoken: 0, typed: 0, themes: 0, talks: 0, mixed: 0, claimed: 0 };
       save();
@@ -3011,7 +3009,8 @@
           "</h3>" +
           "<p>+60 poäng · " +
           S.flames +
-          " dagar i rad 🔥</p>" +
+          (S.flames === 1 ? " dagsutmaning" : " dagsutmaningar") +
+          " klarade 🌟</p>" +
           '<button class="btn big wide" id="qdone">Nice!</button></div>';
         document.body.appendChild(d);
         burst(160);
@@ -6997,103 +6996,40 @@
     /* spellägen: beräknas tidigt så den minst prövade leken kan erbjudas
        som ett riktigt ALTERNATIV till den gröna knappens eget förslag -
        annars väljer algoritmen allt och barnet får ingen egen vilja med. */
+    /* fast ordning, så barnet hittar sin lek på samma plats varje gång.
+       En färg per grupp (gör/öva/tävla) – färgen betyder något, i stället för åtta olika. */
     var MODES = [
-      /* åtta egna kulörer – ingen delas av två lekar */
-      {
-        k: "otsi",
-        em: "🔍",
-        et: "Otsi!",
-        sv: "Hitta det Siiri säger",
-        grp: "gör",
-        bg: "linear-gradient(160deg,#1E9A5E,#0C6038)",
-      },
-      { k: "mem", em: "🃏", et: "Mälumäng", sv: "Memory", grp: "gör", bg: "linear-gradient(160deg,#0E8FA0,#05525E)" },
-      {
-        k: "rain",
-        em: "🌧️",
-        et: "Sõnasadu",
-        sv: "Ordregnet",
-        grp: "gör",
-        bg: "linear-gradient(160deg,#2C6FD0,#123E86)",
-      },
-      {
-        k: "speed",
-        em: "🎲",
-        et: esc(UI.mix.et),
-        sv: esc(UI.mix.sv),
-        grp: "öva",
-        bg: "linear-gradient(160deg,#6A4FE0,#35218F)",
-      },
-      {
-        k: "sent",
-        em: "🧩",
-        et: esc(UI.sent.et),
-        sv: esc(UI.sent.sv),
-        grp: "öva",
-        bg: "linear-gradient(160deg,#A24AD6,#5C1E85)",
-      },
-      {
-        k: "talk",
-        em: "💬",
-        et: esc(UI.talk.et),
-        sv: esc(UI.talk.sv),
-        grp: "öva",
-        bg: "linear-gradient(160deg,#D6407E,#8A1046)",
-      },
-      {
-        k: "duel",
-        em: "⚔️",
-        et: "Duell",
-        sv: "Tävla mot ett djur",
-        grp: "tävla",
-        bg: "linear-gradient(160deg,#E04A2E,#8E1E10)",
-      },
-      {
-        k: "chal",
-        em: "🤝",
-        et: "Väljakutse",
-        sv: "Utmana en vuxen",
-        grp: "tävla",
-        bg: "linear-gradient(160deg,#D18A0A,#8A5200)",
-      },
+      { k: "otsi", em: "🔍", et: "Otsi!", sv: "Hitta det Siiri säger", grp: "gör" },
+      { k: "mem", em: "🃏", et: "Mälumäng", sv: "Memory", grp: "gör" },
+      { k: "rain", em: "🌧️", et: "Sõnasadu", sv: "Ordregnet", grp: "gör" },
+      { k: "speed", em: "🎲", et: esc(UI.mix.et), sv: esc(UI.mix.sv), grp: "öva" },
+      { k: "sent", em: "🧩", et: esc(UI.sent.et), sv: esc(UI.sent.sv), grp: "öva" },
+      { k: "talk", em: "💬", et: esc(UI.talk.et), sv: esc(UI.talk.sv), grp: "öva" },
+      { k: "duel", em: "⚔️", et: "Duell", sv: "Tävla mot ett djur", grp: "tävla" },
+      { k: "chal", em: "🤝", et: "Väljakutse", sv: "Utmana en vuxen", grp: "tävla" },
     ];
     if (!S.tried) S.tried = {};
-    /* obeprövade lägen först, sedan de minst använda */
-    MODES.sort(function (x, y) {
+    /* alternativet bredvid den gröna knappen: den minst prövade leken (rutorna själva flyttas inte) */
+    var altMode = MODES.slice().sort(function (x, y) {
       return (S.tried[x.k] || 0) - (S.tried[y.k] || 0);
-    });
-    var altMode = MODES[0];
+    })[0];
 
-    /* säsong allra överst – det första man ser */
-    html +=
-      '<div class="seasonbar">' +
-      (hol ? hol.em : se.em) +
-      " <b>" +
-      esc(hol ? hol.et : se.et) +
-      "</b>" +
-      "<span>" +
-      (hol ? esc(hol.sv) : esc(se.sv) + " · " + esc(se.word.et) + " = " + esc(se.word.sv)) +
-      "</span></div>";
-
-    html +=
-      '<div class="zone play"><span class="zem">🎮</span><span><b>Mängime</b>' +
-      "<span>" +
-      (S.name ? esc(S.name) + " · " : "") +
-      esc(RANKS[ri].et) +
-      " · ⭐ " +
-      S.stars.toLocaleString("sv-SE") +
-      "</span></span></div>";
+    /* Siiri och hälsningen först; årstiden är en liten rad i hälsningen (tryck = hör ordet) */
     html +=
       '<div class="hero"><div class="herorow">' +
       siilSVG("small") +
       '<div style="flex:1"><h1>' +
       (S.name ? "Tere, " + esc(S.name) + "!" : "Tere!") +
+      "</h1>" +
+      '<button class="seasonbar" type="button">' +
+      (hol ? hol.em : se.em) +
+      ' <b lang="et">' +
+      esc(hol ? hol.et : se.et) +
+      "</b>" +
       "<span>" +
-      esc(RANKS[ri].et) +
-      " · " +
-      esc(RANKS[ri].sv) +
-      "</span></h1>" +
-      '<button class="bubble" id="hello" style="margin-top:8px">🔊 Tere' +
+      (hol ? esc(hol.sv) : esc(se.word.et) + " = " + esc(se.word.sv)) +
+      "</span></button>" +
+      '<button class="bubble" id="hello">🔊 Tere' +
       (S.name ? ", " + esc(S.name) : "") +
       "!" +
       "<small>hej" +
@@ -7127,6 +7063,14 @@
         "<span>Tryck på den gröna knappen — Siiri visar vägen. Allt du klarar ger stjärnor att handla för på marknaden!</span></span></div>";
     }
 
+    /* efter första rundan: nu är det dags att göra Siilikool till sitt eget (en sak i taget) */
+    var untouched = (!S.avatar || S.avatar === "🦔") && (S.color || "skog") === "skog";
+    if (!S.picked && untouched && (S.lessons || 0) >= 1 && (S.lessons || 0) < 6) {
+      html +=
+        '<button class="stbox wide pickme" id="pickme"><b>🎨 Välj din figur och färg</b>' +
+        "<small>Gör appen till din egen</small></button>";
+    }
+
     /* dagens överraskning */
     if (bagReady()) {
       html +=
@@ -7138,42 +7082,7 @@
         " – öppna dagens påse!</span></span></button>";
     }
 
-    /* tre spellägen */
-    /* spellägen: tre synliga, resten bakom en knapp – och nyheter markeras */
-    var showMode = S.allModes ? MODES.length : 5;
-    html += '<div class="modes">';
-    var newLeft = 2; /* märket betyder inget om allt är nytt */
-    for (i = 0; i < showMode; i++) {
-      var md = MODES[i],
-        isNew = !S.tried[md.k] && newLeft > 0;
-      if (isNew) newLeft--;
-      html +=
-        '<button class="mode' +
-        (isNew ? " fresh" : "") +
-        '" data-go="' +
-        md.k +
-        '" style="background:' +
-        md.bg +
-        '">' +
-        (isNew ? '<span class="newtag">Ny!</span>' : "") +
-        '<span class="grp">' +
-        ({ gör: "GÖR", öva: "ÖVA", tävla: "TÄVLA" }[md.grp] || "") +
-        "</span>" +
-        '<span class="em">' +
-        md.em +
-        "</span><b>" +
-        md.et +
-        "</b><span>" +
-        md.sv +
-        "</span></button>";
-    }
-    html += "</div>";
-    html +=
-      '<button class="morebtn" id="moremodes">' +
-      (S.allModes ? "Näita vähem · Visa färre lekar" : "Näita kõiki · Visa alla " + MODES.length + " lekar") +
-      "</button>";
-
-    /* resan */
+    /* resan – direkt under den gröna knappen, det är spelets stora mål */
     var trn = tripReached(),
       tdone = 3 - tasksLeft(),
       allDone = tripDone() >= TRIP.length;
@@ -7220,14 +7129,14 @@
           "</span></span></div>") +
       "</div>";
 
-    /* skolans glosor, om en lista är igång */
+    /* skolans glosor, om en lista är igång (att ändra listan är en vuxensak och ligger under För vuxna) */
     (function () {
       var sc = schoolSet();
       if (!sc) return;
       var d = schoolDaysLeft(),
         pct = Math.round((schoolDone() / sc.words.length) * 100);
       html +=
-        '<button class="stbox wide school" id="schoolbtn" style="width:100%;margin-top:14px">' +
+        '<button class="stbox wide school" id="schoolbtn">' +
         "<b>📝 " +
         esc(sc.name) +
         " · ▶️ Öva läxorden</b>" +
@@ -7238,62 +7147,84 @@
         " sitter" +
         (d > 0 ? " · " + d + " dagar kvar" : " · sista dagen") +
         "</small>" +
-        '<span class="qbar" style="background:var(--line)"><i style="width:' +
+        '<span class="qbar"><i style="width:' +
         pct +
-        '%;background:var(--moss)"></i></span></button>' +
-        '<button class="btn small ghost" id="schooledit" style="margin-top:6px">✏️ Ändra glosorna</button>';
+        '%"></i></span></button>';
     })();
 
-    /* kompakt status: utmaning + nivå */
+    /* dagens utmaning – utan svit: det som klarats försvinner aldrig */
     html +=
-      '<div class="statusrow">' +
-      '<button class="stbox" id="questbtn"><b>' +
+      '<button class="stbox wide" id="questbtn"><b>' +
       p.q.em +
       " " +
       (p.done ? "Klart!" : p.v + " / " + p.q.goal) +
       "</b>" +
       "<small>" +
       esc(p.q.sv) +
-      (S.flames ? " · 🔥 " + S.flames : "") +
       "</small>" +
-      '<span class="qbar" style="background:var(--line)"><i style="width:' +
+      '<span class="qbar"><i style="width:' +
       Math.round((p.v / p.q.goal) * 100) +
-      '%;background:var(--moss)"></i></span></button>' +
-      "</div>";
+      '%"></i></span></button>';
 
-    /* svit i fara: varna innan den nollställs tyst imorgon, inte efteråt */
-    if (S.flames && !p.done)
+    /* lekar: fyra i taget (lagom att välja bland), resten bakom en knapp – nyheter markeras */
+    var showMode = S.allModes ? MODES.length : 4;
+    html += '<h2 class="sec">Mängud <span class="secsv">Lekar</span></h2>' + '<div class="modes">';
+    var newLeft = 2; /* märket betyder inget om allt är nytt */
+    for (i = 0; i < showMode; i++) {
+      var md = MODES[i],
+        isNew = !S.tried[md.k] && newLeft > 0;
+      if (isNew) newLeft--;
       html +=
-        '<div class="streaktip"><span class="em">🔥</span><span>' +
-        S.flames +
-        " dagar i rad – klara dagens utmaning idag så fortsätter den!</span></div>";
+        '<button class="mode g-' +
+        ({ gör: "gor", öva: "ova", tävla: "tavla" }[md.grp] || "gor") +
+        (isNew ? " fresh" : "") +
+        '" data-go="' +
+        md.k +
+        '">' +
+        (isNew ? '<span class="newtag">Ny!</span>' : "") +
+        '<span class="grp">' +
+        ({ gör: "GÖR", öva: "ÖVA", tävla: "TÄVLA" }[md.grp] || "") +
+        "</span>" +
+        '<span class="em">' +
+        md.em +
+        '</span><b lang="et">' +
+        md.et +
+        "</b><span>" +
+        md.sv +
+        "</span></button>";
+    }
+    html += "</div>";
+    html +=
+      '<button class="morebtn" id="moremodes">' +
+      (S.allModes ? "Visa färre lekar" : "Visa alla " + MODES.length + " lekar") +
+      "</button>";
 
     /* teman */
     var lim = themesUnlocked(),
       showAll = !!S.showAll;
-    var visible = showAll ? lim : Math.min(lim, 6);
+    var visible = showAll ? lim : Math.min(lim, 4);
     html +=
       '<h2 class="sec">' +
       esc(UI.themes.et) +
-      ' <span style="font-weight:500;color:var(--muted);font-size:15.5px">' +
+      ' <span class="secsv">' +
       esc(UI.themes.sv) +
       '</span></h2><div class="grid">';
     for (i = 0; i < THEMES.length; i++) {
       t = THEMES[i];
       var locked = i >= lim;
       if (!locked && i >= visible) continue;
-      if (locked && i > lim + 1) continue;
+      if (locked && (!showAll || i > lim + 1)) continue;
       var bs = S.best[t.id] || 0;
       html +=
         '<button class="tile' +
         (locked ? " locked" : "") +
         '"' +
-        (locked ? "" : ' data-theme="' + t.id + '"') +
+        (locked ? " disabled" : ' data-theme="' + t.id + '"') +
         ">" +
         '<span class="em">' +
         (locked ? "🔒" : t.em) +
         "</span>" +
-        '<span class="et">' +
+        '<span class="et" lang="et">' +
         esc(t.et) +
         '</span><span class="sv">' +
         esc(t.sv) +
@@ -7302,7 +7233,7 @@
         " ord</span>" +
         '<span class="stars">' +
         (locked
-          ? '<small style="color:var(--muted)">klara fler teman</small>'
+          ? "<small>klara fler teman</small>"
           : starStr(bs) +
             " " +
             (function () {
@@ -7312,12 +7243,10 @@
         "</span></button>";
     }
     html += "</div>";
-    if (lim > 6)
+    if (lim > 4)
       html +=
         '<button class="morebtn" id="more">' +
-        (showAll
-          ? "Näita vähem · Visa färre teman"
-          : "Näita kõiki · Visa alla " + Math.min(THEMES.length, lim) + " öppna teman") +
+        (showAll ? "Visa färre teman" : "Visa alla " + Math.min(THEMES.length, lim) + " öppna teman") +
         "</button>";
 
     app.innerHTML = html;
@@ -7335,15 +7264,17 @@
       sbn.onclick = function () {
         go(schoolLessonStart, true);
       };
-    var sed = document.getElementById("schooledit");
-    if (sed)
-      sed.onclick = function () {
-        go(schoolImport, true);
-      };
     document.getElementById("tripbtn").onclick = function () {
       speak(TRIP[tripReached() - 1].et);
       go(tripScreen, true);
     };
+    var pk = document.getElementById("pickme");
+    if (pk)
+      pk.onclick = function () {
+        S.picked = 1;
+        save();
+        setupScreen(false);
+      };
     var bg = document.getElementById("bag");
     if (bg)
       bg.onclick = function () {
@@ -7474,8 +7405,8 @@
       t,
       mm;
     var html =
-      '<div class="zone me"><span class="zem">👨‍👩‍👧</span><span><b>Vanemale</b>' +
-      "<span>För föräldern — vad barnet faktiskt kan</span></span></div>";
+      '<div class="zone me"><span class="zem">🔐</span><span><b>För vuxna</b>' +
+      "<span>Vad barnet faktiskt kan, glosor och säkerhetskopia</span></span></div>";
     /* föräldraläget: barn, glosor, familjekod och lås (Nuxt-sidan /parent) */
     if (cloudOn())
       html +=
@@ -7496,7 +7427,7 @@
       "</b><span>ord kvar att möta</span></div>" +
       '<div class="stat"><b>' +
       (S.flames || 0) +
-      "</b><span>dagar i rad</span></div>" +
+      "</b><span>dagsutmaningar klarade</span></div>" +
       '<div class="stat"><b>' +
       (S.lessons || 0) +
       "</b><span>avklarade lektioner</span></div>" +
@@ -7561,7 +7492,96 @@
       '<p class="qsub" style="text-align:left">Orden återkommer med växande mellanrum — en dag, två, fyra, åtta, sexton, trettio. ' +
       "Ett fel nollställer intervallet. Det är samma princip som i forskningen kring repetition över tid, och den är " +
       "inbyggd i alla spellägen, så barnet möter rätt ord utan att behöva välja dem.</p></div>";
+    /* skolans glosor (på en enhet utan familjekonto – med konto skickas de från föräldraläget).
+       cloudOn() betyder bara att molnfunktionen FINNS i appen (sant i princip alltid i skarp drift) -
+       det som faktiskt ska styra är om DEN HÄR spelaren är kopplad till en familj eller inte,
+       annars försvinner knappen för alla och ingen kan någonsin skapa sin första läxlista */
+    if (!cloudInfo().linked)
+      html +=
+        '<button class="bigcard school" id="toschool">' +
+        '<span class="bcem">📝</span>' +
+        '<span class="bctx"><b>Skolans glosor</b>' +
+        "<small>" +
+        (schoolSet()
+          ? esc(schoolSet().name) + " — " + schoolDone() + " av " + schoolSet().words.length + " sitter · ändra"
+          : "Klistra in veckans ord så övar Siiri dem") +
+        "</small></span>" +
+        '<span class="bcgo">›</span></button>';
+    /* säkerhetskopiering */
+    html +=
+      '<div class="card"><p class="q" style="text-align:left">Säkerhetskopia</p>' +
+      '<p class="qsub" style="text-align:left">' +
+      cloudLine() +
+      "</p>" +
+      '<div class="row" style="justify-content:flex-start">' +
+      '<button class="btn ghost" id="bkexp">📋 Kopiera spelets kod</button>' +
+      '<button class="btn ghost" id="bkimp">📥 Återställ från kod</button></div>' +
+      '<p class="qsub" id="bkmsg" role="status" style="text-align:left;min-height:18px;margin-top:8px">&nbsp;</p></div>';
+    if (S.admin) html += '<button class="btn wide adminbtn" id="toadmin">🛠️ Admin</button>';
     app.innerHTML = html;
+    function on(id, fn) {
+      var e = document.getElementById(id);
+      if (e) e.onclick = fn;
+      return e;
+    }
+    on("toschool", function () {
+      go(schoolImport, true);
+    });
+    on("toadmin", function () {
+      go(adminScreen, true);
+    });
+    on("bkexp", function () {
+      var code = exportCode(),
+        msg = document.getElementById("bkmsg");
+      var d = document.createElement("div");
+      d.className = "overlay";
+      d.innerHTML =
+        '<div class="oc"><p class="kicker">📋 Din kod</p>' +
+        '<p class="qsub">Markera och kopiera. Spara den i ett mejl till dig själv.</p>' +
+        '<textarea id="bkarea" readonly style="width:100%;height:110px;font-size:11px;border-radius:14px;border:3px solid var(--line);padding:8px;background:var(--bg);color:var(--ink)"></textarea>' +
+        '<button class="btn big wide" id="bkclose" style="margin-top:10px">Klar</button></div>';
+      document.body.appendChild(d);
+      var ta = d.querySelector("#bkarea");
+      ta.value = code;
+      try {
+        ta.focus();
+        ta.select();
+        if (navigator.clipboard && navigator.clipboard.writeText)
+          navigator.clipboard.writeText(code).then(
+            function () {
+              msg.textContent = "Koden är kopierad.";
+            },
+            function () {},
+          );
+      } catch (e) {}
+      d.querySelector("#bkclose").onclick = function () {
+        d.remove();
+      };
+    });
+    on("bkimp", function () {
+      var d = document.createElement("div");
+      d.className = "overlay";
+      d.innerHTML =
+        '<div class="oc" style="border-color:var(--berry)"><p class="kicker">📥 Återställ</p>' +
+        '<p class="qsub">Klistra in koden. Den nuvarande profilen skrivs över.</p>' +
+        '<textarea id="imarea" style="width:100%;height:110px;font-size:11px;border-radius:14px;border:3px solid var(--line);padding:8px;background:var(--bg);color:var(--ink)"></textarea>' +
+        '<p class="qsub" id="immsg" style="min-height:18px">&nbsp;</p>' +
+        '<button class="btn big wide" id="imok">Återställ</button>' +
+        '<button class="btn ghost wide" id="imno" style="margin-top:8px">Avbryt</button></div>';
+      document.body.appendChild(d);
+      d.querySelector("#imno").onclick = function () {
+        d.remove();
+      };
+      d.querySelector("#imok").onclick = function () {
+        if (importCode(d.querySelector("#imarea").value)) {
+          d.remove();
+          location.reload();
+        } else {
+          d.querySelector("#immsg").textContent = "Koden känns inte igen.";
+          sndNo();
+        }
+      };
+    });
     var bs = app.querySelectorAll("[data-say]"),
       k;
     for (k = 0; k < bs.length; k++) {
@@ -7922,6 +7942,56 @@
       d.remove();
     };
   }
+  /* vuxenfrågan framför allt som är för de vuxna: en multiplikation som en 7–10-åring sällan
+     klarar i farten. Ingen säkerhet mot en bestämd tonåring – bara mot att trycka fel av misstag.
+     Gäller i tio minuter, så den vuxna slipper svara igen varje gång. */
+  var adultUntil = 0;
+  function adultGate(cb) {
+    if (Date.now() < adultUntil) {
+      cb();
+      return;
+    }
+    var a = 6 + ((Math.random() * 4) | 0),
+      b = 6 + ((Math.random() * 4) | 0);
+    var d = document.createElement("div");
+    d.className = "overlay";
+    d.innerHTML =
+      '<div class="oc"><h3>För vuxna</h3>' +
+      '<p class="qsub">Svara på frågan för att fortsätta.</p>' +
+      '<label class="adultq" for="adultans">Vad är ' +
+      a +
+      " × " +
+      b +
+      "?</label>" +
+      '<input class="type" id="adultans" type="text" inputmode="numeric" pattern="[0-9]*" autocomplete="off">' +
+      '<p class="qsub" id="adultmsg" role="status" style="min-height:18px">&nbsp;</p>' +
+      '<button class="btn big wide" id="adultok">Fortsätt</button>' +
+      '<button class="btn ghost wide" id="adultno" style="margin-top:8px">Avbryt</button></div>';
+    document.body.appendChild(d);
+    var inp = d.querySelector("#adultans");
+    function check() {
+      if (parseInt(inp.value, 10) === a * b) {
+        adultUntil = Date.now() + 10 * 60 * 1000;
+        d.remove();
+        cb();
+      } else {
+        d.querySelector("#adultmsg").textContent = "Inte riktigt. Det här är för de vuxna.";
+        inp.value = "";
+      }
+    }
+    d.querySelector("#adultok").onclick = check;
+    d.querySelector("#adultno").onclick = function () {
+      d.remove();
+    };
+    inp.onkeydown = function (e) {
+      if (e.key === "Enter") check();
+    };
+    setTimeout(function () {
+      try {
+        inp.focus();
+      } catch (e) {}
+    }, 80);
+  }
   function askAdmin() {
     var d = document.createElement("div");
     d.className = "overlay";
@@ -7999,11 +8069,14 @@
       (first ? "Tere! Vad heter du?" : "Ändra din profil") +
       "</p>" +
       '<p class="qsub">Då kan Siiri säga hej till dig med namn.</p>' +
+      '<label class="sr-only" for="nm">Ditt namn</label>' +
       '<input class="type" id="nm" maxlength="14" autocomplete="given-name" placeholder="ditt namn" value="' +
       esc(S.name || "") +
-      '">' +
-      '<p class="qsub" style="margin-top:18px">Välj din figur</p><div class="avatars" id="avs">';
-    for (var i = 0; i < AVATARS.length; i++) {
+      '">';
+    /* första gången: bara namnet, sedan rakt in i spelet. Figur, svårighet och färg väljs
+       senare (hemskärmen föreslår det efter första rundan, och allt finns under Profil) */
+    if (!first) html += '<p class="qsub" style="margin-top:18px">Välj din figur</p><div class="avatars" id="avs">';
+    for (var i = 0; !first && i < AVATARS.length; i++) {
       html +=
         '<button class="av' +
         (AVATARS[i] === (S.avatar || "🦔") ? " on" : "") +
@@ -8013,8 +8086,9 @@
         AVATARS[i] +
         "</button>";
     }
-    html += '</div><p class="qsub" style="margin-top:18px">Hur svårt ska det vara?</p><div class="diffs" id="dfs">';
-    for (i = 0; i < DIFFS.length; i++) {
+    if (!first)
+      html += '</div><p class="qsub" style="margin-top:18px">Hur svårt ska det vara?</p><div class="diffs" id="dfs">';
+    for (i = 0; !first && i < DIFFS.length; i++) {
       html +=
         '<button class="dif' +
         (DIFFS[i].id === (S.diff || "lagom") ? " on" : "") +
@@ -8030,8 +8104,9 @@
         esc(DIFFS[i].txt) +
         "</small></button>";
     }
-    html += '</div><p class="qsub" style="margin-top:18px">Välj färg på appen</p><div class="colors" id="cols">';
-    for (i = 0; i < COLORS.length; i++) {
+    if (!first)
+      html += '</div><p class="qsub" style="margin-top:18px">Välj färg på appen</p><div class="colors" id="cols">';
+    for (i = 0; !first && i < COLORS.length; i++) {
       html +=
         '<button class="col' +
         (COLORS[i].id === (S.color || "skog") ? " on" : "") +
@@ -8050,7 +8125,8 @@
         "</b></button>";
     }
     html +=
-      '</div><button class="btn green big wide" id="ok" style="margin-top:18px">' +
+      (first ? "" : "</div>") +
+      '<button class="btn green big wide" id="ok" style="margin-top:18px">' +
       (first ? "Nu kör vi! 🎈" : "Spara") +
       "</button>" +
       (first ? '<button class="btn ghost wide" id="skip" style="margin-top:8px">Hoppa över</button>' : "") +
@@ -8111,6 +8187,7 @@
       var v = document.getElementById("nm").value.trim().slice(0, 14);
       S.name = v;
       S.setupdone = 1;
+      if (!first) S.picked = 1; /* figur och färg är valda – hemskärmen behöver inte föreslå det */
       save();
       prefetchName();
       if (v.toLowerCase() === "siiri" || v.toLowerCase() === "siil") {
@@ -8200,7 +8277,7 @@
       "</b><span>teman klara</span></div>" +
       '<div class="stat"><b>' +
       (S.flames || 0) +
-      " 🔥</b><span>dagar i rad</span></div>" +
+      " 🌟</b><span>dagsutmaningar klarade</span></div>" +
       '<div class="stat"><b>' +
       S.spoken +
       "</b><span>sagt högt</span></div>" +
@@ -8271,17 +8348,6 @@
     html += "</div></div>";
     html += familyCard();
 
-    /* säkerhetskopiering */
-    html +=
-      '<div class="card"><p class="q" style="text-align:left">Varukoopia · Säkerhetskopia</p>' +
-      '<p class="qsub" style="text-align:left">' +
-      cloudLine() +
-      "</p>" +
-      '<div class="row" style="justify-content:flex-start">' +
-      '<button class="btn ghost" id="bkexp">📋 Kopiera min kod</button>' +
-      '<button class="btn ghost" id="bkimp">📥 Återställ från kod</button></div>' +
-      '<p class="qsub" id="bkmsg" style="text-align:left;min-height:18px;margin-top:8px">&nbsp;</p></div>';
-
     html +=
       '<div class="card"><p class="q" id="setttl" style="text-align:left;cursor:pointer;-webkit-user-select:none;user-select:none">Seaded · Inställningar</p>' +
       '<div class="row" style="justify-content:flex-start">' +
@@ -8298,31 +8364,30 @@
     if (!S.secretsOpen) html += '<button class="peek" id="peekbtn">🤫</button>';
     html +=
       '<button class="btn wide" id="toroom2" style="margin-top:12px">🏠 Siiri tuba · välj Siiris färg och kläder</button>';
-    html +=
-      '<button class="bigcard school" id="toschool">' +
-      '<span class="bcem">📝</span>' +
-      '<span class="bctx"><b>Skolans glosor</b>' +
-      "<small>" +
-      (schoolSet()
-        ? esc(schoolSet().name) + " — " + schoolDone() + " av " + schoolSet().words.length + " sitter"
-        : childDevice()
-          ? "Inga glosor just nu – de vuxna lägger in dem"
-          : "Klistra in veckans ord så övar Siiri dem") +
-      "</small></span>" +
-      '<span class="bcgo">›</span></button>';
-    /* när ett barn spelar (eller enheten är låst) hör föräldradelen och admin inte hemma –
-       föräldern ser framstegen i föräldraläget på sin egen enhet */
+    /* läxorden: här bara som övning – att lägga in nya glosor är en vuxensak (För vuxna) */
+    if (schoolSet())
+      html +=
+        '<button class="bigcard school" id="toschool">' +
+        '<span class="bcem">📝</span>' +
+        '<span class="bctx"><b>Läxorden · ▶️ Öva</b>' +
+        "<small>" +
+        esc(schoolSet().name) +
+        " — " +
+        schoolDone() +
+        " av " +
+        schoolSet().words.length +
+        " sitter" +
+        "</small></span>" +
+        '<span class="bcgo">›</span></button>';
+    /* allt för de vuxna (framsteg, glosor, säkerhetskopia, admin) bakom en enda ingång med en vuxenfråga.
+       När ett barn spelar (eller enheten är låst) visas den inte alls – de vuxna har föräldraläget */
     var kidsHere = childDevice();
-    if (!kidsHere)
-      html +=
-        '<button class="btn ghost wide" id="toparent" style="margin-top:10px">👨‍👩‍👧 Vanemale · För föräldern</button>';
-    if (S.admin && !kidsHere)
-      html +=
-        '<button class="btn wide" id="toadmin" style="margin-top:12px;background:#C8305A;box-shadow:0 5px 0 #8E1338">🛠️ Admin</button>';
+    if (!kidsHere) html += '<button class="btn ghost wide adultbtn" id="toparent">🔐 För vuxna</button>';
     html +=
       '<button class="btn wide" id="edit" style="margin-top:12px">✏️ Ändra namn, figur och färg</button>' +
       '<button class="btn ghost wide" id="toShop2" style="margin-top:8px">🎪 Laat · Marknaden</button>' +
-      '<button class="btn ghost wide" id="toTroph" style="margin-top:8px">🏆 Skattkammaren</button>';
+      '<button class="btn ghost wide" id="toTroph" style="margin-top:8px">🏆 Skattkammaren</button>' +
+      '<button class="btn ghost wide" id="toWords" style="margin-top:8px">📖 Sõnastik · Ordlistan</button>';
     app.innerHTML = html;
     var sn = document.getElementById("sayname");
     if (sn)
@@ -8348,58 +8413,6 @@
         };
       })(sbs[si2]);
     }
-    on("bkexp", function () {
-      var code = exportCode(),
-        msg = document.getElementById("bkmsg");
-      var d = document.createElement("div");
-      d.className = "overlay";
-      d.innerHTML =
-        '<div class="oc"><p class="kicker">📋 Din kod</p>' +
-        '<p class="qsub">Markera och kopiera. Spara den i ett mejl till dig själv.</p>' +
-        '<textarea id="bkarea" readonly style="width:100%;height:110px;font-size:11px;border-radius:14px;border:3px solid var(--line);padding:8px;background:var(--bg);color:var(--ink)"></textarea>' +
-        '<button class="btn big wide" id="bkclose" style="margin-top:10px">Klar</button></div>';
-      document.body.appendChild(d);
-      var ta = d.querySelector("#bkarea");
-      ta.value = code;
-      try {
-        ta.focus();
-        ta.select();
-        if (navigator.clipboard && navigator.clipboard.writeText)
-          navigator.clipboard.writeText(code).then(
-            function () {
-              msg.textContent = "Koden är kopierad.";
-            },
-            function () {},
-          );
-      } catch (e) {}
-      d.querySelector("#bkclose").onclick = function () {
-        d.remove();
-      };
-    });
-    on("bkimp", function () {
-      var d = document.createElement("div");
-      d.className = "overlay";
-      d.innerHTML =
-        '<div class="oc" style="border-color:var(--berry)"><p class="kicker">📥 Återställ</p>' +
-        '<p class="qsub">Klistra in koden. Den nuvarande profilen skrivs över.</p>' +
-        '<textarea id="imarea" style="width:100%;height:110px;font-size:11px;border-radius:14px;border:3px solid var(--line);padding:8px;background:var(--bg);color:var(--ink)"></textarea>' +
-        '<p class="qsub" id="immsg" style="min-height:18px">&nbsp;</p>' +
-        '<button class="btn big wide" id="imok">Återställ</button>' +
-        '<button class="btn ghost wide" id="imno" style="margin-top:8px">Avbryt</button></div>';
-      document.body.appendChild(d);
-      d.querySelector("#imno").onclick = function () {
-        d.remove();
-      };
-      d.querySelector("#imok").onclick = function () {
-        if (importCode(d.querySelector("#imarea").value)) {
-          d.remove();
-          location.reload();
-        } else {
-          d.querySelector("#immsg").textContent = "Koden känns inte igen.";
-          sndNo();
-        }
-      };
-    });
     on("peekbtn", function () {
       S.secretsOpen = 1;
       save();
@@ -8490,7 +8503,9 @@
       go(roomScreen, true);
     });
     on("toparent", function () {
-      go(parentScreen, true);
+      adultGate(function () {
+        go(parentScreen, true);
+      });
     });
     on("famswitch", function () {
       window.SiiriCloud.choosePlayer();
@@ -8516,16 +8531,16 @@
       );
     });
     on("toschool", function () {
-      go(schoolImport, true);
-    });
-    on("toadmin", function () {
-      go(adminScreen, true);
+      go(schoolLessonStart, true);
     });
     on("edit", function () {
       setupScreen(false);
     });
     on("toTroph", function () {
       go(trophyScreen, true);
+    });
+    on("toWords", function () {
+      go(listScreen, true);
     });
     on("toShop2", function () {
       go(shopScreen, true);
@@ -14571,7 +14586,6 @@
     var html =
       '<div class="zone market"><span class="zem">🎪</span><span><b>Laat</b><span>Marknaden — som Mardilaat och Märtsilaat i Estland</span></span></div>' +
       '<div class="card" style="text-align:center">' +
-      '<p class="qsub" style="margin-top:2px">Som de riktiga estniska marknaderna Mardilaat och Märtsilaat</p>' +
       '<p class="qsub">Du har <b>⭐ ' +
       S.stars +
       "</b> stjärnor. Tryck för att köpa, tryck igen för att ta av.</p>" +
@@ -14648,9 +14662,15 @@
       '<div class="card" style="background:linear-gradient(150deg,#2B2250,#150F30);border-color:#3D3170;color:#fff">' +
       '<p class="slotrow" style="margin-top:0;color:#E9DEFF">🌠 Drömmar</p>' +
       '<p class="qsub" style="text-align:left;color:#C9BCEF">Långa sparmål. De tar tid – men tänk vad fint det blir.</p>';
-    for (i = 0; i < SHOP.length; i++) {
-      it = SHOP[i];
-      if (!it.dream) continue;
+    /* billigast (närmast) överst - annars visas de bara i den ordning de råkar stå i SHOP,
+       vilket inte säger något om hur långt kvar det är till var och en */
+    var dreams = [];
+    for (i = 0; i < SHOP.length; i++) if (SHOP[i].dream) dreams.push(SHOP[i]);
+    dreams.sort(function (a, b) {
+      return a.price - b.price;
+    });
+    for (i = 0; i < dreams.length; i++) {
+      it = dreams[i];
       var pct = Math.min(100, Math.round((S.stars / it.price) * 100));
       var have = owns(it.id),
         on = wearing(it.slot) === it.id;
@@ -14939,7 +14959,7 @@
       " av " +
       p.q.goal +
       (p.done ? " ✓ klar!" : "") +
-      (S.flames ? " · 🔥 " + S.flames + " dagar i rad" : "") +
+      (S.flames ? " · 🌟 " + S.flames + " klarade hittills" : "") +
       "</p>" +
       '<span class="qbar" style="background:var(--line)"><i style="width:' +
       Math.round((p.v / p.q.goal) * 100) +
@@ -15251,7 +15271,7 @@
   }
   function listScreen() {
     screen = "list";
-    setNav("words");
+    setNav("me"); /* ordlistan nås från profilen */
     prefetch("trip");
     prefetchAllThemes();
     if (S.listOpen === undefined) S.listOpen = "";
@@ -16108,7 +16128,7 @@
         esc(opts[i].et) +
         '" lang="et">' +
         (withPics && hasPic(opts[i])
-          ? '<span class="oem">' + wIcon(opts[i]) + "</span><small lang=\"et\">" + esc(opts[i].et) + "</small>"
+          ? '<span class="oem">' + wIcon(opts[i]) + '</span><small lang="et">' + esc(opts[i].et) + "</small>"
           : esc(opts[i].et)) +
         "</button>";
     }
@@ -16128,8 +16148,9 @@
             btns[j].disabled = true;
             if (btns[j].getAttribute("data-et") === r.w.et) {
               btns[j].classList.add("right");
-              btns[j].textContent += " ✓";
-            } else btns[j].classList.add("dim");
+              /* bocken som eget element – textContent += skulle radera bilden i bildalternativen */
+              btns[j].insertAdjacentHTML("beforeend", '<span class="tick" aria-hidden="true"> ✓</span>');
+            } else btns[j].classList.add(btns[j] === el ? "mine" : "dim");
           }
           praiseSay(L.combo + (ok ? 1 : 0), ok, document.getElementById("fb"));
           answered(ok);
@@ -17112,6 +17133,83 @@
       }, 1200);
     }
   } catch (e) {}
+  /* tillgänglighet för hela den gamla appen, på ett ställe:
+     - svarsrutan (.feedback) läses upp av skärmläsare när rätt/fel visas
+     - överläggen (.overlay) blir dialoger: fokus flyttas in, stannar där (Tab), och går tillbaka när de stängs */
+  (function a11y() {
+    var lastFocus = [];
+    function focusables(root) {
+      return Array.prototype.filter.call(
+        root.querySelectorAll(
+          'button:not([disabled]),[href],input:not([disabled]),select,textarea,[tabindex]:not([tabindex="-1"])',
+        ),
+        function (el) {
+          return el.offsetParent !== null || el === document.activeElement;
+        },
+      );
+    }
+    function asDialog(ov) {
+      if (ov.getAttribute("role")) return;
+      ov.setAttribute("role", "dialog");
+      ov.setAttribute("aria-modal", "true");
+      var h = ov.querySelector("h2,h3,.kicker");
+      if (h) {
+        if (!h.id) h.id = "dlg" + Math.random().toString(36).slice(2, 8);
+        ov.setAttribute("aria-labelledby", h.id);
+      }
+      lastFocus.push(document.activeElement);
+      setTimeout(function () {
+        var f = focusables(ov);
+        if (f.length) f[0].focus({ preventScroll: true });
+      }, 60);
+    }
+    function asLive(fb) {
+      if (fb.getAttribute("aria-live")) return;
+      fb.setAttribute("role", "status");
+      fb.setAttribute("aria-live", "polite");
+    }
+    function scan(node) {
+      if (node.nodeType !== 1) return;
+      if (node.classList.contains("overlay")) asDialog(node);
+      if (node.classList.contains("feedback")) asLive(node);
+      var fbs = node.querySelectorAll ? node.querySelectorAll(".feedback") : [];
+      for (var i = 0; i < fbs.length; i++) asLive(fbs[i]);
+    }
+    new MutationObserver(function (muts) {
+      for (var m = 0; m < muts.length; m++) {
+        var a = muts[m].addedNodes,
+          r = muts[m].removedNodes,
+          i;
+        for (i = 0; i < a.length; i++) scan(a[i]);
+        for (i = 0; i < r.length; i++) {
+          if (r[i].nodeType === 1 && r[i].classList.contains("overlay")) {
+            var back = lastFocus.pop();
+            if (back && document.contains(back)) back.focus({ preventScroll: true });
+          }
+        }
+      }
+    }).observe(document.body, { childList: true, subtree: true });
+    document.addEventListener("keydown", function (e) {
+      if (e.key !== "Tab") return;
+      var ovs = document.querySelectorAll(".overlay[role=dialog]");
+      if (!ovs.length) return;
+      var ov = ovs[ovs.length - 1],
+        f = focusables(ov);
+      if (!f.length) return;
+      var first = f[0],
+        last = f[f.length - 1];
+      if (!ov.contains(document.activeElement)) {
+        e.preventDefault();
+        first.focus();
+      } else if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    });
+  })();
   welcomeBack();
   idleKick();
   applyColor(); /* färgtema */

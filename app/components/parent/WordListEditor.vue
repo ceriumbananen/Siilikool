@@ -40,48 +40,51 @@ const save = () =>
     listText.value = "";
     list.value = await api.latestList(props.memberId);
   });
-async function remove() {
-  if (!list.value || !confirm(`Ta bort listan "${list.value.name}"? Den försvinner nästa gång appen öppnas.`)) return;
-  await run(async () => {
-    await api.deleteList(list.value!.id);
+const remove = () =>
+  run(async () => {
+    if (!list.value) return;
+    await api.deleteList(list.value.id);
     list.value = await api.latestList(props.memberId);
   });
-}
 onMounted(load);
 </script>
 
 <template>
-  <div style="text-align: left">
+  <div>
     <template v-if="list">
-      <p class="kicker">Gäller nu: {{ list.name }}</p>
+      <h3 class="sub">Gäller nu: {{ list.name }}</h3>
       <p class="qsub">{{ daysText }}</p>
       <ul class="wlist">
         <li v-for="w in list.words" :key="w.et">
           <b lang="et">{{ w.et }}</b> = {{ w.sv }}
         </li>
       </ul>
-      <button class="btn ghost" :disabled="busy" @click="remove">Ta bort listan</button>
+      <ConfirmAction
+        label="Ta bort listan"
+        :question="`Ta bort ”${list.name}”? Den försvinner nästa gång appen öppnas.`"
+        yes="Ja, ta bort"
+        danger
+        :busy="busy"
+        @confirm="remove"
+      />
     </template>
     <p v-else class="qsub">Inga glosor just nu.</p>
 
-    <p class="q" style="text-align: left; margin-top: 14px">Nya glosor för {{ who }}</p>
+    <h3 class="sub">Nya glosor för {{ who }}</h3>
     <p class="qsub">Ett ord per rad: <b>estniska = svenska</b>. Den nya listan ersätter den gamla.</p>
-    <input v-model="listName" class="field" type="text" placeholder="Namn, t.ex. Vecka 41" maxlength="40" />
-    <textarea v-model="listText" class="schooltext field" rows="7" placeholder="koer = hund&#10;maja = hus" />
-    <label class="qsub">
+    <label class="flabel"
+      >Listans namn <input v-model="listName" class="field" type="text" placeholder="t.ex. Vecka 41" maxlength="40"
+    /></label>
+    <label class="flabel"
+      >Glosor <textarea v-model="listText" class="schooltext field" rows="7" placeholder="koer = hund&#10;maja = hus" />
+    </label>
+    <label class="flabel inline">
       Gäller i
-      <input
-        v-model.number="listDays"
-        class="field"
-        type="number"
-        min="3"
-        max="60"
-        style="width: 90px; display: inline-block"
-      />
+      <input v-model.number="listDays" class="field days" type="number" min="3" max="60" />
       dagar
     </label>
     <p class="qsub">{{ parsed.words.length }} ord{{ badText }}</p>
     <button class="btn green wide" :disabled="busy || !parsed.words.length" @click="save">Skicka till {{ who }}</button>
-    <p v-if="err" class="err">{{ err }}</p>
+    <p v-if="err" class="err" role="alert">{{ err }}</p>
   </div>
 </template>

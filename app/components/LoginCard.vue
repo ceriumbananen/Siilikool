@@ -17,35 +17,39 @@ const verify = () => run(() => api.verifyCode(email.value.trim(), code.value));
 </script>
 
 <template>
-  <div class="card" style="text-align: left">
-    <p class="q" style="text-align: left">{{ title || "Logga in" }}</p>
+  <div class="card">
+    <h2 class="q">{{ title || "Logga in" }}</h2>
     <p class="qsub">{{ intro || "Skriv din e-post så skickar vi en inloggningslänk. Inget lösenord behövs." }}</p>
-    <input
-      v-model="email"
-      class="field"
-      type="email"
-      autocomplete="email"
-      placeholder="din@epost.se"
-      @keydown.enter="sendLink"
-    />
+    <label class="flabel"
+      >E-post
+      <input
+        v-model="email"
+        class="field"
+        type="email"
+        autocomplete="email"
+        placeholder="din@epost.se"
+        @keydown.enter="sendLink"
+    /></label>
     <button class="btn green wide" :disabled="busy || !email.includes('@')" @click="sendLink">
       Skicka inloggningslänk
     </button>
     <template v-if="sent">
-      <p class="ok">Mejlet är skickat till {{ email }}. Klicka på länken i mejlet så loggas du in.</p>
+      <p class="ok" role="status">Mejlet är skickat till {{ email }}. Klicka på länken i mejlet så loggas du in.</p>
       <!-- koden finns bara i mejlet när mallen innehåller .Token (kräver egen SMTP i Supabase, se docs/konton.md) -->
-      <p class="qsub">Har mejlet också en sexsiffrig kod kan du skriva den här i stället:</p>
-      <input
-        v-model="code"
-        class="field code"
-        inputmode="numeric"
-        autocomplete="one-time-code"
-        maxlength="10"
-        placeholder="123456"
-        @keydown.enter="verify"
-      />
+      <p class="qsub">Öppnades länken i fel webbläsare? Står det en sexsiffrig kod i mejlet kan du skriva den här:</p>
+      <label class="flabel"
+        >Kod från mejlet
+        <input
+          v-model="code"
+          class="field code"
+          inputmode="numeric"
+          autocomplete="one-time-code"
+          maxlength="10"
+          placeholder="123456"
+          @keydown.enter="verify"
+      /></label>
       <button class="btn ghost wide" :disabled="busy || code.length < 6" @click="verify">Logga in med koden</button>
     </template>
-    <p v-if="err" class="err">{{ err }}</p>
+    <p v-if="err" class="err" role="alert">{{ err }}</p>
   </div>
 </template>

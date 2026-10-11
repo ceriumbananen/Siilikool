@@ -8,12 +8,6 @@ const hasPin = ref<boolean | null>(null),
   pin = ref(""),
   saved = ref(false);
 
-/* i skriptet i stället för i mallen – långa uttryck i {{ }} bryts annars fel av Prettier */
-const pinPrompt = computed(() =>
-  hasPin.value
-    ? "Byt vuxen-PIN (gemensam för familjens vuxna):"
-    : "Välj först en vuxen-PIN (gemensam för familjens vuxna):",
-);
 onMounted(() =>
   run(async () => {
     hasPin.value = await api.hasAdultPin();
@@ -35,28 +29,50 @@ const lock = () =>
 </script>
 
 <template>
-  <div class="card" style="text-align: left">
-    <p class="q" style="text-align: left">Lås den här enheten</p>
+  <div class="card">
+    <h2 class="q">Lås den här enheten</h2>
     <p class="qsub">
-      För en enhet som barnen också använder. När den är låst syns inget av föräldraläget, och barnen väljer vem som
-      spelar. Du låser upp med vuxen-PIN-koden. Dina andra enheter påverkas inte.
+      För en enhet som barnen också använder. Låst visar den inget av föräldraläget, och barnen väljer vem som spelar.
+      Dina andra enheter påverkas inte.
     </p>
-    <button v-if="hasPin" class="btn green wide" :disabled="busy" @click="lock">🔒 Lås den här enheten</button>
-    <p class="qsub" style="margin-top: 12px">
-      {{ pinPrompt }}
-    </p>
-    <input
-      v-model="pin"
-      class="field code"
-      type="password"
-      inputmode="numeric"
-      pattern="[0-9]*"
-      autocomplete="new-password"
-      maxlength="8"
-      placeholder="4–8 siffror"
-    />
-    <button class="btn ghost wide" :disabled="busy || pin.length < 4" @click="savePin">Spara vuxen-PIN</button>
-    <p v-if="saved" class="ok">Vuxen-PIN sparad.</p>
-    <p v-if="err" class="err">{{ err }}</p>
+
+    <!-- steg 1: utan vuxen-PIN går det inte att låsa upp, så den väljs först -->
+    <template v-if="hasPin === false">
+      <label class="flabel"
+        >Välj en vuxen-PIN (4–8 siffror, gemensam för familjens vuxna)
+        <input
+          v-model="pin"
+          class="field code"
+          type="password"
+          inputmode="numeric"
+          pattern="[0-9]*"
+          autocomplete="new-password"
+          maxlength="8"
+      /></label>
+      <button class="btn green wide" :disabled="busy || pin.length < 4" @click="savePin">Spara vuxen-PIN</button>
+      <p class="qsub">Sedan kan du låsa enheten.</p>
+    </template>
+
+    <!-- steg 2: låsa -->
+    <template v-else-if="hasPin">
+      <p v-if="saved" class="ok" role="status">Vuxen-PIN sparad. Nu kan du låsa enheten.</p>
+      <button class="btn green wide" :disabled="busy" @click="lock">🔒 Lås den här enheten</button>
+      <details class="more">
+        <summary>Byt vuxen-PIN</summary>
+        <label class="flabel"
+          >Ny vuxen-PIN (4–8 siffror)
+          <input
+            v-model="pin"
+            class="field code"
+            type="password"
+            inputmode="numeric"
+            pattern="[0-9]*"
+            autocomplete="new-password"
+            maxlength="8"
+        /></label>
+        <button class="btn ghost wide" :disabled="busy || pin.length < 4" @click="savePin">Spara ny vuxen-PIN</button>
+      </details>
+    </template>
+    <p v-if="err" class="err" role="alert">{{ err }}</p>
   </div>
 </template>

@@ -1,28 +1,215 @@
-/* Föräldrasidorna (/parent, /join, /invite) och "Vem spelar?" använder den gamla appens kort, knappar och färger
-   (public/legacy/style.css). Här finns bara det som saknas där. Allt är avgränsat till .page (sidornas rot),
+/* Föräldrasidorna (/parent, /join, /invite) bygger på den gamla appens färger och kort (public/legacy/style.css),
+   men lugnare: samma familj som spelet, utan godisskuggor och tjocka kanter, med mer luft och en neutral brödtext
+   för längre förklaringar. Rubrikerna behåller spelets Fredoka. Allt är avgränsat till .wrap.page (sidornas rot),
    eftersom filen laddas globalt och klassnamn som .ok och .pair också finns i spelet. */
-.page {
-  padding-bottom: 40px;
+.wrap.page {
+  --page-shadow: 0 1px 2px rgba(31, 61, 43, 0.06), 0 4px 16px rgba(31, 61, 43, 0.06);
+  max-width: min(96vw, 620px);
+  padding-bottom: 56px;
+  font-family:
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    "Segoe UI",
+    Roboto,
+    sans-serif;
+  line-height: 1.5;
 }
 
-.page .field {
+/* ---------- rubrik ---------- */
+.wrap.page .pagehead {
+  padding: 18px 2px 6px;
+}
+
+.wrap.page .pagehead .back {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  color: var(--muted);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.wrap.page .pagehead .back:hover {
+  color: var(--ink);
+}
+
+.wrap.page .pagehead h1 {
+  margin: 6px 0 0;
+  font-family: "Fredoka", system-ui, sans-serif;
+  font-size: clamp(28px, 6vw, 36px);
+  font-weight: 600;
+  line-height: 1.1;
+  letter-spacing: -0.01em;
+}
+
+.wrap.page .pagehead p {
+  margin: 4px 0 0;
+  color: var(--muted);
+}
+
+/* ---------- kort ---------- */
+.wrap.page .card {
+  text-align: left;
+  border-width: 1px;
+  border-radius: var(--r-md);
+  padding: 22px 20px;
+  margin-top: 16px;
+  box-shadow: var(--page-shadow);
+}
+
+.wrap.page .q {
+  text-align: left;
+  font-family: "Fredoka", system-ui, sans-serif;
+  font-size: var(--fs-xl);
+  font-weight: 600;
+  line-height: 1.2;
+  margin: 0 0 6px;
+  text-wrap: balance;
+}
+
+.wrap.page .sub {
+  font-size: var(--fs-md);
+  font-weight: 600;
+  margin: 20px 0 4px;
+}
+
+.wrap.page .qsub {
+  text-align: left;
+  font-size: var(--fs-md);
+  margin: 8px 0;
+  max-width: 62ch;
+}
+
+/* ---------- knappar: platta, utan skuggkant ---------- */
+.wrap.page .btn {
+  box-shadow: none;
+  border-radius: var(--r-sm);
+  min-height: 48px;
+  margin-top: 12px;
+  font-family: inherit;
+  text-decoration: none;
+}
+
+.wrap.page .btn.ghost {
+  border-width: 1.5px;
+}
+
+.wrap.page .btn.ghost:hover {
+  border-color: color-mix(in srgb, var(--ink) 30%, var(--line));
+}
+
+.wrap.page .btn.green:hover {
+  background: color-mix(in srgb, var(--moss) 88%, black);
+}
+
+.wrap.page .btn:active {
+  transform: translateY(1px);
+}
+
+.wrap.page .btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* farliga åtgärder: tydliga men inte skrikiga, och bara där de hör hemma */
+.wrap.page .btn.danger {
+  background: var(--berry);
+  color: #fff;
+}
+
+.wrap.page .btn.danger-quiet {
+  background: none;
+  color: var(--berry);
+  border: 1.5px solid color-mix(in srgb, var(--berry) 40%, var(--line));
+}
+
+.wrap.page .dangerzone {
+  margin-top: 24px;
+  padding-top: 8px;
+  border-top: 1px solid var(--line);
+}
+
+/* fråga innan något tas bort (ConfirmAction.vue) */
+.wrap.page .confirm {
+  margin-top: 12px;
+  padding: 14px 16px;
+  border-radius: var(--r-sm);
+  background: var(--bg2);
+}
+
+.wrap.page .confirm.danger {
+  background: color-mix(in srgb, var(--berry) 9%, var(--card));
+}
+
+.wrap.page .confirm p {
+  margin: 0;
+  font-weight: 500;
+}
+
+.wrap.page .confirm-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.wrap.page .confirm-row .btn {
+  flex: 1 1 140px;
+}
+
+/* ---------- fält ---------- */
+.wrap.page .flabel {
+  display: block;
+  margin-top: 14px;
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.wrap.page .flabel.inline {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 500;
+  color: var(--muted);
+}
+
+.wrap.page .field {
+  display: block;
   width: 100%;
   font: inherit;
   font-size: var(--fs-lg);
+  font-weight: 400;
   padding: 12px 14px;
-  border-radius: var(--r-md);
-  border: var(--bd) solid var(--line);
+  border-radius: var(--r-sm);
+  border: 1.5px solid var(--line);
   background: var(--card);
   color: var(--ink);
-  margin-top: 8px;
+  margin-top: 6px;
 }
 
-.page .field:focus {
+.wrap.page .field::placeholder {
+  color: color-mix(in srgb, var(--muted) 75%, var(--card));
+}
+
+.wrap.page .field:focus {
   outline: none;
   border-color: var(--moss);
 }
 
-.page .field.code {
+.wrap.page .field:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--moss) 45%, transparent);
+  outline-offset: 1px;
+}
+
+.wrap.page .field.days {
+  display: inline-block;
+  width: 90px;
+  margin-top: 0;
+}
+
+.wrap.page .field.code {
   text-align: center;
   letter-spacing: 6px;
   font-weight: 700;
@@ -30,86 +217,150 @@
   text-transform: uppercase;
 }
 
-.page .err {
+.wrap.page :focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--moss) 45%, transparent);
+  outline-offset: 2px;
+}
+
+.wrap.page ::selection {
+  background: color-mix(in srgb, var(--moss) 25%, transparent);
+}
+
+/* ---------- utfällbart ---------- */
+.wrap.page details.more {
+  margin-top: 16px;
+}
+
+.wrap.page details.more summary {
+  cursor: pointer;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.wrap.page details.more summary:hover {
+  color: var(--ink);
+}
+
+/* ---------- meddelanden ---------- */
+.wrap.page .err {
   color: var(--berry);
   font-weight: 600;
-  margin-top: 8px;
+  margin-top: 10px;
 }
 
-.page .ok {
+.wrap.page .ok {
   color: var(--moss);
   font-weight: 600;
-  margin-top: 8px;
+  margin-top: 10px;
 }
 
-.page .childhead {
+/* ---------- barnet ---------- */
+.wrap.page .childhead {
   display: flex;
   align-items: center;
   gap: 12px;
-  text-align: left;
 }
 
-.page .childhead .av {
+.wrap.page .childhead .av {
   font-size: 38px;
   line-height: 1;
 }
 
-.page .childhead b {
+.wrap.page .childhead b {
   display: block;
+  font-family: "Fredoka", system-ui, sans-serif;
   font-size: var(--fs-xl);
+  font-weight: 600;
 }
 
-.page .childhead small {
+.wrap.page .childhead small {
   color: var(--muted);
 }
 
-.page .tabs {
+/* flikar: en lugn rad i stället för fem knappar */
+.wrap.page .tabs {
   display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin-top: 10px;
+  gap: 4px;
+  margin-top: 16px;
+  border-bottom: 1px solid var(--line);
+  overflow-x: auto;
 }
 
-.page .tabs .btn {
-  margin-top: 0;
+.wrap.page .tab {
+  flex: none;
+  min-height: 44px;
+  padding: 8px 12px;
+  border: none;
+  border-bottom: 3px solid transparent;
+  margin-bottom: -1px;
+  background: none;
+  color: var(--muted);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
 }
 
-.page .pair {
+.wrap.page .tab:hover {
+  color: var(--ink);
+}
+
+.wrap.page .tab.on {
+  color: var(--ink);
+  border-bottom-color: var(--moss);
+}
+
+.wrap.page .tabbody {
+  margin-top: 14px;
+}
+
+.wrap.page .stats {
+  margin-top: 4px;
+}
+
+.wrap.page .pair {
   text-align: center;
+  font-family: "Fredoka", system-ui, sans-serif;
   font-size: 40px;
-  font-weight: 700;
+  font-weight: 600;
   letter-spacing: 8px;
   color: var(--moss);
-  margin: 6px 0;
+  margin: 10px 0 6px;
 }
 
-.page .wlist {
-  text-align: left;
+.wrap.page .wlist {
   margin: 8px 0;
   padding: 0;
   list-style: none;
 }
 
-.page .wlist li {
-  padding: 4px 0;
+.wrap.page .wlist li {
+  padding: 6px 0;
   border-bottom: 1px solid var(--line);
 }
 
-.page .devrow {
+.wrap.page .devrow {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: 8px;
   padding: 6px 0;
 }
 
-.page .qr {
+.wrap.page .devrow .btn {
+  margin-top: 0;
+}
+
+.wrap.page .qr {
   display: flex;
   justify-content: center;
   margin: 6px 0 4px;
 }
 
-.page .qr svg {
+.wrap.page .qr svg {
   width: 180px;
   height: 180px;
   border-radius: var(--r-sm);
@@ -117,24 +368,24 @@
 }
 
 /* figurväljaren när ett barn läggs till */
-.page .avpick {
+.wrap.page .avpick {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
-  margin: 10px 0 4px;
+  margin: 12px 0 4px;
 }
 
-.page .avpick button {
+.wrap.page .avpick button {
   font-size: 26px;
-  width: 44px;
-  height: 44px;
+  width: 48px;
+  height: 48px;
   border-radius: var(--r-sm);
-  border: var(--bd) solid var(--line);
+  border: 1.5px solid var(--line);
   background: var(--card);
   cursor: pointer;
 }
 
-.page .avpick button.on {
+.wrap.page .avpick button.on {
   border-color: var(--moss);
   background: color-mix(in srgb, var(--moss) 16%, var(--card));
 }
@@ -145,6 +396,50 @@
   padding-bottom: 26px;
 }
 
+.overlay.whoplays .flabel {
+  display: block;
+  margin-top: 12px;
+  font-weight: 600;
+}
+
+.overlay.whoplays .field {
+  display: block;
+  width: 100%;
+  font: inherit;
+  padding: 12px 14px;
+  border-radius: var(--r-md);
+  border: var(--bd) solid var(--line);
+  background: var(--card);
+  color: var(--ink);
+  margin-top: 6px;
+}
+
+.overlay.whoplays .field.code {
+  text-align: center;
+  letter-spacing: 6px;
+  font-weight: 700;
+  font-size: 28px;
+}
+
+.overlay.whoplays .err {
+  color: var(--berry);
+  font-weight: 600;
+}
+
+.overlay.whoplays .closebtn {
+  margin-top: 12px;
+}
+
 .page a.slotbtn {
   text-decoration: none;
+}
+
+@media (prefers-color-scheme: dark) {
+  .wrap.page {
+    --page-shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 4px 16px rgba(0, 0, 0, 0.25);
+  }
+}
+
+:root[data-theme="dark"] .wrap.page {
+  --page-shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 4px 16px rgba(0, 0, 0, 0.25);
 }

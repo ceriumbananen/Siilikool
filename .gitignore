@@ -12,6 +12,9 @@ dist
 logs/
 *.log
 
+# Impeccable (lokal design-skill cache/historik, inte källkod)
+.impeccable/
+
 # Yarn
 .yarn/*
 !.yarn/patches

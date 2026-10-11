@@ -87,21 +87,25 @@ onMounted(async () => {
 
 <template>
   <div class="wrap page">
-    <div class="zone me">
-      <span class="zem">👨‍👩‍👧</span>
-      <span><b>Familj</b><span>Spela med familjen – spelet sparas och glosorna kommer hit</span></span>
-    </div>
-    <a href="/" class="btn ghost">← Till spelet</a>
+    <header class="pagehead">
+      <a href="/" class="back">← Till spelet</a>
+      <h1>Familj</h1>
+      <p>Spela med familjen – spelet sparas och glosorna kommer hit</p>
+    </header>
 
     <div v-if="!cloud.enabled" class="card">
-      <p class="qsub">Konton är inte påslagna i den här versionen av Siilikool.</p>
+      <h2 class="q">Spelet fungerar utan familj</h2>
+      <p class="qsub">
+        Den här versionen av Siilikool har inga familjekonton. Spela som vanligt – framstegen sparas på enheten.
+      </p>
+      <a href="/" class="btn green wide">Till spelet</a>
     </div>
 
     <LinkChoice v-else-if="needsChoice && chosen" :name="chosen.name" :busy="busy" @choose="c => choose(chosen!, c)" />
 
     <!-- inloggad vuxen (olåst): familjekoden är till för barnens enheter -->
-    <div v-else-if="cloud.isAdult" class="card" style="text-align: left">
-      <p class="q" style="text-align: left">Du är inloggad som vuxen</p>
+    <div v-else-if="cloud.isAdult" class="card">
+      <h2 class="q">Du är inloggad som vuxen</h2>
       <p class="qsub">
         Familjekoden är till för barnens enheter. Ska barnen spela här? Lås enheten i föräldraläget, så får de välja vem
         som spelar. Ditt eget spel sparar du under <b>Ditt eget spel</b> i föräldraläget.
@@ -110,8 +114,8 @@ onMounted(async () => {
     </div>
 
     <!-- vem spelar? -->
-    <div v-else-if="lookup?.ok" class="card" style="text-align: left">
-      <p class="q" style="text-align: left">Vem spelar?</p>
+    <div v-else-if="lookup?.ok" class="card">
+      <h2 class="q">Vem spelar?</h2>
       <p class="qsub">{{ lookup.family_name }}</p>
       <div class="slotgrid">
         <button
@@ -131,42 +135,43 @@ onMounted(async () => {
         Familjen har inga barn än. En vuxen lägger till dem i föräldraläget.
       </p>
       <template v-if="chosen && needsPin(chosen)">
-        <p class="qsub" style="margin-top: 12px">{{ chosen.name }}s PIN-kod</p>
-        <input
-          v-model="pin"
-          class="field code"
-          type="password"
-          inputmode="numeric"
-          pattern="[0-9]*"
-          autocomplete="off"
-          maxlength="8"
-          placeholder="••••"
-          @keydown.enter="choose(chosen)"
-        />
+        <label class="flabel"
+          >{{ chosen.name }}s PIN-kod
+          <input
+            v-model="pin"
+            class="field code"
+            type="password"
+            inputmode="numeric"
+            pattern="[0-9]*"
+            autocomplete="off"
+            maxlength="8"
+            placeholder="••••"
+            @keydown.enter="choose(chosen)"
+        /></label>
         <button class="btn green wide" :disabled="busy || pin.length < 4" @click="choose(chosen)">Spela</button>
       </template>
-      <p v-if="cloud.isLocked" class="qsub" style="margin-top: 12px">
-        🔒 Enheten är låst av en vuxen. <a href="/parent">Lås upp</a>
-      </p>
+      <p v-if="cloud.isLocked" class="qsub">🔒 Enheten är låst av en vuxen. <a href="/parent">Lås upp</a></p>
     </div>
 
     <!-- familjekod -->
-    <div v-else-if="!cloud.isLocked" class="card" style="text-align: left">
-      <p class="q" style="text-align: left">Skriv familjekoden</p>
+    <div v-else-if="!cloud.isLocked" class="card">
+      <h2 class="q">Skriv familjekoden</h2>
       <p class="qsub">En vuxen hittar koden i föräldraläget.</p>
-      <input
-        v-model="code"
-        class="field code"
-        maxlength="7"
-        autocomplete="off"
-        autocapitalize="characters"
-        placeholder="ABC-234"
-        @keydown.enter="findFamily()"
-      />
+      <label class="flabel"
+        >Familjekod
+        <input
+          v-model="code"
+          class="field code"
+          maxlength="7"
+          autocomplete="off"
+          autocapitalize="characters"
+          placeholder="ABC-234"
+          @keydown.enter="findFamily()"
+      /></label>
       <button class="btn green big wide" :disabled="busy || !codeOk" @click="findFamily()">Fortsätt</button>
     </div>
 
-    <p v-if="err" class="err">{{ err }}</p>
-    <p v-if="done" class="ok">Klart! Nu spelar {{ done }}.</p>
+    <p v-if="err" class="err" role="alert">{{ err }}</p>
+    <p v-if="done" class="ok" role="status">Klart! Nu spelar {{ done }}.</p>
   </div>
 </template>
