@@ -3094,7 +3094,7 @@ body {
 }
 
 .odots i.now {
-  background: var(--berry);
+  background: var(--honey-deep);
   transform: scale(1.25);
 }
 
@@ -5880,7 +5880,7 @@ input.type.wrong {
 }
 
 .stopmini.now {
-  border-color: var(--berry);
+  border-color: var(--honey-deep);
 }
 
 .stopmini.locked {
