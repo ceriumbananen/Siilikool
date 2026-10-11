@@ -31,8 +31,8 @@
 
 const { size = "normal" } = defineProps<{
   /** Hur stor figuren är: "normal" (profil, hem), "big" (slutskärmar) eller "small" (bredvid en
-   * uppgift) - samma tre storlekar som siilSVG(size) hade. */
-  size?: "normal" | "big" | "small";
+   * uppgift) - samma tre storlekar som siilSVG(size) hade - eller "room" (i Tuba). */
+  size?: "normal" | "big" | "small" | "room";
 }>();
 
 const profile = useProfileStore();
@@ -696,6 +696,9 @@ onUnmounted(() => {
     }
     &--small {
       width: clamp(6rem, 22vw, 8.25rem); // 96-132px
+    }
+    &--room {
+      width: clamp(8.125rem, 34vw, 11.875rem); // 130-190px, som .rsiiri .siiri i legacy
     }
 
     &--cool {

@@ -2,7 +2,7 @@
 /* Laat (marknaden) - porterat från shopScreen()/shopCells()/buyOrWear()/furnShopHtml()/furnBuy()
    i public/legacy/app.js. Kläder till Siiri (hyllor per plats, säsongs- och högtidsvaror, svår
    nivå, drömmar) och möbler till hennes rum. Köpen firas som förut: fanfar, konfetti, dans och
-   Siiri som säger plaggets namn. Rummet (Tuba) är fortfarande en legacy-skärm. */
+   Siiri som säger plaggets namn. Rummet (Tuba) är app/pages/room.vue. */
 
 useHead({ title: "Laat · Siilikool" });
 const profile = useProfileStore();
@@ -64,7 +64,16 @@ const furnShelves = computed(() =>
     items: FURN.filter(f => f.slot === id && !f.def).map(f => {
       const own = furnOwned(f.id, furnOwnedIds.value);
       const on = furnOf(id, room.value, furnOwnedIds.value) === f.id;
-      return { f, own, on, label: own ? (on ? "bärs nu" : "ägd — sätt in") : `⭐ ${f.price}` };
+      /* som plaggen: det man inte har råd med är grått och visar hur mycket som fattas */
+      const cant = !own && stars.value < f.price;
+      const label = own
+        ? on
+          ? "bärs nu"
+          : "ägd — sätt in"
+        : cant
+          ? `🔒 ⭐ ${(f.price - stars.value).toLocaleString("sv-SE")} kvar`
+          : `⭐ ${f.price}`;
+      return { f, own, on, cant, label };
     }),
   })).filter(s => s.items.length),
 );
@@ -80,17 +89,19 @@ function scenePop(ms: number) {
   setTimeout(() => document.body.classList.remove("scenepop"), ms);
 }
 
+/* "⭐ 120 kvar" en kort stund, och ett mjukt nej */
+function notEnough(price: number) {
+  clearTimeout(tooTimer);
+  tooExpensive.value = { n: price - stars.value, key: Date.now() };
+  tooTimer = setTimeout(() => (tooExpensive.value = null), 900);
+  tone(300, 0.16, 0, "triangle");
+  tone(210, 0.22, 0.13, "triangle");
+}
+
 function buyOrWear(it: ShopItem) {
   const s = profile.state;
   if (!owns(it.id)) {
-    if (stars.value < it.price) {
-      clearTimeout(tooTimer);
-      tooExpensive.value = { n: it.price - stars.value, key: Date.now() };
-      tooTimer = setTimeout(() => (tooExpensive.value = null), 900);
-      tone(300, 0.16, 0, "triangle");
-      tone(210, 0.22, 0.13, "triangle");
-      return;
-    }
+    if (stars.value < it.price) return notEnough(it.price);
     s.stars -= it.price;
     s.owned = [...owned.value, it.id];
     s.wear = { ...wear.value, [it.slot]: it.id };
@@ -133,10 +144,7 @@ function furnBuy(f: FurnItem) {
     voice.sayWord(f.et);
     return;
   }
-  if (stars.value < f.price) {
-    tone(220, 0.2, 0, "triangle");
-    return;
-  }
+  if (stars.value < f.price) return notEnough(f.price);
   s.stars -= f.price;
   s.furnOwned = [...(furnOwnedIds.value || []), f.id];
   setRoom();
@@ -147,10 +155,9 @@ function furnBuy(f: FurnItem) {
   setTimeout(() => dance(f.price >= 600), 400);
 }
 
-/* rummet är fortfarande en legacy-skärm (se app/utils/legacy-nav.ts) */
 function toRoom() {
-  markLegacyScreen("room");
-  location.href = "/";
+  voice.sayWord("Siiri tuba");
+  location.href = "/room";
 }
 </script>
 
@@ -186,13 +193,17 @@ function toRoom() {
             v-for="row in shelf.items"
             :key="row.f.id"
             class="shop-page__furn"
-            :class="{ 'shop-page__furn--owned': row.own, 'shop-page__furn--on': row.on }"
+            :class="{
+              'shop-page__furn--owned': row.own,
+              'shop-page__furn--on': row.on,
+              'shop-page__furn--cant': row.cant,
+            }"
             @click="furnBuy(row.f)"
           >
             <button class="shop-page__say" aria-label="Hör namnet på estniska" @click.stop="voice.sayWord(row.f.et)">
               🔊
             </button>
-            <button class="shop-page__furn-text">
+            <button class="shop-page__furn-text" :aria-disabled="row.cant">
               <b lang="et">{{ row.f.et }}</b
               ><span>{{ row.f.sv }}</span>
             </button>
@@ -427,6 +438,24 @@ function toRoom() {
     &--on {
       border-color: var(--moss);
       background: color-mix(in srgb, var(--moss) 14%, var(--card));
+    }
+
+    /* som plaggrutorna (ShopCell): grått och "inte nu" - 🔊 går fortfarande att trycka på */
+    &--cant {
+      cursor: not-allowed;
+
+      > :not(.shop-page__say) {
+        opacity: 0.55;
+        filter: grayscale(0.85);
+      }
+
+      .shop-page__furn-text {
+        cursor: not-allowed;
+      }
+
+      .shop-page__furn-price {
+        color: var(--berry);
+      }
     }
   }
 

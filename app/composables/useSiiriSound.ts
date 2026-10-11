@@ -87,5 +87,55 @@ export function useSiiriSound() {
     }
   }
 
-  return { tone, buzz, sndLvl, fanfare };
+  /** Rätt svar: tre stigande toner. */
+  function sndOk() {
+    tone(660, 0.14, 0);
+    tone(880, 0.16, 0.11);
+    tone(1180, 0.22, 0.22);
+  }
+
+  /** Fel svar: två mjuka, sjunkande toner. */
+  function sndNo() {
+    tone(300, 0.16, 0, "triangle");
+    tone(210, 0.22, 0.13, "triangle");
+  }
+
+  /** Katten i rummet spinner: pulserande brus genom ett lågpassfilter (purr() i legacy). */
+  function purr(dur = 1.1) {
+    if (!profile.state.sound) return;
+    try {
+      const ac = siiriAudioContext();
+      if (!ac) return;
+      if (ac.state === "suspended") ac.resume();
+      const t = ac.currentTime,
+        sr = ac.sampleRate,
+        n = Math.ceil(sr * dur),
+        buf = ac.createBuffer(1, n, sr),
+        data = buf.getChannelData(0);
+      for (let i = 0; i < n; i++) {
+        const pulse = Math.pow(Math.max(0, Math.sin(2 * Math.PI * 28 * (i / sr))), 1.6);
+        data[i] = (Math.random() * 2 - 1) * pulse;
+      }
+      const src = ac.createBufferSource();
+      src.buffer = buf;
+      const f1 = ac.createBiquadFilter();
+      f1.type = "lowpass";
+      f1.frequency.value = 260;
+      f1.Q.value = 1;
+      const g = ac.createGain();
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(1.6, t + 0.15);
+      g.gain.setValueAtTime(1.6, t + dur - 0.3);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      src.connect(f1);
+      f1.connect(g);
+      g.connect(ac.destination);
+      src.start(t);
+      src.stop(t + dur + 0.02);
+    } catch {
+      /* ljud är en bonus */
+    }
+  }
+
+  return { tone, buzz, sndLvl, fanfare, sndOk, sndNo, purr };
 }

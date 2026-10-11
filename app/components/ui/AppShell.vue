@@ -3,9 +3,9 @@
  * skärmar har (LegacyApp.vue) - för Nuxt-sidor som migrerats ut ur app.js. Länkarna går till
  * hela sidladdningar (inte NuxtLink) eftersom den gamla appen bara kan starta en gång per
  * sidladdning (samma konvention som redan finns i app/app.vue). Profil-, märke- och stjärnchipen
- * samt flikarna "Laat" och "Profiil" länkar till riktiga Nuxt-sidor (/profile, /trophy, /shop). "Sõnastik"-fliken går
+ * samt flikarna "Laat", "Tuba" och "Profiil" länkar till riktiga Nuxt-sidor (/profile, /trophy, /shop, /room). "Sõnastik"-fliken går
  * via markLegacyScreen() (app/utils/legacy-nav.ts) rakt in i ordlistan istället för att bara
- * landa på hemskärmen - "Tuba" gör fortfarande bara det tills rummet också flyttas ut ur app.js. */
+ * landa på hemskärmen. */
 const { active = null } = defineProps<{
   /** Vilken av de sex flikarna som ska visas som vald. Ingen flik representerar den här
    * sidan specifikt förrän spelet har en riktig router för sina skärmar, så standard är
@@ -123,7 +123,7 @@ function tapStars() {
         </span>
         <b>Laat</b><small>Marknaden</small>
       </a>
-      <a href="/" :class="{ 'app-shell__nav-btn--on': active === 'room' }" class="app-shell__nav-btn">
+      <a href="/room" :class="{ 'app-shell__nav-btn--on': active === 'room' }" class="app-shell__nav-btn">
         <span class="app-shell__nav-emoji" aria-hidden="true">
           <svg viewBox="0 0 24 24"><path d="M12 3l9 8h-3v9H6v-9H3z" fill="currentColor" /></svg>
         </span>

@@ -644,3 +644,27 @@ export const STSKIP = [
   "kell",
   "lamp",
 ];
+
+/** Souveniren (ett plagg i SHOP) man får i varje ort på resan. */
+export const SOUVENIR: Record<string, string> = {
+  tallinn: "sall",
+  lahemaa: "lill",
+  rakvere: "myts",
+  johvi: "tuli",
+  narva: "kott",
+  peipsi: "jaatis",
+  tartu: "raamat",
+  polva: "leib",
+  voru: "talv",
+  setomaa: "hobekee",
+  valga: "lips",
+  otepaa: "suusad",
+  viljandi: "kannel",
+  paide: "kroon",
+  parnu: "ring",
+  haapsalu: "vihmav",
+  hiiumaa: "rukkilill",
+  muhu: "mulgi",
+  kuressaare: "kihnu",
+  salme: "rahvas",
+};

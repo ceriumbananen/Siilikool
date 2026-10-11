@@ -322,7 +322,7 @@ function tapSettingsTitle() {
           🤫
         </button>
 
-        <a class="profile-page__btn profile-page__btn--wide" href="/" @click="markLegacyScreen('room')"
+        <a class="profile-page__btn profile-page__btn--wide" href="/room"
           >🏠 Siiri tuba · välj Siiris färg och kläder</a
         >
         <a class="profile-page__btn profile-page__btn--wide" href="/" @click="markLegacyScreen('edit')"

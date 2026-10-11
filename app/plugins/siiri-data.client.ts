@@ -28,6 +28,7 @@ export default defineNuxtPlugin(() => {
     STORY,
     STATIONS,
     STSKIP,
+    SOUVENIR,
     SHOP,
     FURN,
     /* scenes.ts, praise.ts */

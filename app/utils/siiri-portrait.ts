@@ -736,3 +736,152 @@ export function wearSVG(
 
 /* Siiri bygger på en akvarellillustration; ögon, mun och glasögon ritas ovanpå så hon kan blinka och prata */
 /* barnets egen igelkott: samma teckning, egen pälsfärg och egna kläder */
+
+/* ---------- Siiri bakifrån (Tuba) - flyttat ur public/legacy/app.js (BACK_SPLIT, backFurColors, siilBackSVG) ---------- */
+const BACK_SPLIT: string[] = ["kott", "tiivad", "paasuke2", "draakon", "ring"];
+function backFurColors(f: Fur) {
+  return {
+    rim: f.o ? mixHex(f.c, "#2A1E14", 0.32) : "#B9A787",
+    r2: f.o ? mixHex(f.c, "#2A1E14", 0.12) : "#C9BBA3",
+    r3: f.o ? f.c : "#D6C7A8",
+    r4: f.o ? mixHex(f.c, "#FFFFFF", 0.3) : "#E2D6BC",
+    r5: f.o ? mixHex(f.c, "#FFFFFF", 0.55) : "#EBE1CA",
+    r6: f.o ? mixHex(f.c, "#FFFFFF", 0.78) : "#F5EFDE",
+    base: f.o ? mixHex(f.c, "#FFFFFF", 0.82) : "#FBF7EE",
+    stroke: f.o ? mixHex(f.c, "#2A1E14", 0.4) : "#A8987E",
+    line: f.o ? mixHex(f.c, "#000000", 0.14) : "#E6DCC8",
+  };
+}
+export function siiriBackSVG(fur: Fur, wear: Wear | undefined, owned: string[] | undefined, size?: string): string {
+  var cls = "siiri" + (size ? " " + size : "");
+  var f = fur;
+  var c = backFurColors(fur);
+  /* kott (ryggsäcken) visar bara själva väskan på baksidan, utan remmar -
+     de gjorde mer skada (stack upp i luften) än nytta; övriga ryggplagg
+     (vingar m.fl.) saknar en egen "back"-del och visas hela via "front" */
+  var backItem =
+    BACK_SPLIT.indexOf(wearing(wear, "back") ?? "") >= 0
+      ? wearSVG(wear, owned, "back", "back") +
+        (wearing(wear, "back") === "kott" ? "" : wearSVG(wear, owned, "back", "front"))
+      : wearSVG(wear, owned, "back");
+  /* sex ringar taggar, från spetsigast/ytterst till kortast/innerst - formerna
+     är desamma som tidigare, men fylls nu med den riktiga pälstexturen istället
+     för platt färg. HI-delmängden får en diskret vit glansfläck ovanpå. */
+  var rings = [
+    {
+      sw: 1.1,
+      d: "M158.4 107.9 L172.5 112.7 L158.8 118.8 Z M156.8 132.6 L167.9 142.5 L153.4 142.9 Z M150.2 149.2 L159.1 162.7 L144.1 158.0 Z M143.1 159.3 L149.6 174.7 L135.5 166.6 Z M128.8 171.4 L130.4 187.7 L119.6 175.9 Z M111.1 178.3 L107.5 193.0 L101.0 179.5 Z M87.7 178.1 L78.0 192.8 L78.0 174.9 Z M74.3 173.1 L62.6 182.9 L65.6 167.5 Z M54.4 156.1 L37.4 161.5 L48.7 147.1 Z M45.4 139.7 L29.6 138.9 L42.4 129.2 Z M41.1 114.2 L28.3 107.2 L42.3 103.3 Z M44.0 96.4 L32.6 85.5 L48.0 86.3 Z M47.2 88.0 L38.0 76.0 L52.4 78.6 Z M59.4 70.0 L53.0 53.3 L67.3 63.2 Z M73.0 59.6 L71.7 42.7 L82.4 55.4 Z M96.9 52.6 L102.4 37.6 L107.0 53.0 Z M114.0 54.3 L123.1 42.8 L123.6 57.8 Z M124.9 58.5 L136.4 48.6 L133.7 63.9 Z M146.1 76.5 L161.5 72.5 L151.7 85.6 Z M153.1 88.7 L169.6 88.1 L156.7 98.9 Z",
+      hi: "M158.4 107.9 L172.5 112.7 L158.8 118.8 Z M143.1 159.3 L149.6 174.7 L135.5 166.6 Z M87.7 178.1 L78.0 192.8 L78.0 174.9 Z M45.4 139.7 L29.6 138.9 L42.4 129.2 Z M47.2 88.0 L38.0 76.0 L52.4 78.6 Z M96.9 52.6 L102.4 37.6 L107.0 53.0 Z M146.1 76.5 L161.5 72.5 L151.7 85.6 Z",
+    },
+    {
+      sw: 0.95,
+      d: "M151.3 109.9 L163.4 114.6 L151.4 119.6 Z M149.2 131.9 L159.9 141.5 L145.9 140.9 Z M145.7 141.3 L154.2 152.6 L140.9 149.5 Z M133.5 158.0 L138.0 172.4 L126.3 163.7 Z M117.4 168.2 L116.2 181.5 L108.9 170.7 Z M98.5 171.5 L92.8 182.8 L89.7 170.4 Z M89.4 170.3 L81.2 182.2 L80.8 167.5 Z M77.2 165.7 L66.8 174.4 L69.6 160.7 Z M65.1 156.6 L52.3 162.2 L59.1 149.5 Z M51.4 134.0 L37.8 132.6 L49.2 124.6 Z M48.5 115.2 L36.8 109.2 L49.3 105.5 Z M50.4 100.2 L39.9 90.9 L53.6 91.1 Z M56.4 85.5 L49.1 73.9 L61.7 77.8 Z M69.5 70.2 L66.0 55.3 L77.1 65.1 Z M79.6 63.9 L79.7 49.4 L88.1 60.8 Z M90.2 60.3 L93.2 46.2 L99.0 59.3 Z M113.4 61.2 L122.4 49.2 L121.8 64.5 Z M129.9 69.7 L141.1 63.4 L136.7 76.0 Z M138.0 77.5 L151.1 73.0 L143.4 85.1 Z M144.8 87.8 L158.1 86.8 L148.5 96.6 Z",
+      hi: "M151.3 109.9 L163.4 114.6 L151.4 119.6 Z M133.5 158.0 L138.0 172.4 L126.3 163.7 Z M89.4 170.3 L81.2 182.2 L80.8 167.5 Z M51.4 134.0 L37.8 132.6 L49.2 124.6 Z M56.4 85.5 L49.1 73.9 L61.7 77.8 Z M90.2 60.3 L93.2 46.2 L99.0 59.3 Z M138.0 77.5 L151.1 73.0 L143.4 85.1 Z",
+    },
+    {
+      sw: 0.8,
+      d: "M143.5 106.3 L153.1 110.2 L144.2 115.6 Z M143.7 122.0 L153.3 129.2 L141.6 131.0 Z M138.5 138.7 L144.0 148.3 L133.6 146.4 Z M126.6 153.7 L128.8 166.1 L119.4 158.6 Z M116.0 160.2 L114.7 171.7 L107.9 162.8 Z M96.0 163.4 L89.8 174.0 L87.7 161.6 Z M78.7 157.5 L68.8 164.4 L71.7 152.2 Z M70.8 151.3 L60.5 155.1 L65.0 144.5 Z M60.8 137.3 L48.8 137.3 L57.6 128.6 Z M55.8 114.1 L46.9 108.4 L56.8 104.8 Z M56.5 106.3 L48.4 99.1 L58.8 97.3 Z M62.1 89.8 L56.3 79.7 L67.1 82.3 Z M75.1 74.5 L74.2 63.4 L82.6 70.0 Z M83.2 69.7 L84.4 58.3 L91.3 67.0 Z M102.1 66.1 L107.8 56.0 L110.5 67.4 Z M122.6 72.9 L132.3 66.6 L129.4 78.4 Z M131.1 80.1 L141.9 76.7 L136.5 87.3 Z M140.6 95.7 L150.7 97.2 L143.2 104.6 Z",
+      hi: "M143.5 106.3 L153.1 110.2 L144.2 115.6 Z M126.6 153.7 L128.8 166.1 L119.4 158.6 Z M78.7 157.5 L68.8 164.4 L71.7 152.2 Z M55.8 114.1 L46.9 108.4 L56.8 104.8 Z M75.1 74.5 L74.2 63.4 L82.6 70.0 Z M122.6 72.9 L132.3 66.6 L129.4 78.4 Z",
+    },
+    {
+      sw: 0.65,
+      d: "M136.8 113.7 L145.4 119.0 L136.0 122.6 Z M134.2 129.3 L140.4 137.7 L130.6 137.3 Z M129.3 139.3 L132.5 148.5 L123.8 145.8 Z M120.7 148.5 L121.2 158.6 L113.6 152.6 Z M107.8 154.7 L104.6 163.1 L99.9 155.6 Z M92.2 154.6 L85.9 161.0 L84.6 151.8 Z M78.1 147.4 L70.0 150.2 L72.2 141.4 Z M70.1 138.3 L61.4 138.4 L66.2 130.5 Z M64.0 122.6 L55.5 118.9 L63.2 113.7 Z M63.7 107.2 L56.0 100.2 L65.9 98.6 Z M72.0 87.4 L69.5 78.4 L77.7 81.2 Z M80.4 79.1 L80.5 69.5 L87.6 75.2 Z M94.8 73.2 L98.6 65.0 L102.8 72.9 Z M113.3 75.6 L121.1 68.9 L120.3 79.7 Z M122.8 81.7 L131.5 78.6 L128.5 88.0 Z M130.4 90.8 L139.0 91.0 L134.1 98.7 Z",
+      hi: "M136.8 113.7 L145.4 119.0 L136.0 122.6 Z M120.7 148.5 L121.2 158.6 L113.6 152.6 Z M78.1 147.4 L70.0 150.2 L72.2 141.4 Z M63.7 107.2 L56.0 100.2 L65.9 98.6 Z M94.8 73.2 L98.6 65.0 L102.8 72.9 Z M130.4 90.8 L139.0 91.0 L134.1 98.7 Z",
+    },
+    {
+      sw: 0.55,
+      d: "M130.0 108.1 L136.4 112.1 L130.2 116.5 Z M127.9 127.0 L131.3 133.9 L124.1 134.2 Z M124.0 134.5 L126.5 142.8 L118.7 140.4 Z M110.2 145.7 L107.8 152.9 L102.9 147.5 Z M96.6 147.4 L91.6 152.5 L89.4 145.5 Z M84.0 142.5 L76.4 145.8 L78.2 137.2 Z M73.1 129.5 L65.4 128.1 L70.5 121.6 Z M70.1 119.7 L63.5 115.9 L69.7 111.4 Z M70.6 105.3 L65.3 98.8 L73.2 97.5 Z M78.5 89.6 L77.1 81.2 L84.3 84.4 Z M88.5 82.1 L90.5 74.7 L95.7 79.9 Z M105.3 80.1 L111.0 74.0 L112.5 82.6 Z M118.0 86.2 L125.6 83.7 L123.4 91.9 Z M126.7 97.4 L134.6 98.6 L129.4 105.2 Z",
+      hi: "M130.0 108.1 L136.4 112.1 L130.2 116.5 Z M110.2 145.7 L107.8 152.9 L102.9 147.5 Z M73.1 129.5 L65.4 128.1 L70.5 121.6 Z M78.5 89.6 L77.1 81.2 L84.3 84.4 Z M118.0 86.2 L125.6 83.7 L123.4 91.9 Z",
+    },
+    {
+      sw: 0.4,
+      d: "M123.4 107.4 L128.6 110.9 L123.8 115.1 Z M122.5 122.0 L124.8 127.6 L119.3 128.8 Z M116.8 132.0 L116.9 138.2 L111.3 136.5 Z M104.8 139.1 L101.7 144.8 L97.9 139.6 Z M88.8 136.6 L83.1 138.4 L83.2 132.0 Z M79.8 127.2 L73.3 126.1 L77.0 120.2 Z M76.1 113.9 L71.7 109.6 L76.8 106.3 Z M77.2 104.8 L74.6 99.2 L80.3 97.9 Z M83.9 93.3 L84.1 87.1 L89.5 89.0 Z M97.3 86.5 L100.9 80.9 L104.1 86.7 Z M110.6 89.1 L116.3 87.0 L116.3 93.5 Z M119.3 97.3 L125.6 98.0 L122.5 104.0 Z",
+      hi: "M123.4 107.4 L128.6 110.9 L123.8 115.1 Z M104.8 139.1 L101.7 144.8 L97.9 139.6 Z M76.1 113.9 L71.7 109.6 L76.8 106.3 Z M97.3 86.5 L100.9 80.9 L104.1 86.7 Z",
+    },
+  ];
+  var ringColors = [c.rim, c.r2, c.r3, c.r4, c.r5, c.r6];
+  var spikes = "",
+    shine = "",
+    clipShapes = '<ellipse cx="100" cy="116" rx="66" ry="71"/>',
+    i;
+  for (i = 0; i < rings.length; i++) {
+    spikes +=
+      '<path fill="' +
+      ringColors[i] +
+      '" stroke="' +
+      c.stroke +
+      '" stroke-width="' +
+      rings[i]!.sw +
+      '" d="' +
+      rings[i]!.d +
+      '"/>';
+    shine += '<path fill="#fff" opacity=".3" d="' + rings[i]!.hi + '"/>';
+    clipShapes += '<path d="' + rings[i]!.d + '"/>';
+  }
+  return (
+    '<span class="siiri3d">' +
+    '<svg class="' +
+    cls +
+    '" id="s-back-svg" viewBox="0 0 200 200" role="img" aria-label="Igelkotten Siiri bakifrån">' +
+    "<defs>" +
+    /* en ansiktsfri pälsbit från hjässan (ovanför ögonbrynen), upprepad som
+       mönster - ger äkta penseldrag ovanpå de platta taggfärgerna nedan.
+       Mönstret har genomskinliga luckor mellan strån, så det läggs som ett
+       halvtransparent detaljlager - inte som själva bottenfärgen - annars
+       lyser rummet bakom igenom luckorna. */
+    /* y=-20 flyttar mönstrets skarv (64x54-rutan upprepas inte sömlöst) så
+       den hamnar dold under ryggsäcken - omräknat efter att hela kroppen
+       förstorades 1.33x (skarven låg tidigare dold vid den mindre storleken) */
+    '<pattern id="back-furtile" patternUnits="userSpaceOnUse" x="0" y="-20" width="64" height="54">' +
+    '<use href="#siiriPic" x="-68" y="-4"/>' +
+    "</pattern>" +
+    '<clipPath id="back-clip">' +
+    clipShapes +
+    "</clipPath>" +
+    "</defs>" +
+    '<g id="s-back-all">' +
+    wearSVG(wear, owned, "scene") +
+    wearSVG(wear, owned, "aura") +
+    '<ellipse cx="100" cy="186" rx="55" ry="8" fill="#2A1B0C" opacity=".15"/>' +
+    /* hela taggsiluetten förstoras ~1.33x runt kroppens mittpunkt - den
+       handritade siluetten fyllde bara ~2/3 av canvasen, medan den riktiga
+       vattenfärgsbilden (framsidan) fyller nästan hela den, vilket fick
+       baksidan att se avsevärt mindre/längre bort ut trots samma SVG-ruta */
+    '<g transform="translate(100,116) scale(1.33) translate(-100,-116)">' +
+    '<ellipse cx="100" cy="116" rx="66" ry="71" fill="' +
+    c.rim +
+    '"/>' +
+    spikes +
+    '<g clip-path="url(#back-clip)">' +
+    '<rect x="0" y="0" width="200" height="200" fill="url(#back-furtile)" opacity=".95"/>' +
+    "</g>" +
+    shine +
+    '<ellipse cx="100" cy="150" rx="50" ry="40" fill="' +
+    c.base +
+    '"/>' +
+    '<g stroke="' +
+    c.line +
+    '" stroke-width="1.4" opacity=".7" fill="none">' +
+    '<path d="M70 134 q30 14 60 0"/><path d="M66 154 q34 16 68 0"/></g>' +
+    '<ellipse cx="76" cy="182" rx="15" ry="10" fill="' +
+    c.base +
+    '" stroke="' +
+    c.line +
+    '" stroke-width="1"/>' +
+    '<ellipse cx="124" cy="182" rx="15" ry="10" fill="' +
+    c.base +
+    '" stroke="' +
+    c.line +
+    '" stroke-width="1"/>' +
+    "</g>" +
+    /* ryggplagget förstoras ~30% och centreras över den taggiga mitten - precis
+       där ansiktet hade legat på framsidan, så det täcker den tuffaste skarven */
+    '<g transform="translate(100,122) scale(1.3) translate(-100,-122)">' +
+    backItem +
+    "</g>" +
+    wearSVG(wear, owned, "head") +
+    wearSVG(wear, owned, "neck") +
+    "</g></svg>" +
+    '<span class="siirishadow"></span></span>'
+  );
+}
