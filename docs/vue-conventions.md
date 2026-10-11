@@ -71,6 +71,12 @@ const { variant = "primary", wide = false } = defineProps<{
   SCSS-variabel är fixerad vid kompilering och skulle tysta förstöra det.
 - Inga hårdkodade pixelvärden för avstånd/typsnitt/radier - hitta rätt token i
   `_tokens.scss` eller lägg till en ny där om skalan verkligen saknar den.
+- **`rem`, inte `px`**, så långt det går - även för engångsvärden som inte har en egen token
+  (t.ex. ett specifikt mått i en enda komponent). `rem` skalar med användarens egen
+  textstorlek, `px` gör det inte. Undantag: SVG-koordinater (viewBox, path, cx/cy/r - de är
+  enhetslösa ritenheter, inte CSS-mått) och `$radius-pill` (ett "garanterat större än allt"-
+  värde för en fullständig pil-form, inte ett verkligt mått - se kommentaren i
+  `_tokens.scss`).
 
 ## BEM i `<style scoped>`
 

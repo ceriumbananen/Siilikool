@@ -35,7 +35,7 @@ const {
   gap: $spacing-1;
   border: none;
   border-radius: $radius-md;
-  padding: 12px 18px;
+  padding: 0.75rem $spacing-4; // 12px, 18px
   font: inherit;
   font-size: $font-size-md;
   font-weight: 600;
@@ -43,12 +43,12 @@ const {
   transition: transform 0.1s;
   background: var(--blue);
   color: #fff;
-  box-shadow: 0 5px 0 var(--blue-ink);
+  box-shadow: 0 0.3125rem 0 var(--blue-ink); // 5px
   @include focus-visible;
 
   &:active {
-    transform: translateY(4px);
-    box-shadow: 0 2px 0 var(--blue-ink);
+    transform: translateY(0.25rem); // 4px
+    box-shadow: 0 0.125rem 0 var(--blue-ink); // 2px
   }
 
   &:disabled {
@@ -58,7 +58,7 @@ const {
 
   &--green {
     background: var(--moss);
-    box-shadow: 0 5px 0 color-mix(in srgb, var(--moss) 60%, black);
+    box-shadow: 0 0.3125rem 0 color-mix(in srgb, var(--moss) 60%, black); // 5px
   }
 
   &--ghost {
@@ -74,7 +74,7 @@ const {
 
   &--danger {
     background: var(--berry);
-    box-shadow: 0 5px 0 color-mix(in srgb, var(--berry) 60%, black);
+    box-shadow: 0 0.3125rem 0 color-mix(in srgb, var(--berry) 60%, black); // 5px
   }
 
   &--wide {
@@ -83,7 +83,7 @@ const {
 
   &--big {
     font-size: $font-size-xl;
-    padding: 18px 26px;
+    padding: $spacing-4 1.625rem; // 18px, 26px
   }
 }
 </style>

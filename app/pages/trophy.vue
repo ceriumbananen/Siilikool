@@ -5,7 +5,12 @@
 
    Medvetet utelämnat tills vidare: "Ord Siiri övar extra med dig" (hardWords() i legacy-
    koden) - den bygger på hela ordförrådet (THEMES/TRIP, 400+ ord), som fortfarande bara
-   finns i app.js. Porteras hit när ordförrådet självt flyttas till Vue, inte innan. */
+   finns i app.js. Porteras hit när ordförrådet självt flyttas till Vue, inte innan.
+
+   UiAppShell ger samma toppfält/nivåmätare/bottennav som spelets egna skärmar (annars
+   fullständigt frånvarande på en fristående Nuxt-sida, se app/components/ui/AppShell.vue).
+   "me" markerad som vald flik - Skattkammaren nås oftast via profilen, och ingen av de
+   fem flikarna representerar den här sidan mer exakt förrän spelet har en riktig router. */
 
 const profile = useProfileStore();
 
@@ -31,96 +36,101 @@ const badgeRows = computed(() =>
 </script>
 
 <template>
-  <main class="trophy-page">
-    <header class="trophy-page__hero">
-      <span class="trophy-page__hero-emoji" aria-hidden="true">🏆</span>
-      <div>
-        <h1>Aarded</h1>
-        <p>Skattkammaren</p>
-      </div>
-    </header>
+  <UiAppShell active="me">
+    <main class="trophy-page">
+      <header class="trophy-page__hero">
+        <span class="trophy-page__hero-emoji" aria-hidden="true">🏆</span>
+        <div>
+          <h1>Aarded</h1>
+          <p>Skattkammaren</p>
+        </div>
+      </header>
 
-    <UiAppCard class="trophy-page__section">
-      <p>
-        {{ RANKS.length }} märken att samla, från bronsigelkotten till kungsigelkotten på 100 000 poäng. Medaljen ser
-        olika ut beroende på vilken nivå du spelade när du tog den: 🍃 grönt löv, ⭐ rött band eller 🔥 lila stjärna.
-      </p>
-      <p>
-        <b>{{ profile.state.xp.toLocaleString("sv-SE") }}</b> poäng ·
-        <template v-if="nextRank"
-          >nästa märke om <b>{{ (nextRank.xp - profile.state.xp).toLocaleString("sv-SE") }}</b> poäng</template
+      <UiAppCard class="trophy-page__section">
+        <p>
+          {{ RANKS.length }} märken att samla, från bronsigelkotten till kungsigelkotten på 100 000 poäng. Medaljen ser
+          olika ut beroende på vilken nivå du spelade när du tog den: 🍃 grönt löv, ⭐ rött band eller 🔥 lila stjärna.
+        </p>
+        <p>
+          <b>{{ profile.state.xp.toLocaleString("sv-SE") }}</b> poäng ·
+          <template v-if="nextRank"
+            >nästa märke om <b>{{ (nextRank.xp - profile.state.xp).toLocaleString("sv-SE") }}</b> poäng</template
+          >
+          <template v-else>du har alla märken!</template>
+        </p>
+        <ul class="trophy-page__medals">
+          <li
+            v-for="(rank, i) in RANKS"
+            :key="rank.id"
+            class="trophy-page__medal"
+            :class="{ 'trophy-page__medal--locked': i > ri, 'trophy-page__medal--current': i === ri }"
+          >
+            <UiMedalBadge :rank="rank" :locked="i > ri" :medal-style="medalStyleOf(profile.state.mstyle, rank.id)" />
+            <b lang="et">{{ rank.et }}</b>
+            <span>{{ rank.sv }}</span>
+            <span>{{
+              i > ri ? `${rank.xp} poäng` : difficultyLabel(medalStyleOf(profile.state.mstyle, rank.id))
+            }}</span>
+          </li>
+        </ul>
+      </UiAppCard>
+
+      <UiAppCard class="trophy-page__section">
+        <h2>{{ quest.quest.em }} Dagens utmaning</h2>
+        <p>{{ quest.quest.sv }} – {{ quest.value }} av {{ quest.quest.goal }}{{ quest.done ? " ✓ klar!" : "" }}</p>
+        <div
+          class="trophy-page__quest-bar"
+          role="progressbar"
+          :aria-valuenow="quest.value"
+          :aria-valuemin="0"
+          :aria-valuemax="quest.quest.goal"
         >
-        <template v-else>du har alla märken!</template>
-      </p>
-      <ul class="trophy-page__medals">
-        <li
-          v-for="(rank, i) in RANKS"
-          :key="rank.id"
-          class="trophy-page__medal"
-          :class="{ 'trophy-page__medal--locked': i > ri, 'trophy-page__medal--current': i === ri }"
-        >
-          <UiMedalBadge :rank="rank" :locked="i > ri" :medal-style="medalStyleOf(profile.state.mstyle, rank.id)" />
-          <b lang="et">{{ rank.et }}</b>
-          <span>{{ rank.sv }}</span>
-          <span>{{ i > ri ? `${rank.xp} poäng` : difficultyLabel(medalStyleOf(profile.state.mstyle, rank.id)) }}</span>
-        </li>
-      </ul>
-    </UiAppCard>
+          <i :style="{ width: `${Math.round((quest.value / quest.quest.goal) * 100)}%` }" />
+        </div>
+      </UiAppCard>
 
-    <UiAppCard class="trophy-page__section">
-      <h2>{{ quest.quest.em }} Dagens utmaning</h2>
-      <p>{{ quest.quest.sv }} – {{ quest.value }} av {{ quest.quest.goal }}{{ quest.done ? " ✓ klar!" : "" }}</p>
-      <div
-        class="trophy-page__quest-bar"
-        role="progressbar"
-        :aria-valuenow="quest.value"
-        :aria-valuemin="0"
-        :aria-valuemax="quest.quest.goal"
-      >
-        <i :style="{ width: `${Math.round((quest.value / quest.quest.goal) * 100)}%` }" />
-      </div>
-    </UiAppCard>
+      <UiAppCard v-if="duelRows.length" class="trophy-page__section">
+        <h2>⚔️ Duellhyllan</h2>
+        <ul class="trophy-page__duels">
+          <li v-for="row in duelRows" :key="row.rival.id" class="trophy-page__duel">
+            <span class="trophy-page__duel-emoji" aria-hidden="true">
+              {{ row.rival.em }}
+              <span v-if="(row.record?.w || 0) >= 5" class="trophy-page__duel-cup" aria-hidden="true">🏆</span>
+            </span>
+            <span>
+              <b lang="et">{{ row.rival.et }}</b>
+              <small>
+                {{ row.record?.w || 0 }} vinster · {{ row.record?.l || 0 }} förluster
+                <template v-if="row.record?.best">· bästa {{ starRating(row.record.best) }}</template>
+              </small>
+            </span>
+          </li>
+        </ul>
+      </UiAppCard>
 
-    <UiAppCard v-if="duelRows.length" class="trophy-page__section">
-      <h2>⚔️ Duellhyllan</h2>
-      <ul class="trophy-page__duels">
-        <li v-for="row in duelRows" :key="row.rival.id" class="trophy-page__duel">
-          <span class="trophy-page__duel-emoji" aria-hidden="true">
-            {{ row.rival.em }}
-            <span v-if="(row.record?.w || 0) >= 5" class="trophy-page__duel-cup" aria-hidden="true">🏆</span>
-          </span>
-          <span>
-            <b lang="et">{{ row.rival.et }}</b>
-            <small>
-              {{ row.record?.w || 0 }} vinster · {{ row.record?.l || 0 }} förluster
-              <template v-if="row.record?.best">· bästa {{ starRating(row.record.best) }}</template>
-            </small>
-          </span>
-        </li>
-      </ul>
-    </UiAppCard>
-
-    <UiAppCard class="trophy-page__section">
-      <h2>{{ profile.state.name ? `${profile.state.name}s bragder` : "Dina bragder" }}</h2>
-      <UiBadgeChip
-        v-for="row in badgeRows"
-        :key="row.badge.id"
-        :badge="row.badge"
-        :earned="row.earned"
-        :progress="row.progress"
-      />
-      <p class="trophy-page__stats">
-        ⭐ {{ profile.state.stars }} stjärnor · {{ profile.state.correct }} rätta svar · 🔥 bästa kombo:
-        {{ profile.state.bestcombo || 0 }} i rad
-      </p>
-    </UiAppCard>
-  </main>
+      <UiAppCard class="trophy-page__section">
+        <h2>{{ profile.state.name ? `${profile.state.name}s bragder` : "Dina bragder" }}</h2>
+        <section class="trophy-page__badges">
+          <UiBadgeChip
+            v-for="row in badgeRows"
+            :key="row.badge.id"
+            :badge="row.badge"
+            :earned="row.earned"
+            :progress="row.progress"
+          />
+        </section>
+        <p class="trophy-page__stats">
+          ⭐ {{ profile.state.stars }} stjärnor · {{ profile.state.correct }} rätta svar · 🔥 bästa kombo:
+          {{ profile.state.bestcombo || 0 }} i rad
+        </p>
+      </UiAppCard>
+    </main>
+  </UiAppShell>
 </template>
 
 <style lang="scss" scoped>
+// Bredd-begränsningen kommer från UiAppShell:s __content-omslag, inte härifrån.
 .trophy-page {
-  @include content-width;
-
   &__hero {
     display: flex;
     align-items: center;
@@ -147,7 +157,7 @@ const badgeRows = computed(() =>
   }
 
   &__hero-emoji {
-    font-size: 34px;
+    font-size: 2.125rem; // 34px
     line-height: 1;
   }
 
@@ -168,9 +178,9 @@ const badgeRows = computed(() =>
 
   &__medals {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(clamp(96px, 25vw, 130px), 1fr));
-    gap: 12px;
-    margin: 4px 0 0;
+    grid-template-columns: repeat(auto-fill, minmax(clamp(6rem, 25vw, 8.125rem), 1fr)); // 96px, 130px
+    gap: 0.75rem; // 12px
+    margin: 0.25rem 0 0; // 4px
     padding: 0;
     list-style: none;
   }
@@ -179,14 +189,14 @@ const badgeRows = computed(() =>
     background: var(--card);
     border: $border-width solid var(--line);
     border-radius: $radius-card;
-    padding: 8px;
+    padding: 0.5rem; // 8px
     text-align: center;
     box-shadow: $shadow-2;
 
     b {
       display: block;
       font-size: $font-size-md;
-      margin-top: 4px;
+      margin-top: 0.25rem; // 4px
       line-height: 1.15;
     }
 
@@ -204,7 +214,7 @@ const badgeRows = computed(() =>
     &--current {
       border-color: var(--honey);
       box-shadow:
-        0 0 0 4px color-mix(in srgb, var(--honey) 35%, transparent),
+        0 0 0 0.25rem color-mix(in srgb, var(--honey) 35%, transparent),
         $shadow-2;
     }
   }
@@ -212,10 +222,10 @@ const badgeRows = computed(() =>
   &__quest-bar {
     display: block;
     width: 100%;
-    height: 14px;
+    height: 0.875rem; // 14px
     border-radius: $radius-lg;
     background: var(--line);
-    margin-top: 8px;
+    margin-top: 0.5rem; // 8px
     overflow: hidden;
 
     i {
@@ -235,8 +245,8 @@ const badgeRows = computed(() =>
     display: flex;
     gap: $spacing-2;
     align-items: center;
-    padding: 8px 0;
-    border-bottom: 2px dotted var(--line);
+    padding: 0.5rem 0; // 8px
+    border-bottom: 0.125rem dotted var(--line); // 2px
     text-align: left;
 
     &:last-child {
@@ -256,19 +266,19 @@ const badgeRows = computed(() =>
   }
 
   &__duel-emoji {
-    font-size: 30px;
+    font-size: 1.875rem; // 30px
     position: relative;
   }
 
   &__duel-cup {
     position: absolute;
-    right: -8px;
-    bottom: -4px;
-    font-size: 16px;
+    right: -0.5rem; // -8px
+    bottom: -0.25rem; // -4px
+    font-size: 1rem; // 16px
   }
 
   &__stats {
-    margin-top: 12px;
+    margin-top: 0.75rem; // 12px
   }
 }
 </style>

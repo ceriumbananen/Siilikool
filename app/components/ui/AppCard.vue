@@ -15,7 +15,7 @@
   background: var(--card);
   border: $border-width solid var(--line);
   border-radius: $radius-card;
-  padding: 18px;
+  padding: $spacing-4; // 18px
   box-shadow: $shadow-3;
 }
 </style>

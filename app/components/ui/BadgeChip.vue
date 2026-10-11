@@ -30,9 +30,9 @@ const {
   background: var(--honey);
   color: #3a2708;
   border-radius: $radius-lg;
-  padding: 8px 12px;
+  padding: 0.5rem 0.75rem; // 8px, 12px
   font-weight: 600;
-  margin: 4px;
+  margin: 0.25rem; // 4px
 
   &--locked {
     opacity: 0.35;

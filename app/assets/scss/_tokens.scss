@@ -1,5 +1,7 @@
 // Statisk design-skala (typsnitt, avstånd, radier, skuggor, kantlinjer) för nya Vue-komponenter.
-// Porterad från den statiska delen av :root i public/legacy/style.css (rad 1-48).
+// Porterad från den statiska delen av :root i public/legacy/style.css (rad 1-48). rem
+// genomgående (utom där det uttryckligen inte ska skala, se $radius-pill) - samma pixelvärden
+// vid webbläsarens standard-rotstorlek (16px), men skalar med användarens egen textstorlek.
 //
 // Färger hör INTE hemma här: appen växlar dem i realtid för dark mode och färgteman
 // (`@media (prefers-color-scheme: dark)`, `:root[data-color="..."]`), vilket SCSS-variabler
@@ -9,32 +11,36 @@
 // Tillgänglig i alla <style lang="scss">-block automatiskt (nuxt.config.ts: vite.css.
 // preprocessorOptions.scss.additionalData) - importera aldrig denna fil manuellt.
 
-// Typskala
-$font-size-xs: 12.5px;
-$font-size-sm: 14px;
-$font-size-md: 16px;
-$font-size-lg: 19px;
-$font-size-xl: clamp(21px, 3.4vw, 25px);
-$font-size-2xl: clamp(26px, 5vw, 34px);
-$font-size-3xl: clamp(34px, 8vw, 52px);
+// Typskala (12.5/14/16/19px)
+$font-size-xs: 0.78125rem;
+$font-size-sm: 0.875rem;
+$font-size-md: 1rem;
+$font-size-lg: 1.1875rem;
+$font-size-xl: clamp(1.3125rem, 3.4vw, 1.5625rem);
+$font-size-2xl: clamp(1.625rem, 5vw, 2.125rem);
+$font-size-3xl: clamp(2.125rem, 8vw, 3.25rem);
 
-// Avstånd
-$spacing-1: 6px;
-$spacing-2: 10px;
-$spacing-3: 14px;
-$spacing-4: 20px;
-$spacing-5: 28px;
+// Avstånd (6/10/14/20/28px)
+$spacing-1: 0.375rem;
+$spacing-2: 0.625rem;
+$spacing-3: 0.875rem;
+$spacing-4: 1.25rem;
+$spacing-5: 1.75rem;
 
-// Form
-$radius-sm: 14px;
-$radius-md: 18px;
-$radius-lg: 24px;
-$radius-card: 22px;
+// Form (14/18/24/22px)
+$radius-sm: 0.875rem;
+$radius-md: 1.125rem;
+$radius-lg: 1.5rem;
+$radius-card: 1.375rem;
+// Medvetet KVAR i px: inget verkligt mått, bara ett värde garanterat större än halva höjden
+// på allt vi bygger, så border-radius blir en fullständig pil oavsett elementets storlek.
+// Som rem skulle den växa med textstorleken och sluta vara "oändlig" - exakt buggen en
+// tidigare (obehörig) ändring råkade introducera här (999px blev av misstag 5rem/80px).
 $radius-pill: 999px;
-$border-width: 3px;
+$border-width: 0.1875rem; // 3px
 
 // Skuggor (samma recept som --sh-* i style.css: mörk, ofärgad - komponenter tonar dem
-// efter sin egen bakgrund vid behov)
-$shadow-1: 0 2px 0 rgba(31, 61, 43, 0.12);
-$shadow-2: 0 6px 0 rgba(31, 61, 43, 0.18);
-$shadow-3: 0 10px 30px rgba(31, 61, 43, 0.12);
+// efter sin egen bakgrund vid behov). Offset/blur i rem, spridningslös precis som förut.
+$shadow-1: 0 0.125rem 0 rgba(31, 61, 43, 0.12);
+$shadow-2: 0 0.375rem 0 rgba(31, 61, 43, 0.18);
+$shadow-3: 0 0.625rem 1.875rem rgba(31, 61, 43, 0.12);

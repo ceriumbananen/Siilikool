@@ -103,6 +103,6 @@ const clipId = `medal-clip-${uid}`;
 <style lang="scss" scoped>
 .medal-badge {
   width: 100%;
-  max-width: 96px;
+  max-width: 6rem; // 96px
 }
 </style>
