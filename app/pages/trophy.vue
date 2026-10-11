@@ -119,6 +119,8 @@ const badgeRows = computed(() =>
 
 <style lang="scss" scoped>
 .trophy-page {
+  @include content-width;
+
   &__hero {
     display: flex;
     align-items: center;

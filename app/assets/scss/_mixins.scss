@@ -9,3 +9,26 @@
     outline-offset: $border-width;
   }
 }
+
+// Samma innehållsbredd som spelets .wrap i public/legacy/style.css: centrerad, växer i steg
+// på bredare skärmar. En ny Nuxt-sida (app/pages/*.vue) får ingen bredd-begränsning från
+// app.vue (bara <NuxtPage /> där, ingen delad layout) - varje sida som hör till spelet
+// behöver därför den här på sitt rotelement.
+@mixin content-width {
+  width: 100%;
+  max-width: min(96vw, 700px);
+  margin: 0 auto;
+  padding: 8px clamp(12px, 3.2vw, 22px) 36px;
+
+  @media (min-width: 1000px) {
+    max-width: 900px;
+  }
+
+  @media (min-width: 1400px) {
+    max-width: 1100px;
+  }
+
+  @media (min-width: 1800px) {
+    max-width: 1320px;
+  }
+}
