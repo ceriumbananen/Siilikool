@@ -10,11 +10,15 @@
    är också utelämnad av samma skäl.
 
    Länkar till skärmar som ännu inte flyttats till Vue (rummet, läxorna, "för vuxna", redigera
-   namn/figur, marknaden, ordlistan) går till / (hel sidladdning) - ingen riktig router för
-   spelets skärmar finns än, se app/components/ui/AppShell.vue. Skattkammaren är redan en
-   egen sida och länkas dit på riktigt. Familjekortet och spelarväxlaren återanvänder
+   namn/figur, marknaden, ordlistan) går till / och hoppar direkt till rätt skärm där - se
+   app/utils/legacy-nav.ts och uppstartssekvensen allra sist i app.js. Skattkammaren är redan
+   en egen sida och länkas dit på riktigt. Familjekortet och spelarväxlaren återanvänder
    useCloudStore() och WhoPlays.vue rakt av - de är redan riktiga Vue-byggstenar, inget att
-   portera. */
+   portera.
+
+   Adminläget (tidigare: fem snabba klick på "Seaded · Inställningar" inom 3,5s, se setttl i
+   git-historiken för profileScreen) är medvetet utan ljudsignalen de gamla klicken gav -
+   den kommer från tone(), som hör till ljudmotorn i app.js och inte är laddad här. */
 
 const profile = useProfileStore();
 const cloud = useCloudStore();
@@ -75,6 +79,23 @@ const doLock = () =>
     await cloud.lock();
     location.href = "/"; /* till spelet – nu som barnenhet */
   });
+
+/* Hemligt adminläge: fem klick på rubriken nedan inom 3,5s, precis som setttl gjorde i
+ * profileScreen (se app/utils/legacy-nav.ts för hur hoppet till app.js görs). */
+let adminTaps = 0;
+let adminTapTimer: ReturnType<typeof setTimeout> | undefined;
+function tapSettingsTitle() {
+  adminTaps++;
+  clearTimeout(adminTapTimer);
+  adminTapTimer = setTimeout(() => {
+    adminTaps = 0;
+  }, 3500);
+  if (adminTaps >= 5) {
+    adminTaps = 0;
+    markLegacyScreen("admin");
+    location.href = "/";
+  }
+}
 </script>
 
 <template>
@@ -240,7 +261,7 @@ const doLock = () =>
       </UiAppCard>
 
       <UiAppCard class="profile-page__section">
-        <h2>Seaded · Inställningar</h2>
+        <h2 class="profile-page__secret-tap" @click="tapSettingsTitle">Seaded · Inställningar</h2>
         <div class="profile-page__row">
           <UiAppButton variant="ghost" @click="toggleSound">{{
             profile.state.sound ? "🔊 Ljud på" : "🔇 Ljud av"
@@ -265,8 +286,10 @@ const doLock = () =>
         🤫
       </button>
 
-      <a class="profile-page__btn profile-page__btn--wide" href="/">🏠 Siiri tuba · välj Siiris färg och kläder</a>
-      <a v-if="profile.state.school" class="profile-page__bigcard" href="/">
+      <a class="profile-page__btn profile-page__btn--wide" href="/" @click="markLegacyScreen('room')"
+        >🏠 Siiri tuba · välj Siiris färg och kläder</a
+      >
+      <a v-if="profile.state.school" class="profile-page__bigcard" href="/" @click="markLegacyScreen('school')">
         <span class="profile-page__bigcard-emoji" aria-hidden="true">📝</span>
         <span class="profile-page__bigcard-text">
           <b>Läxorden · ▶️ Öva</b>
@@ -278,13 +301,26 @@ const doLock = () =>
         v-if="!(cloud.link?.kind === 'child' || cloud.isLocked)"
         class="profile-page__btn profile-page__btn--wide profile-page__btn--ghost"
         href="/"
+        @click="markLegacyScreen('parent')"
       >
         🔐 För vuxna
       </a>
-      <a class="profile-page__btn profile-page__btn--wide" href="/">✏️ Ändra namn, figur och färg</a>
-      <a class="profile-page__btn profile-page__btn--wide profile-page__btn--ghost" href="/">🎪 Laat · Marknaden</a>
+      <a class="profile-page__btn profile-page__btn--wide" href="/" @click="markLegacyScreen('edit')"
+        >✏️ Ändra namn, figur och färg</a
+      >
+      <a
+        class="profile-page__btn profile-page__btn--wide profile-page__btn--ghost"
+        href="/"
+        @click="markLegacyScreen('shop')"
+        >🎪 Laat · Marknaden</a
+      >
       <a class="profile-page__btn profile-page__btn--wide profile-page__btn--ghost" href="/trophy">🏆 Skattkammaren</a>
-      <a class="profile-page__btn profile-page__btn--wide profile-page__btn--ghost" href="/">📖 Sõnastik · Ordlistan</a>
+      <a
+        class="profile-page__btn profile-page__btn--wide profile-page__btn--ghost"
+        href="/"
+        @click="markLegacyScreen('words')"
+        >📖 Sõnastik · Ordlistan</a
+      >
     </main>
   </UiAppShell>
 </template>
@@ -334,6 +370,11 @@ const doLock = () =>
     p {
       margin: 0 0 $spacing-1;
     }
+  }
+
+  &__secret-tap {
+    cursor: pointer;
+    user-select: none;
   }
 
   &__me {

@@ -16785,6 +16785,24 @@
     btnBack.hidden = true;
     setupScreen(true);
   } else {
-    homeScreen();
+    /* Nuxt-sidor som flyttats ut ur app.js (t.ex. app/pages/profile.vue) har knappar som
+       leder in i skärmar som inte har egna URL:er än - de sparar vilken här innan de laddar
+       om på / (se app/utils/legacy-nav.ts), och vi hoppar direkt dit istället för hemskärmen. */
+    var openScreen = null;
+    try {
+      openScreen = sessionStorage.getItem("siiri-open");
+      if (openScreen) sessionStorage.removeItem("siiri-open");
+    } catch (e) {}
+    if (openScreen === "room") go(roomScreen, true);
+    else if (openScreen === "shop") go(shopScreen, true);
+    else if (openScreen === "words") go(listScreen, true);
+    else if (openScreen === "school") go(schoolLessonStart, true);
+    else if (openScreen === "edit") setupScreen(false);
+    else if (openScreen === "parent")
+      adultGate(function () {
+        go(parentScreen, true);
+      });
+    else if (openScreen === "admin") askAdmin();
+    else homeScreen();
   }
 })();

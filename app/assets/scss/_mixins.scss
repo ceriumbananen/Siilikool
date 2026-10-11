@@ -24,7 +24,11 @@
   width: 100%;
   max-width: min(96vw, 43.75rem); // 700px
   margin: 0 auto;
-  padding: 0.5rem clamp(0.75rem, 3.2vw, 1.375rem) 2.25rem; // 8px, 12-22px, 36px
+  // Nederkanten är extra rymlig (inte bara 36px som sidorna i övrigt) eftersom AppShell:s
+  // bottennav (app/components/ui/AppShell.vue) ligger fast ovanpå innehållet - utan det
+  // göms (och går inte att klicka på) det sista kortet/knappen på en lång sida, som hände
+  // med länkarna längst ner på profilsidan.
+  padding: 0.5rem clamp(0.75rem, 3.2vw, 1.375rem) calc(7rem + env(safe-area-inset-bottom, 0px)); // 8px, 12-22px
 
   @media (min-width: 62.5rem) {
     // 1000px
