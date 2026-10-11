@@ -17,8 +17,9 @@ export default defineNuxtConfig({
     injectRegister: false,
     client: { registerPlugin: false },
     injectManifest: {
-      /* appens filer sparas i förväg; ljudet (≈18 MB) hämtas när det behövs */
-      globPatterns: ["**/*.{js,css,html,png,webmanifest}"],
+      /* appens filer sparas i förväg (också Siiris bild, images/siiri/*.webp); ljudet (≈18 MB)
+         hämtas när det behövs */
+      globPatterns: ["**/*.{js,css,html,png,webp,webmanifest}"],
       /* byggmanifesten (_nuxt/builds) är till för att upptäcka nya versioner – de ska alltid hämtas från nätet */
       globIgnores: ["audio/**", "200.html", "404.html", "sw.js", "_nuxt/builds/**"],
       maximumFileSizeToCacheInBytes: 3 * 1024 * 1024,
@@ -59,7 +60,7 @@ export default defineNuxtConfig({
   },
   /* sidorna utöver spelet får egna filer, så att Cloudflare svarar 200 på dem direkt */
   nitro: {
-    prerender: { routes: ["/parent", "/join", "/connect", "/invite", "/trophy", "/profile"] },
+    prerender: { routes: ["/parent", "/join", "/connect", "/invite", "/trophy", "/profile", "/shop"] },
   },
   /* ingen Nuxt-laddningsskärm – appen har sin egen bakgrund i style.css */
   spaLoadingTemplate: false,

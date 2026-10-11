@@ -16,8 +16,8 @@
      6 gånger snabbt (inom 1,2s).
    - "Kuldne Siiri" (gold): håll in i 1,1 sekunder utan att vicka (fingret får glida högst 12px).
    - "Aptsihh" (sneeze): knacka 3 gånger snabbt (inom 1,5s) på nosen.
-   De säger sin replik högt, med konfetti och belöning (useRewards: nytt märke visas av
-   UiRankUpOverlay i AppShell).
+   De säger sin replik högt, med konfetti och belöning (useRewards: rutorna "Hemlighet!" och
+   "Nytt märke" visas av UiSecretOverlay och UiRankUpOverlay i AppShell).
 
    Att använda henne på en skärm: <UiSiiriPortrait size="small" /> (eller "big"); humör och dans
    styrs från skärmen med useSiiri().mood("cheer" | "oops" | "listen" | "think" | "") och
@@ -39,7 +39,7 @@ const profile = useProfileStore();
 const { tone, buzz, sndLvl } = useSiiriSound();
 const { burst } = useConfetti();
 const voice = useSiiriVoice();
-const { foundSecret, secretReward, addXp } = useRewards();
+const { foundSecret, secretReward, addXp, showSecret } = useRewards();
 const { danceRequest, moodRequest } = useSiiri();
 /* egna id:n till pälsens färglager, så att flera figurer på samma sida inte delar dem */
 const uid = useId().replace(/[^a-zA-Z0-9]/g, "");
@@ -72,43 +72,6 @@ const furHtml = computed(() => furLayer(furObj.value, `s${uid}`));
 
 function wearing(w: Wear | undefined, slot: string): string | null {
   return (w || {})[slot] || null;
-}
-
-/* ---------- hemlighetsrutan: repliken visas och sägs högt, stängs själv efter 6s ---------- */
-type SecretLine = { em: string; et: string; sv: string; clip: string };
-const SECRET_LINES: Record<string, SecretLine> = {
-  gold: {
-    em: "🌟",
-    et: "Vaata, ma olen kuldne siil!",
-    sv: "Titta, jag är en gyllene igelkott!",
-    clip: "/audio/clips/normal/vaata-ma-olen-kuldne-siil.mp3",
-  },
-  tickle: {
-    em: "🤭",
-    et: "Kõdi! Ära kõdista mind!",
-    sv: "Det kittlas! Sluta kittla mig!",
-    clip: "/audio/clips/normal/kodi-ara-kodista-mind.mp3",
-  },
-  sneeze: {
-    em: "🤧",
-    et: "Aptsihh! Vabandust.",
-    sv: "Atjo! Ursäkta.",
-    clip: "/audio/clips/normal/aptsihh-vabandust.mp3",
-  },
-};
-const secretOverlay = ref<SecretLine | null>(null);
-let secretTimer: ReturnType<typeof setTimeout> | undefined;
-function showSecret(id: string) {
-  const line = SECRET_LINES[id];
-  if (!line) return;
-  voice.say([line.clip]);
-  secretOverlay.value = line;
-  clearTimeout(secretTimer);
-  secretTimer = setTimeout(closeSecret, 6000);
-}
-function closeSecret() {
-  clearTimeout(secretTimer);
-  secretOverlay.value = null;
 }
 
 /* ---------- figurens tillstånd (klasser på svg:n) ---------- */
@@ -260,7 +223,7 @@ function goldenSiiri() {
   sndLvl();
   cheer();
   const isNew = foundSecret("gold");
-  showSecret("gold");
+  showSecret("gold", "🌟");
   if (isNew) addXp(40);
 }
 function tickleSiiri() {
@@ -272,7 +235,7 @@ function tickleSiiri() {
   tone(1320, 0.12, 0.18);
   burst(50);
   const isNew = foundSecret("tickle");
-  showSecret("tickle");
+  showSecret("tickle", "🤭");
   if (isNew) addXp(40);
 }
 function sneeze() {
@@ -281,7 +244,7 @@ function sneeze() {
   tone(420, 0.22, 0.08, "triangle");
   burst(40);
   secretReward("sneeze", 40);
-  showSecret("sneeze");
+  showSecret("sneeze", "🤧");
 }
 
 /* ---------- gest-igenkänning: håll+vicka eller 6 snabba knack = kittla, 1,1s långt
@@ -399,7 +362,9 @@ function onPointerCancel() {
 }
 
 onMounted(() => {
-  voice.preload(Object.values(SECRET_LINES).map(l => l.clip)); /* så att replikerna kommer direkt */
+  /* så att replikerna kommer direkt */
+  for (const et of [EGGS.gold!.et, EGGS.tickle!.et, EGGS2.sneeze!.et])
+    findWordClip(et).then(c => c && voice.preload([c.src]));
   window.addEventListener("pointermove", onPointerMove, { passive: true });
   document.addEventListener("pointerdown", onPointerDown, { passive: true });
   document.addEventListener("pointerup", onPointerUp, { passive: true });
@@ -412,7 +377,7 @@ onUnmounted(() => {
   document.removeEventListener("pointerup", onPointerUp);
   document.removeEventListener("pointercancel", onPointerCancel);
   window.removeEventListener("blur", onPointerCancel);
-  [pressTimer, tapTimer, noseTimer, danceTimer, pulseTimer, moodTimer, secretTimer].forEach(t => clearTimeout(t));
+  [pressTimer, tapTimer, noseTimer, danceTimer, pulseTimer, moodTimer].forEach(t => clearTimeout(t));
   voice.hush();
 });
 </script>
@@ -634,20 +599,6 @@ onUnmounted(() => {
       </g>
     </svg>
     <span class="siiri-portrait__shadow" />
-
-    <!-- till <body>: omslagets perspective (lutningen) skulle annars hålla rutan inom figuren -->
-    <Teleport to="body">
-      <!-- stängs bara med knappen (eller av sig själv) - barnen trycker ofta många gånger i rad -->
-      <div v-if="secretOverlay" class="siiri-portrait__overlay" role="dialog" aria-modal="true">
-        <div class="siiri-portrait__overlay-card">
-          <p class="siiri-portrait__overlay-kicker">🤫 Hemlighet!</p>
-          <div class="siiri-portrait__overlay-emoji" aria-hidden="true">{{ secretOverlay.em }}</div>
-          <h3 lang="et">{{ secretOverlay.et }}</h3>
-          <p>{{ secretOverlay.sv }}</p>
-          <UiAppButton variant="primary" wide @click="closeSecret">Hihi!</UiAppButton>
-        </div>
-      </div>
-    </Teleport>
   </span>
 </template>
 
@@ -845,49 +796,6 @@ onUnmounted(() => {
     border-radius: 50%;
     background: radial-gradient(closest-side, rgba(40, 30, 15, 0.28), rgba(40, 30, 15, 0));
     pointer-events: none;
-  }
-
-  &__overlay {
-    position: fixed;
-    inset: 0;
-    z-index: 100;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: rgba(12, 28, 18, 0.55);
-    padding: $spacing-3;
-    line-height: normal; // .siiri-portrait sätter line-height:0 för den täta SVG-inramningen -
-    // den ärvs annars hit och kraschar all text i rutan på varandra
-  }
-
-  &__overlay-card {
-    background: var(--card);
-    border: $border-width solid #6b4fd8;
-    border-radius: $radius-card;
-    padding: $spacing-4;
-    max-width: 22rem; // 352px
-    width: 100%;
-    text-align: center;
-    box-shadow: $shadow-3;
-
-    h3 {
-      font-size: $font-size-xl;
-      margin: $spacing-1 0;
-    }
-
-    p {
-      margin: 0 0 $spacing-3;
-    }
-  }
-
-  &__overlay-kicker {
-    font-weight: 700;
-    margin: 0 0 $spacing-1;
-  }
-
-  &__overlay-emoji {
-    font-size: 4rem; // 64px
-    line-height: 1;
   }
 }
 

@@ -1,7 +1,6 @@
 /* Bragdmärkena (Skattkammaren m.fl.) - porterat från BADGES/badgeProgress i public/legacy/app.js
-   (rad 2483-2731 respektive 6781-6850). De magiska talen 20/49 nedan är TRIP.length/
-   SHOP.length i den gamla koden - de datalistorna porteras inte hit, bara längderna några
-   märken jämför mot, så länge Teekond/Laat fortfarande är legacy-skärmar. RIVALS (app/
+   (rad 2483-2731 respektive 6781-6850). Märkena som gäller resan, marknaden och temana jämför
+   mot de riktiga listorna (TRIP i trip.ts, SHOP i shop.ts, THEMES i themes.ts). RIVALS (app/
    utils/rivals.ts) auto-importeras, precis som allt annat i app/utils. */
 
 /** De fält badge-logiken faktiskt läser ur sparfilen (SaveData i shared/types/save.ts
@@ -30,12 +29,12 @@ export type Badge = {
   test: (s: BadgeProfile) => boolean;
 };
 
-const TRIP_LENGTH = 20;
-const SHOP_LENGTH = 49;
+const TRIP_LENGTH = TRIP.length;
+const SHOP_LENGTH = SHOP.length;
 const RIVAL_IDS = ["hiir", "rebane", "karu", "draakon"] as const;
 /** Hur många teman appen har totalt (THEMES.length i legacy-koden) - badgen "all" och
  * profilsidans "X av Y teman klara"-statistik jämför båda mot den. */
-export const THEMES_LENGTH = 25;
+export const THEMES_LENGTH = THEMES.length;
 
 export const BADGES: Badge[] = [
   { id: "first", em: "🌱", sv: "Första ordet", test: s => s.correct >= 1 },
@@ -122,7 +121,9 @@ export function badgeProgress(badge: Badge, s: BadgeProfile): [number, number] |
     case "typed50":
       return [Math.min(s.typed, 50), 50];
     case "sent25":
-      return [Math.min(s.sentbest || 0, 6), 6];
+      /* två krav (6 meningar och 200 rätt) - visa det som ligger längst efter */
+      if ((s.sentbest || 0) / 6 <= (s.correct || 0) / 200) return [Math.min(s.sentbest || 0, 6), 6];
+      return [Math.min(s.correct || 0, 200), 200];
     case "flame7":
       return [Math.min(s.flames || 0, 7), 7];
     case "flame30":

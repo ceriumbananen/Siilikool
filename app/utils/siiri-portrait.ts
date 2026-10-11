@@ -54,7 +54,7 @@ export function myEye(eyeId: string | undefined): Eye {
 }
 /* färgen målas med ljus och skugga: ljusare upptill vänster, mättad i mitten,
        mörkare mot kanten – och ansiktet målas tillbaka i originalfärg */
-function mixHex(c: string, t: string, amt: number): string {
+export function mixHex(c: string, t: string, amt: number): string {
   function p(x: string): number {
     return parseInt(x, 16);
   }

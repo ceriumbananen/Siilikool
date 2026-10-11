@@ -1,8 +1,10 @@
-/* Poäng, nytt märke och hemligheter - porterat från addXp()/rankUp()/foundSecret()/eggReward()
-   i public/legacy/app.js (rad 2241-2286, 2475-2481, 5558-5569, 6738-6752). Rutan för nytt märke
-   visas av UiRankUpOverlay (monteras i AppShell). */
+/* Poäng, nytt märke och hemligheter - porterat från addXp()/rankUp()/foundSecret()/eggReward()/
+   eggSay() i public/legacy/app.js. Rutorna för nytt märke och hemligheter visas av
+   UiRankUpOverlay och UiSecretOverlay (monteras i AppShell). */
 
 const rankUp = ref<{ rank: Rank; index: number; style: MedalStyle } | null>(null);
+const secret = ref<{ em: string; et: string; sv: string } | null>(null);
+let secretTimer: ReturnType<typeof setTimeout> | undefined;
 
 export function useRewards() {
   const profile = useProfileStore();
@@ -53,5 +55,30 @@ export function useRewards() {
     return isNew;
   }
 
-  return { addXp, foundSecret, secretReward, rankUp, closeRankUp: () => (rankUp.value = null) };
+  /** Rutan "Hemlighet!" med Siiris replik (EGGS/EGGS2 i secrets.ts), som hon säger högt.
+   * Stängs med knappen eller av sig själv efter 6s - aldrig av ett klick utanför, eftersom
+   * barnen ofta trycker många gånger i rad (som eggSay()/eggSay2() i legacy). */
+  function showSecret(id: string, em: string) {
+    const line = EGGS[id] || EGGS2[id];
+    if (!line) return;
+    useSiiriVoice().sayWord(line.et);
+    secret.value = { em, ...line };
+    clearTimeout(secretTimer);
+    secretTimer = setTimeout(closeSecret, 6000);
+  }
+  function closeSecret() {
+    clearTimeout(secretTimer);
+    secret.value = null;
+  }
+
+  return {
+    addXp,
+    foundSecret,
+    secretReward,
+    rankUp,
+    closeRankUp: () => (rankUp.value = null),
+    secret,
+    showSecret,
+    closeSecret,
+  };
 }

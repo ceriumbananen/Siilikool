@@ -3,7 +3,7 @@
    länken till / laddar om sidan dit - i app.js:s uppstartssekvens (allra sist i filen) läses
    märket och man hoppar direkt till rätt skärm istället för till hemskärmen. Används av sidor
    som flyttats ut ur app.js men vars knappar fortfarande leder in i oporterade delar. */
-export type LegacyScreen = "room" | "shop" | "words" | "school" | "edit" | "parent" | "admin";
+export type LegacyScreen = "room" | "words" | "school" | "edit" | "parent" | "admin";
 
 export function markLegacyScreen(screen: LegacyScreen) {
   try {

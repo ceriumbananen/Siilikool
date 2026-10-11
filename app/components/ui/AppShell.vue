@@ -2,11 +2,10 @@
 /* Samma toppfält (profil/märke/stjärnor), nivåmätare och bottennavigering som spelets egna
  * skärmar har (LegacyApp.vue) - för Nuxt-sidor som migrerats ut ur app.js. Länkarna går till
  * hela sidladdningar (inte NuxtLink) eftersom den gamla appen bara kan starta en gång per
- * sidladdning (samma konvention som redan finns i app/app.vue). Profil- och märke-chipen samt
- * "Profiil"-fliken länkar till riktiga Nuxt-sidor (/profile, /trophy). "Sõnastik"-fliken går
+ * sidladdning (samma konvention som redan finns i app/app.vue). Profil-, märke- och stjärnchipen
+ * samt flikarna "Laat" och "Profiil" länkar till riktiga Nuxt-sidor (/profile, /trophy, /shop). "Sõnastik"-fliken går
  * via markLegacyScreen() (app/utils/legacy-nav.ts) rakt in i ordlistan istället för att bara
- * landa på hemskärmen - de två sista flikarna (Laat, Tuba) gör fortfarande bara det tills
- * deras skärmar också flyttas ut ur app.js. */
+ * landa på hemskärmen - "Tuba" gör fortfarande bara det tills rummet också flyttas ut ur app.js. */
 const { active = null } = defineProps<{
   /** Vilken av de sex flikarna som ska visas som vald. Ingen flik representerar den här
    * sidan specifikt förrän spelet har en riktig router för sina skärmar, så standard är
@@ -23,6 +22,29 @@ const xpPct = computed(() => {
   if (!next) return 100;
   return Math.max(0, Math.min(100, Math.round(((profile.state.xp - rank.value.xp) / (next.xp - rank.value.xp)) * 100)));
 });
+
+/* Stjärnorna uppe i hörnet leder till Laat. Där räknas trycken vidare: sju i rad (högst 3s
+ * mellan dem) ger hemligheten Stjärnregnet - som starchip/starRain() i public/legacy/app.js. */
+const { tone, sndLvl } = useSiiriSound();
+const { snow, petals } = useConfetti();
+const { secretReward, showSecret } = useRewards();
+let starTaps = 0;
+let starTimer: ReturnType<typeof setTimeout> | undefined;
+function tapStars() {
+  starTaps++;
+  clearTimeout(starTimer);
+  starTimer = setTimeout(() => (starTaps = 0), 3000);
+  if (starTaps >= 7) {
+    starTaps = 0;
+    snow(60);
+    petals(60, ["#FFD45E", "#FFE9A8", "#FFF3C8"]);
+    sndLvl();
+    secretReward("stars", 40, 25);
+    showSecret("stars", "⭐");
+    return;
+  }
+  if (starTaps >= 3) tone(560 + starTaps * 70, 0.05, 0);
+}
 </script>
 
 <template>
@@ -37,7 +59,10 @@ const xpPct = computed(() => {
         <a class="app-shell__chip app-shell__chip--rank" href="/trophy" aria-label="Öppna skattkammaren">
           <UiMedalBadge :rank="rank" :locked="false" :medal-style="medalStyleOf(profile.state.mstyle, rank.id)" />
         </a>
-        <a class="app-shell__chip" href="/" aria-label="Dina stjärnor – öppna marknaden">
+        <button v-if="active === 'shop'" class="app-shell__chip" aria-label="Dina stjärnor" @click="tapStars">
+          ⭐ <b>{{ profile.state.stars.toLocaleString("sv-SE") }}</b>
+        </button>
+        <a v-else class="app-shell__chip" href="/shop" aria-label="Dina stjärnor – öppna marknaden">
           ⭐ <b>{{ profile.state.stars.toLocaleString("sv-SE") }}</b>
         </a>
         <span class="app-shell__spacer" />
@@ -89,7 +114,7 @@ const xpPct = computed(() => {
         </span>
         <b>Sõnastik</b><small>Ordlistan</small>
       </a>
-      <a href="/" :class="{ 'app-shell__nav-btn--on': active === 'shop' }" class="app-shell__nav-btn">
+      <a href="/shop" :class="{ 'app-shell__nav-btn--on': active === 'shop' }" class="app-shell__nav-btn">
         <span class="app-shell__nav-emoji" aria-hidden="true">
           <svg viewBox="0 0 24 24">
             <path d="M3 8l2-4h14l2 4z" fill="currentColor" opacity=".55" />
@@ -114,9 +139,10 @@ const xpPct = computed(() => {
         <b>Profiil</b><small>Profil</small>
       </a>
     </nav>
-    <!-- konfetti och "Nytt märke upplåst!" - samma lager som spelets egna skärmar har -->
+    <!-- konfetti, "Nytt märke upplåst!" och "Hemlighet!" - samma lager som spelets egna skärmar har -->
     <UiConfettiLayer />
     <UiRankUpOverlay />
+    <UiSecretOverlay />
   </div>
 </template>
 
@@ -165,6 +191,8 @@ const xpPct = computed(() => {
     text-decoration: none;
     min-height: 2.75rem; // 44px
     box-shadow: $shadow-3;
+    font-family: inherit;
+    cursor: pointer;
     @include focus-visible;
 
     b {

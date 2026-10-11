@@ -13,6 +13,7 @@ let buf: Uint8Array<ArrayBuffer> | null = null;
 let graphTried = false;
 let raf: number | null = null;
 let queue: string[] = [];
+let rate = 1; /* uppspelningstakt för klippen i kön (långsamt utan egen långsam inspelning: 0,72) */
 let playId = 0; /* vilket klipp som gäller - ett avbrutet äldre play() ska inte stoppa ett nyare */
 let unlockInstalled = false;
 
@@ -37,13 +38,14 @@ function ensureGraph() {
   }
 }
 
-function startJaw() {
+/* live = munnen följer ljudet i <audio>-elementet; annars (systemrösten) gungar den i takt */
+function startJaw(live = true) {
   stopJaw();
   talking.value = true;
   const t0 = performance.now();
   const step = (now: number) => {
     let v: number;
-    if (analyser && buf) {
+    if (live && analyser && buf) {
       analyser.getByteTimeDomainData(buf);
       let sum = 0;
       for (let i = 0; i < buf.length; i += 2) {
@@ -129,6 +131,7 @@ function next() {
     if (id !== playId) return;
     ensureGraph();
     player!.src = src;
+    player!.playbackRate = rate;
     player!
       .play()
       .then(() => id === playId && startJaw())
@@ -148,12 +151,35 @@ export function useSiiriVoice() {
   const profile = useProfileStore();
   installUnlock();
 
-  /** Spelar klippen i följd (sökvägar som "/audio/clips/normal/tere.mp3") och rör munnen. */
-  function say(clips: string[]) {
+  /** Spelar klippen i följd (sökvägar som "/audio/clips/normal/tere.mp3") och rör munnen.
+   * playbackRate < 1 spelar dem långsammare. */
+  function say(clips: string[], playbackRate = 1) {
     if (!profile.state.sound || !clips.length) return;
     getPlayer().pause();
+    window.speechSynthesis?.cancel();
+    rate = playbackRate;
     queue = [...clips];
     next();
+  }
+
+  /** Säger ett estniskt ord eller en fras med Siiris inspelning (som speak() i legacy). Saknas
+   * inspelningen används en estnisk systemröst om enheten har en - annars blir det tyst. */
+  async function sayWord(et: string, slow = false) {
+    if (!profile.state.sound) return;
+    const clip = await findWordClip(et, slow);
+    if (clip) return say([clip.src], slow && !clip.isSlow ? 0.72 : 1);
+    const synth = window.speechSynthesis;
+    const etVoice = synth?.getVoices().find(v => /^et\b|^et-/i.test(v.lang));
+    if (!synth || !etVoice) return;
+    hush();
+    const u = new SpeechSynthesisUtterance(et);
+    u.voice = etVoice;
+    u.lang = etVoice.lang;
+    u.rate = slow ? 0.62 : 0.78;
+    u.pitch = 1.1;
+    u.onstart = () => startJaw(false);
+    u.onend = u.onerror = () => stopJaw();
+    synth.speak(u);
   }
 
   /** Hämtar klippen i förväg (de hamnar i service workerns cache), så att de spelas direkt. */
@@ -168,5 +194,5 @@ export function useSiiriVoice() {
     stopJaw();
   }
 
-  return { jaw: readonly(jaw), talking: readonly(talking), say, hush, preload };
+  return { jaw: readonly(jaw), talking: readonly(talking), say, sayWord, hush, preload };
 }
