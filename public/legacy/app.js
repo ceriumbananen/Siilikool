@@ -5733,17 +5733,22 @@
     };
   }
   function stFinaleEnd() {
+    /* belöningen ges bara första gången - annars skulle fri repetition av Salmes
+       station (se tripScreen) kunna farmas om och om igen för gratis XP/stjärnor */
+    var firstTime = !S.songDone;
     var gain = 400 + (ST ? ST.stars : 0);
     var wrong = ST ? ST.wrong : 0;
     ST = null;
     if (!S.badges) S.badges = [];
     if (S.badges.indexOf("laulupidu") < 0) S.badges.push("laulupidu");
     S.songDone = 1;
-    earnStars(gain);
-    addXp(500);
+    if (firstTime) {
+      earnStars(gain);
+      addXp(500);
+    }
     save();
     refreshTop();
-    autoBackup("sångfesten");
+    if (firstTime) autoBackup("sångfesten");
     burst(420);
     fanfare(3);
     balloons(16);
@@ -5767,10 +5772,9 @@
       '<p class="qsub">Du har rest genom hela Estland, samlat alla sju raderna och sjungit dem ' +
       "på sångarfältet tillsammans med hundratusen andra.</p>" +
       '<div class="bigstars">⭐⭐⭐</div>' +
-      '<p class="qsub">⭐ +' +
-      gain * starMult() +
-      " · nytt märke: <b>Laulupidu</b>" +
-      (wrong === 0 ? "<br>Och inte ett enda fel på vägen." : "") +
+      '<p class="qsub">' +
+      (firstTime ? "⭐ +" + gain * starMult() + " · nytt märke: <b>Laulupidu</b>" : "Tack för att du sjöng med igen!") +
+      (firstTime && wrong === 0 ? "<br>Och inte ett enda fel på vägen." : "") +
       "</p>" +
       '<div class="row"><button class="btn green big" id="fmap">Till kartan 🗺️</button>' +
       '<button class="btn" id="froom">Till rummet 🏠</button></div></div>';
@@ -7211,21 +7215,31 @@
     if (tripDone() >= TRIP.length) {
       html +=
         '<div class="card" style="text-align:center"><p class="q">🎶 Sången är färdig!</p>' +
-        '<p class="storyline" style="text-align:left">Siiri står på sångarfältet i Tallinn med alla tolv raderna i huvudet. ' +
-        "Hundratusen röster börjar samtidigt — och hon kan varenda rad, för du hjälpte henne att hitta dem.</p>" +
+        '<p class="storyline" style="text-align:left">Siiri står på sångarfältet med alla ' +
+        SONG.length +
+        " rader hon samlat på resan i huvudet. Hundratusen röster börjar samtidigt — och hon kan varenda rad, för du hjälpte henne att hitta dem." +
+        "</p>" +
         '<div class="center">' +
         siilSVG() +
         "</div>" +
-        '<button class="btn green big wide" id="singit" style="margin-top:10px">🎵 Låt henne sjunga</button></div>';
+        (S.songDone
+          ? '<button class="btn green big wide" id="singit" style="margin-top:10px">🎵 Sjung med Siiri igen</button>'
+          : '<button class="btn green big wide" id="singit" style="margin-top:10px">🎤 Sjung hela sången</button>') +
+        "</div>";
     }
     /* ortkortet för orten man är på: berättelse, uppdrag och ord på samma ställe */
     html += stopCardHtml(here, true, n);
-    /* de klarade orterna ligger hopfällda längst ner */
+    /* de klarade orterna ligger hopfällda längst ner - när hela resan är klar är de
+       istället en övningsbank: utfällda som standard (om inte spelaren själv fällt
+       ihop dem), och stationsknappen i varje kort funkar fortfarande fritt (ingen
+       spärr i data-station-hanteringen) - så vilken ort som helst går att öva om. */
     if (n > 1) {
-      var vis = !!S.tripVisited;
+      var done = tripDone() >= TRIP.length;
+      var vis = done ? S.tripVisited !== false : !!S.tripVisited;
       html +=
         '<button class="card visitedhead" id="visitedhead"><span class="sem">🏰</span>' +
-        '<span class="stx"><b lang="et">Külastatud</b><small>Besökta orter · ' +
+        '<span class="stx"><b lang="et">Külastatud</b><small>' +
+        (done ? "Öva valfri ort · " : "Besökta orter · ") +
         (n - 1) +
         " st</small></span>" +
         '<span class="caret">' +
@@ -7282,7 +7296,11 @@
     var vh = document.getElementById("visitedhead");
     if (vh)
       vh.onclick = function () {
-        S.tripVisited = !S.tripVisited;
+        /* samma "utfälld som standard när resan är klar"-logik som i html-bygget ovan -
+           annars skulle ett klick när S.tripVisited råkar vara undefined kunna fälla ut
+           den igen istället för att fälla ihop den */
+        var curVis = tripDone() >= TRIP.length ? S.tripVisited !== false : !!S.tripVisited;
+        S.tripVisited = !curVis;
         save();
         tripScreen();
       };
@@ -7332,18 +7350,13 @@
         };
       })(sb3[sq3]);
     }
+    /* knappen spelade tidigare bara upp en hårdkodad, orelaterad tvåradig sångsnutt -
+       Salmes egen station (stFinale/stSing) bygger redan hela den riktiga sången av
+       alla sju rader man samlat, så knappen hoppar dit istället för att duplicera det */
     var sing = document.getElementById("singit");
     if (sing)
       sing.onclick = function () {
-        burst(220);
-        fanfare(3);
-        mood("cheer");
-        var lines = ["Mu isamaa on minu arm", "ja armastan ma teda"],
-          k2 = 0;
-        speak(TRIP[TRIP.length - 1].et);
-        setTimeout(function () {
-          petals(80, ["#FFD45E", "#3FE0A8", "#8FD3F4"]);
-        }, 700);
+        stationStart("salme");
       };
     var b = app.querySelectorAll("[data-say]"),
       k;
