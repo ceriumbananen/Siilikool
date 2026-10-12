@@ -5480,6 +5480,22 @@
     pool = addSchoolPics(pool);
     return pickWeighted(pool, Math.min(n || 24, pool.length));
   }
+  /* Siiri reagerar live på svaren (stReact) istället för att bara synas vid sidbyte -
+     samma figur, bara liten, så hon känns närvarande under spelet. Delad av stHead()
+     och de tre äldre stationerna (stHarbor/stLibrary/stBeach) som bygger sin egen
+     rubrik istället för att gå via stHead(). */
+  function stMascotHtml() {
+    var combo = ST && ST.combo >= 3 ? ST.combo : 0;
+    return (
+      '<div class="stmascot">' +
+      siilSVG("small") +
+      '<span class="combo" id="stcombo"' +
+      (combo ? "" : " hidden") +
+      ">🔥 " +
+      combo +
+      " i rad!</span></div>"
+    );
+  }
   function stHead(id, extra) {
     var s = stationOf(id);
     return (
@@ -5490,8 +5506,54 @@
       "</b></span>" +
       "<span>" +
       esc(extra || "") +
-      "</span></div>"
+      "</span></div>" +
+      stMascotHtml()
     );
+  }
+  /* kort reaktion från Siiri på ett rätt/fel svar i en station - ändrar inget om
+     poäng eller spelregler, bara hur det känns att spela. Combon räknas i ST (redan
+     den delade tillfälliga stationstatet) och nollställs automatiskt när en ny
+     station startar, eftersom ST då blir ett helt nytt objekt. */
+  function stReact(ok) {
+    if (!ST) return;
+    var s = $s("s-svg");
+    if (ok) {
+      ST.combo = (ST.combo || 0) + 1;
+      mMood("happy");
+      happyEyes(true);
+      if (s) {
+        s.classList.add("giggle");
+        setTimeout(function () {
+          s.classList.remove("giggle");
+        }, 900);
+      }
+      if (ST.combo >= 3) {
+        var cb = document.getElementById("stcombo");
+        if (cb) {
+          cb.hidden = false;
+          cb.textContent = "🔥 " + ST.combo + " i rad!";
+          cb.classList.remove("pop");
+          void cb.offsetWidth;
+          cb.classList.add("pop");
+        }
+      }
+    } else {
+      ST.combo = 0;
+      mMood("sad");
+      happyEyes(false);
+      if (s) {
+        s.classList.add("wob");
+        setTimeout(function () {
+          s.classList.remove("wob");
+        }, 700);
+      }
+      var cb2 = document.getElementById("stcombo");
+      if (cb2) cb2.hidden = true;
+    }
+    clearTimeout(stReact.t);
+    stReact.t = setTimeout(function () {
+      mMood("");
+    }, 900);
   }
   function stAsk(words, hintSv) {
     var i,
@@ -5837,6 +5899,7 @@
             ST.have++;
             el.classList.add("loaded");
             sndOk();
+            stReact(true);
             buzz(14);
             speak(NUMW[Math.min(2, ST.have - 1)]);
             var bk = document.getElementById("basket");
@@ -5866,6 +5929,7 @@
             ST.wrong++;
             el.classList.add("nope");
             sndNo();
+            stReact(false);
             buzz(24);
             wmemHit(ST.target.et, false, "choose", ST.target.sv);
             if (tip) tip.innerHTML = "Det där är <b>" + esc(it.w.sv) + "</b>.";
@@ -5942,6 +6006,7 @@
             refreshTop();
             el.classList.add("caught");
             sndOk();
+            stReact(true);
             buzz(14);
             speak(w.et);
             burst(35);
@@ -5954,6 +6019,7 @@
             ST.wrong++;
             el.classList.add("nope");
             sndNo();
+            stReact(false);
             buzz(24);
             wmemHit(ST.target.et, false, "choose", ST.target.sv);
             if (tip) tip.innerHTML = "Det där är <b>" + esc(w.sv) + "</b>.";
@@ -6032,6 +6098,7 @@
             if (pc) pc.style.background = ST.want.c;
             el.classList.add("hit");
             sndOk();
+            stReact(true);
             buzz(14);
             speak(ST.want.id);
             if (tip) tip.innerHTML = '<b style="color:var(--moss)">Õige!</b>';
@@ -6042,6 +6109,7 @@
             ST.wrong++;
             el.classList.add("nope");
             sndNo();
+            stReact(false);
             buzz(24);
             wmemHit(ST.want.id, false, "choose", ST.want.sv);
             var f = null;
@@ -6125,6 +6193,7 @@
             save();
             refreshTop();
             sndOk();
+            stReact(true);
             buzz(14);
             speak(NUMWORDS[ST.num - 1]);
             if (tip)
@@ -6137,6 +6206,7 @@
             ST.wrong++;
             el.className = "opt wrong";
             sndNo();
+            stReact(false);
             buzz(24);
             wmemHitSentenceWords([NUMWORDS[ST.num - 1]], false);
             if (tip) tip.innerHTML = "Räkna en gång till — tryck på sakerna medan du räknar.";
@@ -6211,6 +6281,7 @@
             ST.picked = null;
             ST.left--;
             sndOk();
+            stReact(true);
             buzz(12);
             speak(key);
             for (var pw = 0; pw < ST.set.length; pw++) {
@@ -6241,6 +6312,7 @@
               old = ST.picked.el;
             ST.picked = null;
             sndNo();
+            stReact(false);
             buzz(22);
             if (tip) tip.textContent = "Inte det paret. Prova igen.";
             setTimeout(function () {
@@ -6322,6 +6394,7 @@
             wmemHit(ST.seq[ST.step].et, true, "choose", ST.seq[ST.step].sv);
             ST.step++;
             sndOk();
+            stReact(true);
             buzz(10);
             speak(et);
             if (ST.step >= ST.seq.length) {
@@ -6344,6 +6417,7 @@
             ST.step = 0;
             el.classList.add("nope");
             sndNo();
+            stReact(false);
             buzz(26);
             if (dots) for (var q = 0; q < dots.children.length; q++) dots.children[q].className = "";
             if (tip) tip.textContent = "Oj — börja om från början på slingan.";
@@ -6420,6 +6494,7 @@
       " · ⭐ " +
       ST.stars +
       "</span></div>" +
+      stMascotHtml() +
       '<div class="card"><div class="otsiask">' +
       '<button class="btn small" id="stsay" aria-label="Hör igen">🔊</button>' +
       '<div class="ochips"><button class="ochip" data-w="Pane paati">Pane paati</button>' +
@@ -6480,6 +6555,7 @@
             ST.have++;
             el.classList.add("loaded");
             sndOk();
+            stReact(true);
             buzz(14);
             var numSaid = NUMW[Math.min(2, ST.have - 1)]; /* üks … kaks … kolm */
             if (ST.have < ST.need) speak(numSaid); /* sista räknas ihop med berömmet nedan */
@@ -6510,6 +6586,7 @@
             ST.wrong++;
             el.classList.add("nope");
             sndNo();
+            stReact(false);
             buzz(26);
             wmemHit(ST.target.et, false, "choose", ST.target.sv);
             if (tip)
@@ -6557,6 +6634,7 @@
       " · ⭐ " +
       ST.stars +
       "</span></div>" +
+      stMascotHtml() +
       '<div class="card"><div class="otsiask">' +
       '<button class="btn small" id="stsay" aria-label="Hör igen">🔊</button>' +
       '<div class="ochips"><button class="ochip" data-w="Pane riiulisse">Pane riiulisse</button>' +
@@ -6630,6 +6708,7 @@
             }
             el.classList.add("hit");
             sndOk();
+            stReact(true);
             buzz(14);
             speak(ST.want.id);
             if (tip) tip.innerHTML = '<b style="color:var(--moss)">Õige!</b>';
@@ -6640,6 +6719,7 @@
             ST.wrong++;
             el.classList.add("nope");
             sndNo();
+            stReact(false);
             buzz(26);
             wmemHit(ST.want.id, false, "choose", ST.want.sv);
             var f = null;
@@ -6687,6 +6767,7 @@
       " · ⭐ " +
       ST.stars +
       "</span></div>" +
+      stMascotHtml() +
       '<div class="card"><div class="otsiask">' +
       '<button class="btn small" id="stsay" aria-label="Hör igen">🔊</button>' +
       '<div class="ochips"><button class="ochip" data-w="Püüa kinni">Püüa kinni</button>' +
@@ -6753,6 +6834,7 @@
             refreshTop();
             el.classList.add("caught");
             sndOk();
+            stReact(true);
             buzz(14);
             speak(w.et);
             burst(40);
@@ -6765,6 +6847,7 @@
             ST.wrong++;
             el.classList.add("nope");
             sndNo();
+            stReact(false);
             buzz(26);
             wmemHit(ST.target.et, false, "choose", ST.target.sv);
             if (tip) tip.innerHTML = "Det där är <b>" + esc(w.sv) + "</b>.";
