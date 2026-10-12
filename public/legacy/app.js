@@ -5330,7 +5330,7 @@
       return;
     }
     var w = TP.q[TP.i],
-      all = allWords(),
+      all = optionPool(w, allWords()),
       opts = [w],
       tries = 0,
       j;
@@ -7748,7 +7748,7 @@
     }
     var L = chLevel();
     var w = CH.words[CH.i],
-      all = allWords(),
+      all = optionPool(w, allWords()),
       opts = [w],
       i,
       tries = 0;
@@ -8697,7 +8697,7 @@
       }
     }
     var w = DU.pool[DU.i % DU.pool.length],
-      all = allWords(),
+      all = optionPool(w, allWords()),
       opts = [w],
       i,
       tries = 0;
@@ -9263,7 +9263,7 @@
     }
     RN.lock = false;
     var target = RN.pool[RN.i % RN.pool.length],
-      all = allWords(),
+      all = optionPool(target, allWords()),
       opts = [target],
       i,
       tries = 0;
@@ -9397,6 +9397,27 @@
     if (sc) w = w.concat(schoolLeft()); /* skolans ord är med tills de sitter */
     return w;
   }
+  /* hittar vilket tema ett ord hör till, för att kunna ge svarsalternativ från SAMMA tema i
+     första hand - annars kan fel svar sticka ut för tydligt (t.ex. "karu" bland
+     klossar/faster/klättra, där björn är det enda djuret och alltså uppenbart rätt utan att
+     man behöver kunna ordet). Orden i THEMES bär ingen egen temareferens, så vi letar reda på
+     den genom att söka igenom alla teman efter en ordträff. */
+  function themeWordsFor(et) {
+    var i, j;
+    for (i = 0; i < THEMES.length; i++) {
+      for (j = 0; j < THEMES[i].words.length; j++) {
+        if (THEMES[i].words[j].et === et) return THEMES[i].words;
+      }
+    }
+    return null;
+  }
+  /* poolen att slumpa svarsalternativ ur: ordets eget tema i första hand (om det finns och är
+     stort nog), annars samma fallback (hela ordförrådet) som förut - t.ex. för reseord och
+     läxord, som inte hör till något tema. */
+  function optionPool(w, fallback) {
+    var theme = themeWordsFor(w.et);
+    return theme && theme.length >= 4 ? theme : fallback;
+  }
   function speedIntro() {
     screen = "mix";
     prefetchAllThemes();
@@ -9427,7 +9448,7 @@
     }
     if (SP.i >= SP.pool.length) SP.pool = SP.pool.concat(pickWeighted(allWords(), 16));
     var w = SP.pool[SP.i],
-      all = allWords(),
+      all = optionPool(w, allWords()),
       opts = [],
       i,
       tries = 0;
