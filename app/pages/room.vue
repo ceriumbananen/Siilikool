@@ -1,8 +1,9 @@
 <script setup lang="ts">
 /* Siiri tuba (rummet) - porterat från roomScreen()/findHidden() i public/legacy/app.js. Rummet
    med möbler, diplom och souvenirer (app/utils/room-svg.ts), Siiri som vänds om man trycker på
-   henne, dagens gömda sak och flikarna Färg, Ögon, Kläder, Möbler och Diplom (diplomleken i
-   app/components/room/DiplomaQuiz.vue). Nytt köps i Laat (app/pages/shop.vue). */
+   henne, brasan som säger att den är varm, dagens gömda sak och flikarna Färg, Ögon, Kläder,
+   Möbler och Diplom (diplomleken i app/components/room/DiplomaQuiz.vue). Nytt köps i Laat
+   (app/pages/shop.vue). */
 
 useHead({ title: "Siiri tuba · Siilikool" });
 const profile = useProfileStore();
@@ -35,9 +36,31 @@ function flip() {
   tone(520, 0.08, 0);
   tone(720, 0.1, 0.07);
 }
-/* katten (husdjuret) spinner när man klappar den */
+/* katten (husdjuret) spinner när man klappar den, brasan säger att den är varm */
 function onStageClick(e: MouseEvent) {
-  if ((e.target as Element | null)?.closest?.("#roompet")) purr();
+  const target = e.target as Element | null;
+  if (target?.closest?.("#roompet")) {
+    purr();
+    return;
+  }
+  const fire = target?.closest?.("#roomfire");
+  if (fire) touchFire(fire);
+}
+const FIRE_SPOT = { x: 61, y: 42 };
+const fireSaid = ref<{ et: string; sv: string } | null>(null);
+let fireTimer: ReturnType<typeof setTimeout> | undefined;
+function touchFire(el: Element) {
+  el.classList.remove("roomfire--lit");
+  void (el as HTMLElement).offsetWidth;
+  el.classList.add("roomfire--lit");
+  tone(260, 0.08, 0);
+  tone(160, 0.16, 0.05);
+  voice.sayWord("soe");
+  fireSaid.value = { et: "Soe!", sv: "Varmt!" };
+  clearTimeout(fireTimer);
+  fireTimer = setTimeout(() => {
+    fireSaid.value = null;
+  }, 1800);
 }
 const label = computed(
   () => `${fur.value.sv} päls · ${eye.value.sv} ögon · ${owned.value.length} av ${SHOP.length} saker`,
@@ -184,6 +207,14 @@ function backFromQuiz() {
             <span>{{ hidden.word.em }}</span>
           </button>
           <div class="room-page__label">{{ label }}</div>
+          <div
+            v-if="fireSaid"
+            class="room-page__fire-bubble"
+            :style="{ left: `${FIRE_SPOT.x}%`, top: `${FIRE_SPOT.y}%` }"
+          >
+            <b lang="et">{{ fireSaid.et }}</b
+            ><span>{{ fireSaid.sv }}</span>
+          </div>
         </div>
         <p class="room-page__note">
           <template v-if="found">
@@ -458,6 +489,33 @@ function backFromQuiz() {
 
     &:active {
       transform: translate(-50%, -50%) scale(1.25);
+    }
+  }
+
+  &__fire-bubble {
+    position: absolute;
+    transform: translate(-100%, -50%);
+    background: var(--card);
+    border: $border-width solid var(--honey);
+    border-radius: $radius-md;
+    padding: 0.25rem 0.625rem;
+    text-align: center;
+    line-height: normal;
+    box-shadow: $shadow-2;
+    pointer-events: none;
+    z-index: 5;
+    animation: room-fire-pop 1.8s ease forwards;
+
+    b {
+      display: block;
+      font-size: $font-size-sm;
+      color: var(--honey-deep);
+    }
+
+    span {
+      display: block;
+      font-size: $font-size-xs;
+      color: var(--muted);
     }
   }
 
@@ -859,6 +917,27 @@ function backFromQuiz() {
     &__pointer {
       animation: none;
     }
+
+    &__fire-bubble {
+      animation: none;
+    }
+  }
+}
+
+@keyframes room-fire-pop {
+  0% {
+    opacity: 0;
+    transform: translate(-90%, -50%) scale(0.85);
+  }
+  15% {
+    opacity: 1;
+    transform: translate(-100%, -50%) scale(1);
+  }
+  80% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
   }
 }
 

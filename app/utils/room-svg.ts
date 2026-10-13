@@ -646,7 +646,7 @@ function fShelf() {
 function roomSVGInner() {
   var wall = fWall(ctx.furnOf("wall")),
     floor = fFloor(ctx.furnOf("floor"));
-  var fire = '<g transform="translate(270,92)">' + FIRESVG + "</g>";
+  var fire = '<g id="roomfire" style="cursor:pointer" transform="translate(270,92)">' + FIRESVG + "</g>";
   return (
     '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 270" class="roomsvg" preserveAspectRatio="xMidYMid slice">' +
     "<defs>" +
