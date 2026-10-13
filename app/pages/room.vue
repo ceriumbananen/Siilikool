@@ -1,9 +1,9 @@
 <script setup lang="ts">
 /* Siiri tuba (rummet) - porterat från roomScreen()/findHidden() i public/legacy/app.js. Rummet
    med möbler, diplom och souvenirer (app/utils/room-svg.ts), Siiri som vänds om man trycker på
-   henne, brasan som säger att den är varm, dagens gömda sak och flikarna Färg, Ögon, Kläder,
-   Möbler och Diplom (diplomleken i app/components/room/DiplomaQuiz.vue). Nytt köps i Laat
-   (app/pages/shop.vue). */
+   henne, brasan/lampan/fönstret/katten som var sin säger ett ord när man trycker på dem
+   (ROOM_SPOTS), dagens gömda sak och flikarna Färg, Ögon, Kläder, Möbler och Diplom (diplomleken
+   i app/components/room/DiplomaQuiz.vue). Nytt köps i Laat (app/pages/shop.vue). */
 
 useHead({ title: "Siiri tuba · Siilikool" });
 const profile = useProfileStore();
@@ -36,30 +36,62 @@ function flip() {
   tone(520, 0.08, 0);
   tone(720, 0.1, 0.07);
 }
-/* katten (husdjuret) spinner när man klappar den, brasan säger att den är varm */
+/* saker i rummet man kan trycka på: katten spinner, brasan, lampan, fönstret och katten
+   säger var sitt ord (samma pop-bubbla-mönster, så de känns som en familj av reaktioner) */
+type RoomSpotId = "roomfire" | "roomlamp" | "roomwindow" | "roompet";
+type RoomSpot = { x: number; y: number; dir: "up" | "left" | "down"; words: { et: string; sv: string }[] };
+const ROOM_SPOTS: Record<RoomSpotId, RoomSpot> = {
+  roomfire: { x: 61, y: 42, dir: "left", words: [{ et: "soe", sv: "varmt" }] },
+  roomlamp: { x: 30, y: 29, dir: "up", words: [{ et: "lamp", sv: "lampa" }] },
+  roomwindow: {
+    x: 19,
+    y: 47,
+    dir: "down",
+    words: [
+      { et: "vihm", sv: "regn" },
+      { et: "päike", sv: "sol" },
+    ],
+  },
+  roompet: { x: 17, y: 66, dir: "up", words: [{ et: "kass", sv: "katt" }] },
+};
+const roomTurn: Partial<Record<RoomSpotId, number>> = {};
+const roomSaid = ref<{ et: string; sv: string; x: number; y: number; dir: "up" | "left" | "down" } | null>(null);
+let roomSaidTimer: ReturnType<typeof setTimeout> | undefined;
 function onStageClick(e: MouseEvent) {
   const target = e.target as Element | null;
-  if (target?.closest?.("#roompet")) {
-    purr();
-    return;
+  for (const id of Object.keys(ROOM_SPOTS) as RoomSpotId[]) {
+    const el = target?.closest?.(`#${id}`);
+    if (el) {
+      touchRoomSpot(id, el);
+      return;
+    }
   }
-  const fire = target?.closest?.("#roomfire");
-  if (fire) touchFire(fire);
 }
-const FIRE_SPOT = { x: 61, y: 42 };
-const fireSaid = ref<{ et: string; sv: string } | null>(null);
-let fireTimer: ReturnType<typeof setTimeout> | undefined;
-function touchFire(el: Element) {
-  el.classList.remove("roomfire--lit");
+function touchRoomSpot(id: RoomSpotId, el: Element) {
+  const litClass = `${id}--lit`;
+  el.classList.remove(litClass);
   void (el as HTMLElement).offsetWidth;
-  el.classList.add("roomfire--lit");
-  tone(260, 0.08, 0);
-  tone(160, 0.16, 0.05);
-  voice.sayWord("soe");
-  fireSaid.value = { et: "Soe!", sv: "Varmt!" };
-  clearTimeout(fireTimer);
-  fireTimer = setTimeout(() => {
-    fireSaid.value = null;
+  el.classList.add(litClass);
+  if (id === "roompet") purr();
+  else {
+    tone(260, 0.08, 0);
+    tone(160, 0.16, 0.05);
+  }
+  const spot = ROOM_SPOTS[id];
+  const turn = (roomTurn[id] || 0) % spot.words.length;
+  roomTurn[id] = turn + 1;
+  const word = spot.words[turn]!;
+  voice.sayWord(word.et);
+  roomSaid.value = {
+    et: word.et,
+    sv: `${word.sv[0]!.toUpperCase()}${word.sv.slice(1)}!`,
+    x: spot.x,
+    y: spot.y,
+    dir: spot.dir,
+  };
+  clearTimeout(roomSaidTimer);
+  roomSaidTimer = setTimeout(() => {
+    roomSaid.value = null;
   }, 1800);
 }
 const label = computed(
@@ -208,12 +240,13 @@ function backFromQuiz() {
           </button>
           <div class="room-page__label">{{ label }}</div>
           <div
-            v-if="fireSaid"
-            class="room-page__fire-bubble"
-            :style="{ left: `${FIRE_SPOT.x}%`, top: `${FIRE_SPOT.y}%` }"
+            v-if="roomSaid"
+            class="room-page__spot-bubble"
+            :class="`room-page__spot-bubble--${roomSaid.dir}`"
+            :style="{ left: `${roomSaid.x}%`, top: `${roomSaid.y}%` }"
           >
-            <b lang="et">{{ fireSaid.et }}</b
-            ><span>{{ fireSaid.sv }}</span>
+            <b lang="et">{{ roomSaid.et }}</b
+            ><span>{{ roomSaid.sv }}</span>
           </div>
         </div>
         <p class="room-page__note">
@@ -492,9 +525,8 @@ function backFromQuiz() {
     }
   }
 
-  &__fire-bubble {
+  &__spot-bubble {
     position: absolute;
-    transform: translate(-100%, -50%);
     background: var(--card);
     border: $border-width solid var(--honey);
     border-radius: $radius-md;
@@ -504,7 +536,6 @@ function backFromQuiz() {
     box-shadow: $shadow-2;
     pointer-events: none;
     z-index: 5;
-    animation: room-fire-pop 1.8s ease forwards;
 
     b {
       display: block;
@@ -516,6 +547,21 @@ function backFromQuiz() {
       display: block;
       font-size: $font-size-xs;
       color: var(--muted);
+    }
+
+    &--left {
+      transform: translate(-100%, -50%);
+      animation: room-spot-pop-left 1.8s ease forwards;
+    }
+
+    &--up {
+      transform: translate(-50%, -100%);
+      animation: room-spot-pop-up 1.8s ease forwards;
+    }
+
+    &--down {
+      transform: translate(-50%, 0);
+      animation: room-spot-pop-down 1.8s ease forwards;
     }
   }
 
@@ -918,13 +964,13 @@ function backFromQuiz() {
       animation: none;
     }
 
-    &__fire-bubble {
+    &__spot-bubble {
       animation: none;
     }
   }
 }
 
-@keyframes room-fire-pop {
+@keyframes room-spot-pop-left {
   0% {
     opacity: 0;
     transform: translate(-90%, -50%) scale(0.85);
@@ -932,6 +978,40 @@ function backFromQuiz() {
   15% {
     opacity: 1;
     transform: translate(-100%, -50%) scale(1);
+  }
+  80% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes room-spot-pop-up {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -90%) scale(0.85);
+  }
+  15% {
+    opacity: 1;
+    transform: translate(-50%, -100%) scale(1);
+  }
+  80% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes room-spot-pop-down {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, 10%) scale(0.85);
+  }
+  15% {
+    opacity: 1;
+    transform: translate(-50%, 0) scale(1);
   }
   80% {
     opacity: 1;

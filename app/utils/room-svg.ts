@@ -307,10 +307,11 @@ function fArt(id: string | null) {
 function fLamp(id: string | null) {
   if (id === "p-floor") {
     return (
-      '<g transform="translate(120,124)"><ellipse cx="0" cy="104" rx="16" ry="4" fill="#2A1B0C" opacity=".24"/>' +
+      '<g id="roomlamp" style="cursor:pointer" transform="translate(120,124)">' +
+      '<ellipse cx="0" cy="104" rx="16" ry="4" fill="#2A1B0C" opacity=".24"/>' +
       '<rect x="-2" y="18" width="4" height="86" fill="#8A7A5E"/><rect x="-10" y="100" width="20" height="5" rx="2.5" fill="#6E6048"/>' +
       '<path d="M-18 18 h36 l-7 -20 h-22 z" fill="#F2D98A"/><path d="M-18 18 h36 l-1 3 h-34 z" fill="#D8B964"/>' +
-      '<ellipse cx="0" cy="26" rx="22" ry="9" fill="#FFE9A8" opacity=".35"/></g>'
+      '<ellipse class="lampglow" cx="0" cy="26" rx="22" ry="9" fill="#FFE9A8" opacity=".35"/></g>'
     );
   }
   if (id === "p-lant") {
@@ -495,10 +496,11 @@ function fArtExtra(id: string | null) {
 function fLampExtra(id: string | null) {
   if (id !== "p-ceil") return null;
   return (
-    '<g transform="translate(200,0)"><rect x="-1.5" y="0" width="3" height="26" fill="#8A7A5E"/>' +
+    '<g id="roomlamp" style="cursor:pointer" transform="translate(200,0)">' +
+    '<rect x="-1.5" y="0" width="3" height="26" fill="#8A7A5E"/>' +
     '<path d="M-22 26 h44 l-9 -16 h-26 z" fill="#E8D8A8"/>' +
     '<path d="M-22 26 h44 l-1.5 3 h-41 z" fill="#C9B882"/>' +
-    '<ellipse cx="0" cy="34" rx="26" ry="11" fill="#FFE9A8" opacity=".35"/></g>'
+    '<ellipse class="lampglow" cx="0" cy="34" rx="26" ry="11" fill="#FFE9A8" opacity=".35"/></g>'
   );
 }
 function fPlantExtra(id: string | null) {
@@ -663,8 +665,10 @@ function roomSVGInner() {
     wall.body +
     fWallExtra(ctx.furnOf("wall")) +
     floor.body +
+    '<g id="roomwindow" style="cursor:pointer">' +
     WINDOWSVG +
     fView(ctx.furnOf("view")) +
+    "</g>" +
     '<path d="M36 148 L128 148 L196 268 L60 268 Z" fill="url(#g-beam)" opacity=".45"/>' +
     (fArtExtra(ctx.furnOf("art")) || fArt(ctx.furnOf("art"))) +
     fShelf() +

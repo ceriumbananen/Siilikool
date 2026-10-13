@@ -2402,11 +2402,43 @@ body {
   }
 }
 
+.roomsvg #roomlamp.roomlamp--lit .lampglow {
+  animation: roomlampflare 0.6s ease-out;
+}
+
+@keyframes roomlampflare {
+  0%,
+  100% {
+    opacity: 0.35;
+  }
+
+  40% {
+    opacity: 1;
+  }
+}
+
+.roomsvg #roomwindow.roomwindow--lit {
+  animation: roomwindowflare 0.6s ease-out;
+}
+
+@keyframes roomwindowflare {
+  0%,
+  100% {
+    filter: brightness(1);
+  }
+
+  40% {
+    filter: brightness(1.25);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .roomsvg .fl,
   .roomsvg .embers,
   .roomsvg .pettail,
-  .roomsvg #roomfire.roomfire--lit .flames {
+  .roomsvg #roomfire.roomfire--lit .flames,
+  .roomsvg #roomlamp.roomlamp--lit .lampglow,
+  .roomsvg #roomwindow.roomwindow--lit {
     animation: none;
   }
 }
