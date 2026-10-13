@@ -5489,7 +5489,7 @@
     return (
       '<div class="stmascot">' +
       siilSVG("small") +
-      '<span class="combo" id="stcombo"' +
+      '<span class="station-combo" id="stcombo"' +
       (combo ? "" : " hidden") +
       ">🔥 " +
       combo +
