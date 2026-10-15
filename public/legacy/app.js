@@ -11135,6 +11135,13 @@
   function renderTalk() {
     var c = T.c,
       step = c.turns[T.i];
+    if (step.nameOpt) {
+      /* appen vet redan barnets namn - inget skäl att låta den gissa mellan Anna och Oskar */
+      var childName = (S.name || "").trim(),
+        nm = childName || "sõber",
+        nmSv = childName || "vän";
+      step.opts = [{ et: "Minu nimi on " + nm + ".", sv: "Jag heter " + nmSv + "." }];
+    }
     var line = T.phase === "intro" ? c.intro : T.phase === "reply" ? step.reply : step.q;
     var html =
       '<div class="stage">' +

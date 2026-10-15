@@ -27,10 +27,9 @@ export const CHATS = [
       },
       {
         q: { et: "Mis sinu nimi on?", sv: "Vad heter du?" },
-        opts: [
-          { et: "Minu nimi on Anna.", sv: "Jag heter Anna." },
-          { et: "Minu nimi on Oskar.", sv: "Jag heter Oskar." },
-        ],
+        /* appen vet redan barnets namn (S.name) - renderTalk() bygger opts med det, se nameOpt i app.js */
+        nameOpt: true,
+        opts: [],
         reply: { et: "Väga meeldiv!", sv: "Trevligt!" },
       },
       {
