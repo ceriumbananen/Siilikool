@@ -578,6 +578,15 @@
     if (m <= 8) return SEASONS.suvi;
     return SEASONS.sygis;
   }
+  /* hälsningen på hemskärmen (homeScreen()) följer klockan, inte bara "Tere" hela dygnet.
+     Samma gränser som nightOwl() (21-04) för "Head ööd", så sen kväll hänger ihop med den. */
+  function greetingNow() {
+    var hh = new Date().getHours();
+    if (hh >= 5 && hh < 11) return { et: "Tere hommikust" };
+    if (hh >= 11 && hh < 17) return { et: "Tere päevast" };
+    if (hh >= 17 && hh < 21) return { et: "Tere õhtust" };
+    return { et: "Head ööd" };
+  }
   function holidayNow() {
     var t = new Date(),
       m = t.getMonth() + 1,
@@ -3693,7 +3702,8 @@
       n = nextUp(),
       p = questProgress(),
       se = seasonNow(),
-      hol = holidayNow();
+      hol = holidayNow(),
+      gr = greetingNow();
     var ri = rankIndex(S.xp),
       nxt = RANKS[ri + 1];
 
@@ -3723,7 +3733,9 @@
       '<div class="hero"><div class="herorow">' +
       siilSVG("small") +
       '<div style="flex:1"><h1>' +
-      (S.name ? "Tere, " + esc(S.name) + "!" : "Tere!") +
+      esc(gr.et) +
+      (S.name ? ", " + esc(S.name) : "") +
+      "!" +
       "</h1>" +
       '<button class="seasonbar" type="button">' +
       (hol ? hol.em : se.em) +
