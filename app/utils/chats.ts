@@ -157,8 +157,10 @@ export const CHATS = [
       },
       {
         q: { et: "Mis on sinu lemmikvärv?", sv: "Vilken är din favoritfärg?" },
-        /* fritt svar - alla barn har inte röd eller gul som favorit, se answerTalkFree() i app.js */
+        /* fritt svar - alla barn har inte röd eller gul som favorit, se answerTalkFree() i app.js.
+           saveAs sparar svaret i S.favColor, så Siiri minns det nästa gång (renderTalk()). */
         freeText: true,
+        saveAs: "favColor",
         opts: [],
         reply: { et: "Väga ilus värv!", sv: "Vilken fin färg!" },
       },

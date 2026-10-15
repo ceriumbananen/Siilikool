@@ -11142,7 +11142,9 @@
         nmSv = childName || "vän";
       step.opts = [{ et: "Minu nimi on " + nm + ".", sv: "Jag heter " + nmSv + "." }];
     }
-    var line = T.phase === "intro" ? c.intro : T.phase === "reply" ? step.reply : step.q;
+    var freeReplyOverride = T.freeReply;
+    T.freeReply = null;
+    var line = T.phase === "intro" ? c.intro : T.phase === "reply" ? freeReplyOverride || step.reply : step.q;
     var html =
       '<div class="stage">' +
       '<div class="saysbub" id="bub"><b>' +
@@ -11157,12 +11159,19 @@
     }
     html += '</div></div><div class="card" id="ansbox">';
     if (T.phase === "q" && step.freeText) {
+      var prevAns = step.saveAs ? S[step.saveAs] || "" : "";
       html +=
         '<div class="center"><button class="speakbtn sm" id="again" aria-label="Hör frågan igen">🔊</button>' +
         '<button class="speakbtn sm" id="slow" aria-label="Hör frågan långsamt">🐢</button></div>' +
-        '<div class="heard" id="heard">Skriv ditt eget svar.</div>' +
+        '<div class="heard" id="heard">' +
+        (prevAns
+          ? "Jag minns: <b>" + esc(prevAns) + "</b>. Skriv om, eller tryck Klart för samma svar."
+          : "Skriv ditt eget svar.") +
+        "</div>" +
         '<label class="sr-only" for="freeans">Ditt svar</label>' +
-        '<input class="type" id="freeans" maxlength="24" autocomplete="off" autocapitalize="off" placeholder="skriv här">' +
+        '<input class="type" id="freeans" maxlength="24" autocomplete="off" autocapitalize="off" placeholder="skriv här" value="' +
+        esc(prevAns) +
+        '">' +
         '<button class="btn green big wide" id="freeok" style="margin-top:10px">Klart →</button>';
     } else if (T.phase === "q") {
       html +=
@@ -11304,9 +11313,13 @@
       renderTalk();
     }, 1500);
   }
-  /* samma belöning som answerTalk, men för en fritt skriven fråga - inget facit att läsa upp */
+  /* samma belöning som answerTalk, men för en fritt skriven fråga - inget facit att läsa upp.
+     saveAs sparar svaret på S så Siiri minns det och kan hälsa på det nästa gång (renderTalk()). */
   function answerTalkFree(text) {
     if (!text) return;
+    var step = T.c.turns[T.i];
+    var remembered = !!(step.saveAs && S[step.saveAs] && S[step.saveAs] === text);
+    if (step.saveAs) S[step.saveAs] = text;
     T.said++;
     S.correct++;
     addXp(6);
@@ -11315,6 +11328,7 @@
     sndOk();
     burst(40);
     mood("cheer");
+    T.freeReply = remembered ? { et: "Jah, täpselt nii!", sv: "Ja, jag minns att " + text + " är din favorit!" } : null;
     setTimeout(function () {
       T.phase = "reply";
       renderTalk();
