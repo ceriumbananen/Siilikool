@@ -2242,6 +2242,37 @@
     if (!t) return null;
     return { et: "Sa oled tubli!", sv: "Du är skicklig på " + t.sv.toLowerCase() + "!" };
   }
+  /* samma idé, men för ett diplom barnet redan tagit (S.diplomas, se app/pages/room.vue) -
+     diplomen firas bara på sin egen skärm annars och nämns aldrig igen. */
+  function diplomaLine() {
+    var ids = [],
+      k;
+    for (k in S.diplomas || {}) if (S.diplomas[k] > 0) ids.push(k);
+    if (!ids.length) return null;
+    var id = ids[(Math.random() * ids.length) | 0],
+      t,
+      i;
+    for (i = 0; i < THEMES.length; i++) if (THEMES[i].id === id) t = THEMES[i];
+    if (!t) return null;
+    return { et: "Sa oled tubli!", sv: "Du har ett diplom i " + t.sv.toLowerCase() + "!" };
+  }
+  /* och för senaste orten på Teekond-resan (TRIP är i ordning, så tripDone()-1 är
+     verkligen den senaste - till skillnad från tema/diplom finns ingen gissning här) */
+  function latestTripLine() {
+    var n = tripDone(),
+      city = n >= 1 ? TRIP[n - 1] : null;
+    if (!city) return null;
+    return { et: "Sa oled tubli!", sv: "Du har redan besökt " + city.em + " " + city.et + " på resan!" };
+  }
+  /* allt Siiri kan tänkas nämna om vad barnet redan klarat, viktat lika - idleAct() växlar
+     slumpmässigt in en av dessa bland de vanliga "uttråkad"-replikerna (IDLE_LINES) */
+  function specialIdleLine() {
+    var candidates = [bestThemeLine(), diplomaLine(), latestTripLine()].filter(function (l) {
+      return !!l;
+    });
+    if (!candidates.length) return null;
+    return candidates[(Math.random() * candidates.length) | 0];
+  }
   var BACK_LINES = [
     { et: "Oi, sa oled tagasi!", sv: "Åh, du är tillbaka!" },
     { et: "Tere jälle!", sv: "Hej igen!" },
@@ -2275,9 +2306,9 @@
     IDLE.n++;
     /* bara mjuka helkroppsrörelser – huvudet står still */
     if (Math.random() < 0.45) siiriClass("wob", 900);
-    /* var tredje gång säger hon något - ibland ett beröm om ett tema hon redan vet att barnet kan */
+    /* var tredje gång säger hon något - ibland ett beröm om nåt hon redan vet att barnet klarat */
     if (IDLE.n % 3 === 0 && screen === "home") {
-      var l = (Math.random() < 0.3 && bestThemeLine()) || IDLE_LINES[(Math.random() * IDLE_LINES.length) | 0];
+      var l = (Math.random() < 0.3 && specialIdleLine()) || IDLE_LINES[(Math.random() * IDLE_LINES.length) | 0];
       speak(l.et);
       bubble(l);
     }
