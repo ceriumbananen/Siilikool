@@ -650,8 +650,61 @@
     return d.getFullYear() + "-" + (d.getMonth() + 1) + "-" + d.getDate();
   }
   function questOfDay() {
+    if (S.questPick && S.questPick.day === today()) {
+      var i;
+      for (i = 0; i < QUESTS.length; i++) if (QUESTS[i].id === S.questPick.id) return QUESTS[i];
+    }
     var d = new Date();
     return QUESTS[d.getDay() % QUESTS.length];
+  }
+  /* barnet får välja sitt eget mål för dagen istället för att bara få ett tilldelat - S.dayp
+     räknar redan alla nyckeltal samtidigt (se newDay()), så ett byte tappar ingen framgång. */
+  function questPickScreen() {
+    screen = "questpick";
+    var current = questOfDay(),
+      pool = QUESTS.filter(function (q) {
+        return q.id !== current.id;
+      }),
+      choices = [],
+      i;
+    while (choices.length < 3 && pool.length) {
+      choices.push(pool.splice((Math.random() * pool.length) | 0, 1)[0]);
+    }
+    var html =
+      '<div class="card"><p class="q">Vilket mål vill du sätta idag?</p>' +
+      '<p class="qsub">Du väljer själv — din gamla framgång finns kvar om du ångrar dig.</p>' +
+      '<div class="topics">' +
+      '<button class="tile" data-qid="' +
+      current.id +
+      '" style="min-height:96px"><span class="em">' +
+      current.em +
+      '</span><span class="et">Behåll det här</span><span class="sv">' +
+      esc(current.sv) +
+      "</span></button>";
+    for (i = 0; i < choices.length; i++) {
+      html +=
+        '<button class="tile" data-qid="' +
+        choices[i].id +
+        '" style="min-height:96px"><span class="em">' +
+        choices[i].em +
+        '</span><span class="et">Välj det här</span><span class="sv">' +
+        esc(choices[i].sv) +
+        "</span></button>";
+    }
+    html += "</div></div>";
+    app.innerHTML = html;
+    var bs = app.querySelectorAll("[data-qid]"),
+      k;
+    for (k = 0; k < bs.length; k++) {
+      (function (el) {
+        el.onclick = function () {
+          S.questPick = { day: today(), id: el.getAttribute("data-qid") };
+          save();
+          tone(760, 0.09, 0);
+          go(homeScreen, false);
+        };
+      })(bs[k]);
+    }
   }
   /* ============ STATE ============ */
   /* Datan (S), sparningen, profilerna och reservkopiorna ligger i Nuxt-appen
@@ -3979,7 +4032,10 @@
       "</small>" +
       '<span class="qbar"><i style="width:' +
       Math.round((p.v / p.q.goal) * 100) +
-      '%"></i></span></button>';
+      '%"></i></span></button>' +
+      (p.done
+        ? ""
+        : '<button class="btn ghost wide" id="questswap" style="margin-top:6px">🔀 Välj ett eget mål för idag</button>');
 
     /* lekar: fyra i taget (lagom att välja bland), resten bakom en knapp – nyheter markeras */
     var showMode = S.allModes ? MODES.length : 4;
@@ -4076,6 +4132,11 @@
          navigering dit, precis som länken till /parent redan gör */
       location.href = "/trophy";
     };
+    var qsw = document.getElementById("questswap");
+    if (qsw)
+      qsw.onclick = function () {
+        go(questPickScreen, true);
+      };
     var sbn = document.getElementById("schoolbtn");
     if (sbn)
       sbn.onclick = function () {
