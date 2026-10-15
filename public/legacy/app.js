@@ -8695,13 +8695,22 @@
       })(bs[k]);
     }
   }
+  /* rivalen minns förra mötet - inget facit ändras, bara en replik innan matchen (skilt från
+     taunt() som redan spelar upp en replik efteråt, i duelEnd()) */
+  function rivalMemoryLine(r, rec) {
+    if (rec.last === "rivalWon") return { et: "Mina võitsin viimati!", sv: r.sv + " vann senast — dags för revansch?" };
+    if (rec.last === "childWon")
+      return { et: "Sina võitsid viimati!", sv: "Du vann senast mot " + r.sv.toLowerCase() + " — kan du upprepa det?" };
+    return null;
+  }
   function duelSetup(id) {
     var r = null,
       i;
     for (i = 0; i < RIVALS.length; i++) if (RIVALS[i].id === id) r = RIVALS[i];
     if (!r) return;
     var rec = duelRec(id),
-      pot = 40 + Math.min(60, rec.w * 8);
+      pot = 40 + Math.min(60, rec.w * 8),
+      mem = rivalMemoryLine(r, rec);
     screen = "duel";
     app.innerHTML =
       '<div class="zone map"><span class="zem">' +
@@ -8720,6 +8729,9 @@
       "</span><b>vs</b><span>" +
       r.em +
       "</span></div>" +
+      (mem
+        ? '<p class="qsub" style="font-weight:600"><span lang="et">' + esc(mem.et) + "</span> — " + esc(mem.sv) + "</p>"
+        : "") +
       '<p class="qsub">Potten är <b>⭐ ' +
       pot +
       "</b>. Vinst ger hela, förlust halva — du kan inte förlora något du redan samlat.</p>" +
@@ -8728,6 +8740,7 @@
       " två poängs försprång (+50% stjärnor)</button>" +
       '<p class="qsub" id="handit">&nbsp;</p>' +
       '<button class="btn green big wide" id="go">⚔️ Sätt igång</button></div>';
+    if (mem) speak(mem.et);
     var handi = false;
     document.getElementById("handi").onclick = function () {
       handi = !handi;
@@ -9017,6 +9030,7 @@
     if (won) rec.w++;
     else rec.l++;
     if (st > rec.best) rec.best = st;
+    rec.last = won ? "childWon" : "rivalWon";
     save();
     refreshTop();
     if (won) {
