@@ -2226,6 +2226,22 @@
     { et: "Ma ootan sind.", sv: "Jag väntar på dig." },
     { et: "Kas mängime?", sv: "Ska vi spela?" },
   ];
+  /* Siiri berömmer ibland ett tema barnet redan kan bra (S.best[id]===3, redan beräknat
+     av resultScreen() och använt internt av nextUp() - bara aldrig sagt högt förut).
+     Estniska hålls till en redan använd, böjningsfri fras ("Sa oled tubli!") - temats
+     namn (med böjning) nämns bara på svenska, för att undvika fel estnisk grammatik. */
+  function bestThemeLine() {
+    var mastered = [],
+      k;
+    for (k in S.best || {}) if (S.best[k] >= 3) mastered.push(k);
+    if (!mastered.length) return null;
+    var id = mastered[(Math.random() * mastered.length) | 0],
+      t,
+      i;
+    for (i = 0; i < THEMES.length; i++) if (THEMES[i].id === id) t = THEMES[i];
+    if (!t) return null;
+    return { et: "Sa oled tubli!", sv: "Du är skicklig på " + t.sv.toLowerCase() + "!" };
+  }
   var BACK_LINES = [
     { et: "Oi, sa oled tagasi!", sv: "Åh, du är tillbaka!" },
     { et: "Tere jälle!", sv: "Hej igen!" },
@@ -2259,9 +2275,9 @@
     IDLE.n++;
     /* bara mjuka helkroppsrörelser – huvudet står still */
     if (Math.random() < 0.45) siiriClass("wob", 900);
-    /* var tredje gång säger hon något */
+    /* var tredje gång säger hon något - ibland ett beröm om ett tema hon redan vet att barnet kan */
     if (IDLE.n % 3 === 0 && screen === "home") {
-      var l = IDLE_LINES[(Math.random() * IDLE_LINES.length) | 0];
+      var l = (Math.random() < 0.3 && bestThemeLine()) || IDLE_LINES[(Math.random() * IDLE_LINES.length) | 0];
       speak(l.et);
       bubble(l);
     }
