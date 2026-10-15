@@ -70,6 +70,18 @@ const badgeRows = computed(() =>
 
 const secretsFound = computed(() => (profile.state.secrets as string[] | undefined) || []);
 
+/* vad Siiri kommit ihåg genom samtal och rummet (favoritfärg, husdjurets namn) plus hur
+   länge ni spelat ihop - utspritt över Jutt Siiriga/rummet/hemskärmen annars, aldrig
+   samlat på ett ställe för barnet att se. */
+const favColor = computed(() => (profile.state.favColor as string | undefined) || "");
+const petName = computed(() => (profile.state.petName as string | undefined) || "");
+const petKind = computed(() => {
+  const id = (profile.state.room as Record<string, string> | undefined)?.pet;
+  return FURN.find(f => f.id === id)?.sv.toLowerCase() || "";
+});
+const daysPlayed = computed(() => (profile.state.daysPlayed as number | undefined) || 0);
+const hasFacts = computed(() => !!(favColor.value || petName.value || daysPlayed.value));
+
 /** Samma tre fasta platser som slotgrid i profileScreen (inte cloud.devicePlayers(), som
  * filtrerar bort tomma platser - den är till för "Vem spelar?", inte den här listan). */
 const slots = computed(() =>
@@ -199,6 +211,23 @@ function tapSettingsTitle() {
           :earned="row.earned"
           :progress="row.progress"
         />
+      </UiAppCard>
+
+      <UiAppCard class="profile-page__section">
+        <h2>Om dig och Siiri</h2>
+        <ul v-if="hasFacts" class="profile-page__facts">
+          <li v-if="favColor">
+            🎨 Din favoritfärg är <b>{{ favColor }}</b>
+          </li>
+          <li v-if="petName">
+            🐾 Husdjuret i rummet heter <b>{{ petName }}</b
+            ><template v-if="petKind"> ({{ petKind }})</template>
+          </li>
+          <li v-if="daysPlayed">
+            💛 Ni har spelat ihop i <b>{{ daysPlayed }}</b> {{ daysPlayed === 1 ? "dag" : "dagar" }}
+          </li>
+        </ul>
+        <p v-else class="profile-page__facts-empty">Ju mer ni pratar och leker, desto mer lär Siiri känna dig!</p>
       </UiAppCard>
 
       <div v-if="profile.state.secretsOpen" class="profile-page__secrets">
@@ -440,6 +469,26 @@ function tapSettingsTitle() {
     grid-template-columns: repeat(auto-fit, minmax(5.75rem, 1fr)); // 92px
     gap: 0.5rem; // 8px
     margin-top: 0.5rem; // 8px
+  }
+
+  &__facts {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem; // 8px
+
+    li {
+      background: var(--bg2);
+      border-radius: $radius-md;
+      padding: 0.5rem 0.75rem;
+    }
+  }
+
+  &__facts-empty {
+    color: var(--muted);
+    margin: 0;
   }
 
   &__stat {

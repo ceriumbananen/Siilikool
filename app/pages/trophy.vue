@@ -17,7 +17,9 @@ const profile = useProfileStore();
 const ri = computed(() => rankIndex(profile.state.xp));
 const nextRank = computed(() => RANKS[ri.value + 1]);
 
-const quest = computed(() => useDailyQuest(profile.state.dayp || {}));
+const quest = computed(() =>
+  useDailyQuest(profile.state.dayp || {}, profile.state.questPick as { day: string; id: string } | null | undefined),
+);
 
 const duelRows = computed(() =>
   RIVALS.map(rival => ({

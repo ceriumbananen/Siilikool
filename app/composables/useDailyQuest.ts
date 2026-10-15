@@ -21,14 +21,24 @@ const QUESTS: Quest[] = [
   { id: "sent3", em: "🧩", sv: "Bygg 3 meningar rätt", goal: 3, key: "sent" },
 ];
 
-function questOfDay(): Quest {
+/** Barnet kan välja sitt eget mål istället för det tilldelade (questPickScreen() i
+ * app.js) - samma questPick-fält, så hemskärmen (legacy) och Skattkammaren (Vue) visar
+ * samma mål. */
+function questOfDay(questPick?: { day: string; id: string } | null): Quest {
+  if (questPick && questPick.day === todayKey()) {
+    const picked = QUESTS.find(q => q.id === questPick.id);
+    if (picked) return picked;
+  }
   return QUESTS[new Date().getDay() % QUESTS.length]!;
 }
 
 /** Dagens utmaning och hur långt spelaren kommit - S.dayp i sparfilen nollställs varje
  * ny dag av newDay() i legacy-koden (oförändrat tills vidare). */
-export function useDailyQuest(dayProgress: Record<string, number | undefined>) {
-  const quest = questOfDay();
+export function useDailyQuest(
+  dayProgress: Record<string, number | undefined>,
+  questPick?: { day: string; id: string } | null,
+) {
+  const quest = questOfDay(questPick);
   const value = Math.min(dayProgress[quest.key] || 0, quest.goal);
   return { quest, value, done: value >= quest.goal };
 }
