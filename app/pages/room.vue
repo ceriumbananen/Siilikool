@@ -82,13 +82,8 @@ function touchRoomSpot(id: RoomSpotId, el: Element) {
   roomTurn[id] = turn + 1;
   const word = spot.words[turn]!;
   voice.sayWord(word.et);
-  roomSaid.value = {
-    et: word.et,
-    sv: `${word.sv[0]!.toUpperCase()}${word.sv.slice(1)}!`,
-    x: spot.x,
-    y: spot.y,
-    dir: spot.dir,
-  };
+  const sv = id === "roompet" && petName.value ? petName.value : `${word.sv[0]!.toUpperCase()}${word.sv.slice(1)}!`;
+  roomSaid.value = { et: word.et, sv, x: spot.x, y: spot.y, dir: spot.dir };
   clearTimeout(roomSaidTimer);
   roomSaidTimer = setTimeout(() => {
     roomSaid.value = null;
@@ -97,6 +92,13 @@ function touchRoomSpot(id: RoomSpotId, el: Element) {
 const label = computed(
   () => `${fur.value.sv} päls · ${eye.value.sv} ögon · ${owned.value.length} av ${SHOP.length} saker`,
 );
+
+/* döp husdjuret - att få namnge något gör det till "mitt", inte bara "ett" husdjur */
+const petName = computed(() => ((s.petName as string | undefined) || "").trim());
+function savePetName(e: Event) {
+  s.petName = (e.target as HTMLInputElement).value.trim().slice(0, 16);
+  profile.save();
+}
 
 /* Siiri kommenterar utseendet - päls/ögon/kläder ändrades innan bara tyst (en ton + konfetti),
    trots att hon redan har hela mood/reaktionssystemet. Återanvänder roomSaid-bubblan ovan. */
@@ -348,6 +350,17 @@ function backFromQuiz() {
                 ><small lang="et">{{ f.et }}</small>
               </button>
               <span v-if="row.locked" class="room-page__furn-lock">🔒 {{ row.locked }} till i marknaden</span>
+            </div>
+            <div v-if="row.id === 'pet' && row.current !== 'd-none'" class="room-page__pet-name">
+              <label for="petname">Ge husdjuret ett namn</label>
+              <input
+                id="petname"
+                type="text"
+                maxlength="16"
+                :value="petName"
+                placeholder="t.ex. Nurr"
+                @change="savePetName"
+              />
             </div>
           </template>
         </UiAppCard>
@@ -794,6 +807,32 @@ function backFromQuiz() {
   &__furn-lock {
     font-size: $font-size-xs;
     color: var(--muted);
+  }
+
+  &__pet-name {
+    margin-top: $spacing-2;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+
+    label {
+      font-size: $font-size-xs;
+      color: var(--muted);
+    }
+
+    input {
+      font: inherit;
+      font-size: $font-size-md;
+      font-weight: 600;
+      padding: 0.5rem 0.75rem;
+      border: $border-width solid var(--line);
+      border-radius: $radius-md;
+      background: var(--bg2);
+      color: var(--ink);
+      max-width: 16rem;
+
+      @include focus-visible;
+    }
   }
 
   /* diplom */
