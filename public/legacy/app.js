@@ -2231,6 +2231,19 @@
     { et: "Tere jälle!", sv: "Hej igen!" },
     { et: "Kus sa olid?", sv: "Var har du varit?" },
   ];
+  /* ett helt uppehåll (1+ dygn) är mer intressant än "du är tillbaka" - säg hur länge,
+     med rätt estnisk böjning (üks päev, men kaks/kolm/... päeva) och namnet om det finns */
+  var DAY_WORDS = ["", "üks", "kaks", "kolm", "neli", "viis", "kuus", "seitse", "kaheksa", "üheksa", "kümme"];
+  function daysAwayLine(days) {
+    var nm = (S.name || "").trim(),
+      who = nm ? ", " + nm : "",
+      etDays = days === 1 ? "üks päev" : days <= 10 ? DAY_WORDS[days] + " päeva" : "mitu päeva",
+      svDays = days === 1 ? "en dag" : days + " dagar";
+    return {
+      et: "Tere" + who + "! Sa olid ära " + etDays + ".",
+      sv: "Hej" + who + "! Du var borta i " + svDays + ".",
+    };
+  }
   function siiriClass(add, ms) {
     var s = $s("s-svg");
     if (!s) return;
@@ -2293,8 +2306,9 @@
     S.lastSeen = now;
     save();
     if (gap > 6 * 3600 * 1000) {
+      var days = Math.floor(gap / (24 * 3600 * 1000));
       setTimeout(function () {
-        var l = BACK_LINES[(Math.random() * BACK_LINES.length) | 0];
+        var l = days >= 1 ? daysAwayLine(days) : BACK_LINES[(Math.random() * BACK_LINES.length) | 0];
         speak(l.et);
         bubble(l);
         siiriClass("wob", 900);
