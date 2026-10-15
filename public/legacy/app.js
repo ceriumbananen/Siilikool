@@ -801,12 +801,50 @@
     var t = today();
     if (S.day !== t) {
       /* S.flames räknar dagar då dagens utmaning klarats – den nollställs aldrig,
-         så en missad dag tar inte bort något barnet redan klarat (ingen svit, ingen press) */
+         så en missad dag tar inte bort något barnet redan klarat (ingen svit, ingen press).
+         S.daysPlayed är samma princip för vänskapen: hur många olika dagar man spelat totalt,
+         aldrig en svit som kan brytas. */
       S.day = t;
       S.dayp = { correct: 0, spoken: 0, typed: 0, themes: 0, talks: 0, mixed: 0, claimed: 0 };
+      S.daysPlayed = (S.daysPlayed || 0) + 1;
       save();
+      checkFriendMilestone();
     }
     if (!S.dayp) S.dayp = { correct: 0, spoken: 0, typed: 0, themes: 0, talks: 0, mixed: 0, claimed: 0 };
+  }
+  /* en växande vänskap istället för ännu en mätare - firar hur många OLIKA dagar barnet och
+     Siiri spelat ihop (S.daysPlayed, se newDay()), inte en svit som kan gå förlorad. */
+  var FRIEND_MILESTONES = [3, 7, 15, 30, 60, 100, 200, 365];
+  function checkFriendMilestone() {
+    if (FRIEND_MILESTONES.indexOf(S.daysPlayed) < 0) return;
+    if ((S.friendSeen || []).indexOf(S.daysPlayed) >= 0) return;
+    S.friendSeen = (S.friendSeen || []).concat(S.daysPlayed);
+    save();
+    setTimeout(function () {
+      var line = {
+        et: "Me oleme juba " + S.daysPlayed + " päeva koos mänginud!",
+        sv: "Vi har spelat tillsammans i " + S.daysPlayed + " dagar!",
+      };
+      var d = document.createElement("div");
+      d.className = "overlay";
+      d.innerHTML =
+        '<div class="oc" style="border-color:#E0912A"><p class="kicker">🦔💛 Sõbrad!</p>' +
+        '<div style="font-size:64px">🤝</div>' +
+        '<h3 style="font-size:22px">' +
+        esc(line.et) +
+        "</h3><p>" +
+        esc(line.sv) +
+        (S.name ? " Tubli, " + esc(S.name) + "!" : "") +
+        "</p>" +
+        '<button class="btn big wide" id="friendok">Tubli!</button></div>';
+      document.body.appendChild(d);
+      burst(120);
+      fanfare(2);
+      speak(line.et);
+      d.querySelector("#friendok").onclick = function () {
+        d.remove();
+      };
+    }, 1800);
   }
   function questProgress() {
     var q = questOfDay(),
