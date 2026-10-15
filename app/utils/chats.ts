@@ -158,10 +158,9 @@ export const CHATS = [
       },
       {
         q: { et: "Mis on sinu lemmikvärv?", sv: "Vilken är din favoritfärg?" },
-        opts: [
-          { et: "Minu lemmikvärv on punane.", sv: "Min favoritfärg är röd." },
-          { et: "Minu lemmikvärv on kollane.", sv: "Min favoritfärg är gul." },
-        ],
+        /* fritt svar - alla barn har inte röd eller gul som favorit, se answerTalkFree() i app.js */
+        freeText: true,
+        opts: [],
         reply: { et: "Väga ilus värv!", sv: "Vilken fin färg!" },
       },
       {

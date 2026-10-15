@@ -11149,7 +11149,15 @@
       html += '<span class="dot' + (d < T.i ? " ok" : d === T.i ? " now" : "") + '"></span>';
     }
     html += '</div></div><div class="card" id="ansbox">';
-    if (T.phase === "q") {
+    if (T.phase === "q" && step.freeText) {
+      html +=
+        '<div class="center"><button class="speakbtn sm" id="again" aria-label="Hör frågan igen">🔊</button>' +
+        '<button class="speakbtn sm" id="slow" aria-label="Hör frågan långsamt">🐢</button></div>' +
+        '<div class="heard" id="heard">Skriv ditt eget svar.</div>' +
+        '<label class="sr-only" for="freeans">Ditt svar</label>' +
+        '<input class="type" id="freeans" maxlength="24" autocomplete="off" autocapitalize="off" placeholder="skriv här">' +
+        '<button class="btn green big wide" id="freeok" style="margin-top:10px">Klart →</button>';
+    } else if (T.phase === "q") {
       html +=
         '<div class="center"><button class="speakbtn sm" id="again" aria-label="Hör frågan igen">🔊</button>' +
         (micOK ? '<button class="mic" id="mic" aria-label="Svara med rösten">🎤</button>' : "") +
@@ -11197,6 +11205,21 @@
     document.getElementById("slow").onclick = function () {
       speak(step.q.et, true);
     };
+    if (step.freeText) {
+      var fi = document.getElementById("freeans"),
+        fb = document.getElementById("freeok");
+      fb.onclick = function () {
+        answerTalkFree(fi.value.trim().slice(0, 24));
+      };
+      fi.addEventListener("keydown", function (e) {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          fb.click();
+        }
+      });
+      fi.focus();
+      return;
+    }
     var btns = app.querySelectorAll("[data-opt]");
     for (var j = 0; j < btns.length; j++) {
       (function (el) {
@@ -11273,6 +11296,22 @@
       T.phase = "reply";
       renderTalk();
     }, 1500);
+  }
+  /* samma belöning som answerTalk, men för en fritt skriven fråga - inget facit att läsa upp */
+  function answerTalkFree(text) {
+    if (!text) return;
+    T.said++;
+    S.correct++;
+    addXp(6);
+    earnStars(1);
+    save();
+    sndOk();
+    burst(40);
+    mood("cheer");
+    setTimeout(function () {
+      T.phase = "reply";
+      renderTalk();
+    }, 700);
   }
   function talkDone() {
     bumpQuest("talks", 1);
