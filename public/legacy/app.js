@@ -9491,6 +9491,271 @@
     var theme = themeWordsFor(w.et);
     return theme && theme.length >= 4 ? theme : fallback;
   }
+
+  /* ============ FRÅGA SIIRI ============ */
+  /* Ingen AI-motor - bara mönster-matchning mot sånt appen redan vet: ett litet FAQ om Siiri
+     själv (SIIRI_FAQ) och en ordboksslagning mot allWords() (lookupWord) åt båda hållen
+     (svenska → estniska och tvärtom), med samma lösa jämförelse (loose/lev) som redan används
+     för röstsvar i saidIt(). Känner appen inte igen frågan säger Siiri det, istället för att
+     gissa eller hitta på. */
+  var ASK_STOP = [
+    "vad",
+    "heter",
+    "betyder",
+    "hur",
+    "säger",
+    "man",
+    "sa",
+    "du",
+    "är",
+    "det",
+    "den",
+    "en",
+    "ett",
+    "på",
+    "estniska",
+    "engelska",
+    "svenska",
+    "jag",
+    "vill",
+    "veta",
+    "kan",
+    "skriv",
+    "säg",
+    "mig",
+    "om",
+    "som",
+    "och",
+    "the",
+    "what",
+    "does",
+    "mean",
+    "in",
+    "is",
+    "a",
+    "your",
+    "name",
+  ];
+  function askTokens(text) {
+    return norm(text)
+      .replace(/\?/g, "")
+      .split(" ")
+      .filter(function (w) {
+        return w.length > 1 && ASK_STOP.indexOf(w) < 0;
+      });
+  }
+  function lookupWord(raw) {
+    var toks = askTokens(raw);
+    if (!toks.length) return null;
+    var candidates = toks.concat([toks.join(" ")]),
+      words = allWords(),
+      i,
+      j,
+      w,
+      nc;
+    for (j = 0; j < candidates.length; j++) {
+      nc = loose(candidates[j]);
+      for (i = 0; i < words.length; i++) {
+        if (loose(words[i].sv) === nc) return { word: words[i], dir: "sv2et" };
+      }
+    }
+    for (j = 0; j < candidates.length; j++) {
+      nc = loose(candidates[j]);
+      for (i = 0; i < words.length; i++) {
+        if (loose(words[i].et) === nc) return { word: words[i], dir: "et2sv" };
+      }
+    }
+    var best = null,
+      bestD = Infinity,
+      bestDir = null;
+    for (j = 0; j < candidates.length; j++) {
+      nc = loose(candidates[j]);
+      /* bara längre ord (5+) får vara "ungefär rätt" - annars matchar nästan vilket kort,
+         obesläktat ord som helst av misstag (t.ex. svenska "saga" mot estniska "siga") */
+      if (nc.length < 5) continue;
+      for (i = 0; i < words.length; i++) {
+        w = words[i];
+        var sv = loose(w.sv),
+          et = loose(w.et);
+        var dsv = lev(sv, nc),
+          tolSv = Math.max(1, Math.floor(sv.length / 4));
+        if (dsv <= tolSv && dsv < bestD) {
+          bestD = dsv;
+          best = w;
+          bestDir = "sv2et";
+        }
+        var det = lev(et, nc),
+          tolEt = Math.max(1, Math.floor(et.length / 4));
+        if (det <= tolEt && det < bestD) {
+          bestD = det;
+          best = w;
+          bestDir = "et2sv";
+        }
+      }
+    }
+    return best ? { word: best, dir: bestDir } : null;
+  }
+  /* litet FAQ om Siiri själv - nyckelorden matchas som delsträngar i den normaliserade frågan.
+     Några svar återanvänder det appen redan vet om barnet (S.name, S.favColor). */
+  var SIIRI_FAQ = [
+    {
+      k: ["heter du", "vem är du", "ditt namn"],
+      get: function () {
+        return { et: "Minu nimi on Siiri!", sv: "Jag heter Siiri!", em: "🦔" };
+      },
+    },
+    {
+      k: ["mår du", "känner du dig"],
+      get: function () {
+        return { et: "Mul on väga hästi!", sv: "Jag mår jättebra!", em: "😊" };
+      },
+    },
+    {
+      k: ["bor du", "var du bor"],
+      get: function () {
+        return { et: "Ma elan sinu toas!", sv: "Jag bor i ditt rum!", em: "🏠" };
+      },
+    },
+    {
+      k: ["gammal är du", "din ålder", "hur gammal"],
+      get: function () {
+        return { et: "Siilid ei loe aastaid!", sv: "Igelkottar räknar inte år!", em: "🎂" };
+      },
+    },
+    {
+      k: ["favoritfärg", "favorit färg"],
+      get: function () {
+        return S.favColor
+          ? { et: "Mulle meeldib see värv!", sv: "Din favoritfärg " + S.favColor + " är fin!", em: "🎨" }
+          : { et: "Mis on sinu lemmikvärv?", sv: "Vad är din favoritfärg? Jag vet inte än!", em: "🎨" };
+      },
+    },
+    {
+      k: ["heter jag", "mitt namn"],
+      get: function () {
+        return S.name
+          ? { et: "Sinu nimi on " + S.name + "!", sv: "Du heter " + S.name + "!", em: "👋" }
+          : { et: "Ma ei tea veel su nime!", sv: "Jag vet inte ditt namn än!", em: "🤔" };
+      },
+    },
+    {
+      k: ["tack", "tackar"],
+      get: function () {
+        return { et: "Pole tänu väärt!", sv: "Ingen orsak!", em: "💛" };
+      },
+    },
+    {
+      k: ["älskar dig", "gillar dig", "tycker om dig"],
+      get: function () {
+        return { et: "Mina armastan ka sind!", sv: "Jag tycker också om dig!", em: "💛" };
+      },
+    },
+    {
+      k: ["leka", "spela", "vill du leka"],
+      get: function () {
+        return { et: "Jah, mängime!", sv: "Ja, vi leker!", em: "🎉" };
+      },
+    },
+  ];
+  function askSiiriAnswer(text) {
+    var n = norm(text),
+      i,
+      j;
+    for (i = 0; i < SIIRI_FAQ.length; i++) {
+      for (j = 0; j < SIIRI_FAQ[i].k.length; j++) {
+        if (n.indexOf(SIIRI_FAQ[i].k[j]) >= 0) return SIIRI_FAQ[i].get();
+      }
+    }
+    var hit = lookupWord(text);
+    if (hit) return { et: hit.word.et, sv: hit.word.sv, em: hit.word.em };
+    return {
+      et: "Ma ei saa veel aru!",
+      sv: 'Jag förstår inte riktigt - men fråga mig t.ex. "vad betyder hund" så vet jag!',
+      em: "🤔",
+    };
+  }
+  var ASK_LOG = [];
+  function askScreen() {
+    screen = "ask";
+    ASK_LOG = [{ who: "siiri", et: "Tere! Küsi minult midagi!", sv: "Hej! Fråga mig vad som helst!", em: "🦔" }];
+    renderAsk();
+  }
+  function askLogHtml() {
+    var h = "",
+      i,
+      row;
+    for (i = 0; i < ASK_LOG.length; i++) {
+      row = ASK_LOG[i];
+      if (row.who === "me") h += '<div class="askrow me"><span>' + esc(row.text) + "</span></div>";
+      else
+        h +=
+          '<div class="askrow siiri"><span class="askem">' +
+          (row.em || "🦔") +
+          '</span><div class="askbub"><b lang="et">' +
+          esc(row.et) +
+          "</b><small>" +
+          esc(row.sv) +
+          "</small></div></div>";
+    }
+    return h;
+  }
+  function renderAsk() {
+    var html =
+      '<div class="zone"><span>💬 <b>Fråga Siiri</b></span><span>Skriv eller tala - hon svarar om ord hon känner till</span></div>' +
+      '<div class="card"><div class="asklog" id="asklog">' +
+      askLogHtml() +
+      "</div>" +
+      '<div class="askinput-row">' +
+      '<label class="sr-only" for="askinp">Din fråga</label>' +
+      '<input class="type" id="askinp" maxlength="60" autocomplete="off" placeholder="t.ex. vad betyder hund?">' +
+      (micOK ? '<button class="mic askmic" id="askmic" aria-label="Fråga med rösten">🎤</button>' : "") +
+      "</div>" +
+      '<button class="btn green big wide" id="askgo" style="margin-top:8px">Fråga →</button></div>';
+    app.innerHTML = html;
+    var log = document.getElementById("asklog");
+    log.scrollTop = log.scrollHeight;
+    document.getElementById("askgo").onclick = function () {
+      submitAsk();
+    };
+    document.getElementById("askinp").addEventListener("keydown", function (e) {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        submitAsk();
+      }
+    });
+    var mic = document.getElementById("askmic");
+    if (mic)
+      mic.onclick = function () {
+        mic.classList.add("listening");
+        listen(
+          function (alts) {
+            mic.classList.remove("listening");
+            submitAsk(alts[0]);
+          },
+          function () {
+            mic.classList.remove("listening");
+          },
+          function (err) {
+            mic.classList.remove("listening");
+            var hd = document.getElementById("askinp");
+            hd.placeholder = micProblem(err);
+          },
+        );
+      };
+  }
+  function submitAsk(spokenText) {
+    var inp = document.getElementById("askinp"),
+      text = (spokenText || inp.value || "").trim();
+    if (!text) return;
+    inp.value = "";
+    ASK_LOG.push({ who: "me", text: text });
+    var reply = askSiiriAnswer(text);
+    ASK_LOG.push({ who: "siiri", et: reply.et, sv: reply.sv, em: reply.em });
+    renderAsk();
+    speak(reply.et);
+    mood("cheer");
+  }
+
   function speedIntro() {
     screen = "mix";
     prefetchAllThemes();
@@ -11180,9 +11445,14 @@
         esc(CHATS[i].sv) +
         "</span></button>";
     }
-    html += "</div></div>";
+    html +=
+      "</div>" +
+      '<button class="btn ghost wide" id="asksiiri" style="margin-top:10px">💬 Fråga Siiri vad du vill!</button></div>';
     app.innerHTML = html;
     mMood("");
+    document.getElementById("asksiiri").onclick = function () {
+      go(askScreen, true);
+    };
     var b = app.querySelectorAll("[data-chat]");
     for (var k = 0; k < b.length; k++) {
       (function (el) {

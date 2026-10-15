@@ -5421,6 +5421,81 @@ input.type.wrong {
   }
 }
 
+/* Fråga Siiri - mönster-matchning mot ordförrådet (allWords) + ett litet FAQ om Siiri själv
+   (askScreen() i app.js), inget AI-anrop. Chattloggen återanvänder samma bubbla-känsla som
+   .saysbub men som en rad meddelanden istället för en enda stor fråga. */
+.asklog {
+  max-height: 46vh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-right: 2px;
+}
+
+.askrow {
+  display: flex;
+  gap: 8px;
+  align-items: flex-end;
+}
+
+.askrow.me {
+  justify-content: flex-end;
+}
+
+.askrow.me span {
+  background: var(--bg2);
+  border: var(--bd) solid var(--line);
+  border-radius: var(--r-md);
+  padding: 8px 12px;
+  max-width: 78%;
+}
+
+.askem {
+  font-size: 22px;
+  line-height: 1;
+  flex: none;
+}
+
+.askbub {
+  background: var(--card);
+  border: var(--bd) solid var(--line);
+  border-radius: var(--r-md);
+  padding: 8px 12px;
+  box-shadow: var(--sh-2);
+  max-width: 78%;
+}
+
+.askbub b {
+  display: block;
+  font-size: var(--fs-md);
+}
+
+.askbub small {
+  display: block;
+  color: var(--muted);
+}
+
+.askinput-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-top: 12px;
+}
+
+.askinput-row input.type {
+  flex: 1;
+  margin-top: 0;
+}
+
+.mic.askmic {
+  width: 52px;
+  height: 52px;
+  font-size: 22px;
+  border-radius: var(--r-md);
+  flex: none;
+}
+
 .heard {
   text-align: center;
   color: var(--muted);
