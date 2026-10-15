@@ -98,6 +98,23 @@ const label = computed(
   () => `${fur.value.sv} päls · ${eye.value.sv} ögon · ${owned.value.length} av ${SHOP.length} saker`,
 );
 
+/* Siiri kommenterar utseendet - päls/ögon/kläder ändrades innan bara tyst (en ton + konfetti),
+   trots att hon redan har hela mood/reaktionssystemet. Återanvänder roomSaid-bubblan ovan. */
+const APPEARANCE_REACTIONS: { et: string; sv: (detail: string) => string }[] = [
+  { et: "Mulle meeldib!", sv: detail => `Jag gillar ${detail} på mig!` },
+  { et: "Kui ilus!", sv: detail => `Vad fint, jag har ${detail} nu!` },
+  { et: "Vaata mind!", sv: detail => `Titta, nu har jag ${detail}!` },
+];
+function reactToLook(detailSv: string, wordEt?: string) {
+  if (wordEt) voice.sayWord(wordEt);
+  const r = APPEARANCE_REACTIONS[(Math.random() * APPEARANCE_REACTIONS.length) | 0]!;
+  roomSaid.value = { et: r.et, sv: r.sv(detailSv), x: 50, y: 38, dir: "up" };
+  clearTimeout(roomSaidTimer);
+  roomSaidTimer = setTimeout(() => {
+    roomSaid.value = null;
+  }, 1800);
+}
+
 /* ---------- dagens gömda sak ---------- */
 const found = computed(() => s.hideday === todayKey());
 const hidden = computed(() => {
@@ -148,11 +165,15 @@ function pickFur(id: string) {
   profile.save();
   tone(820, 0.08, 0);
   burst(24);
+  const f = myFur(id);
+  reactToLook(`${f.sv.toLowerCase()} päls`, f.et);
 }
 function pickEye(id: string) {
   s.eye = id;
   profile.save();
   tone(900, 0.08, 0);
+  const e = myEye(id);
+  reactToLook(`${e.sv.toLowerCase()} ögon`, e.id);
 }
 
 /* kläderna barnet äger, per plats på Siiri */
@@ -169,6 +190,7 @@ function toggleWear(it: ShopItem) {
   if (!on) {
     voice.sayWord(it.et);
     tone(760, 0.09, 0);
+    reactToLook(it.sv.charAt(0).toLowerCase() + it.sv.slice(1));
   } else tone(520, 0.09, 0);
 }
 
