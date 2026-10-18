@@ -34,6 +34,7 @@ export const RIVALS: Rival[] = [
   {
     id: "rebane",
     em: "🦊",
+    img: "/images/rivals/rebane.webp",
     et: "Rebane",
     sv: "Räven",
     skill: 0.66,
@@ -43,6 +44,7 @@ export const RIVALS: Rival[] = [
   {
     id: "karu",
     em: "🐻",
+    img: "/images/rivals/karu.webp",
     et: "Karu",
     sv: "Björnen",
     skill: 0.76,
@@ -52,6 +54,7 @@ export const RIVALS: Rival[] = [
   {
     id: "draakon",
     em: "🐉",
+    img: "/images/rivals/draakon.webp",
     et: "Draakon",
     sv: "Draken",
     skill: 0.86,
