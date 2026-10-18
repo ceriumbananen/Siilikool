@@ -899,6 +899,39 @@
       };
     }, 1800);
   }
+  /* "första gången"-ögonblick förtjänar egen fanfar, skilt från den vanliga belöningen för
+     samma handling varje gång därefter - annars syns aldrig att just DEN här gången var unik. */
+  function firstEver(key) {
+    if (!S.firsts) S.firsts = [];
+    if (S.firsts.indexOf(key) >= 0) return false;
+    S.firsts.push(key);
+    save();
+    return true;
+  }
+  function celebrateFirst(em, et, sv) {
+    setTimeout(function () {
+      var d = document.createElement("div");
+      d.className = "overlay";
+      d.innerHTML =
+        '<div class="oc" style="border-color:#D9A52B"><p class="kicker">✨ Esimene kord!</p>' +
+        '<div style="font-size:64px">' +
+        em +
+        "</div>" +
+        '<h3 style="font-size:22px">' +
+        esc(et) +
+        "</h3><p>" +
+        esc(sv) +
+        "</p>" +
+        '<button class="btn big wide" id="firstok">Tubli!</button></div>';
+      document.body.appendChild(d);
+      burst(160);
+      fanfare(3);
+      speak(et);
+      d.querySelector("#firstok").onclick = function () {
+        d.remove();
+      };
+    }, 900);
+  }
   function questProgress() {
     var q = questOfDay(),
       v = S.dayp[q.key] || 0;
@@ -9088,8 +9121,11 @@
     var gain = Math.round((won ? DU.pot : DU.pot / 2) * (DU.handi ? 1.5 : 1));
     earnStars(gain);
     addXp(won ? 60 : 25);
-    if (won) rec.w++;
-    else rec.l++;
+    var firstDuelWin = false;
+    if (won) {
+      rec.w++;
+      firstDuelWin = firstEver("duelwin");
+    } else rec.l++;
     if (st > rec.best) rec.best = st;
     rec.last = won ? "childWon" : "rivalWon";
     save();
@@ -9100,6 +9136,7 @@
       setTimeout(function () {
         dance();
       }, 300);
+      if (firstDuelWin) celebrateFirst("⚔️", "Sinu esimene duellivõit!", "Din första duellvinst!");
     } else {
       burst(80);
       sndLvl();
@@ -10707,7 +10744,11 @@
       if (L.combo > (L.bestCombo || 0)) L.bestCombo = L.combo;
       if (L.combo > (S.bestcombo || 0)) S.bestcombo = L.combo;
       var mult = L.combo >= 5 ? 3 : L.combo >= 3 ? 2 : 1;
-      if (extra === "speak") S.spoken++;
+      if (extra === "speak") {
+        S.spoken++;
+        if (firstEver("spoken"))
+          celebrateFirst("🎤", "Sa ütlesid esimese sõna valjusti!", "Du sa ditt första ord högt!");
+      }
       if (extra === "type") S.typed++;
       if (extra === "type") tripBump("type", 1);
       /* både att säga ordet och att höra och välja rätt räknas – mikrofon behövs aldrig */
@@ -11311,7 +11352,11 @@
     if (st > (S.best[L.theme.id] || 0)) {
       S.best[L.theme.id] = st;
     }
-    if (right === total) S.perfect++;
+    var firstPerfect = false;
+    if (right === total) {
+      S.perfect++;
+      firstPerfect = firstEver("perfect");
+    }
     if (!S.bestRight) S.bestRight = {};
     if (L.right > (S.bestRight[L.theme.id] || 0)) {
       S.bestRight[L.theme.id] = L.right;
@@ -11324,6 +11369,7 @@
     setTimeout(function () {
       dance(st >= 3);
     }, 350);
+    if (firstPerfect) celebrateFirst("💯", "Sinu esimene veatu tulemus!", "Ditt första felfria resultat!");
     maybeChest();
     var wrongN = 0,
       wi;
@@ -11756,7 +11802,11 @@
     T.said++;
     if (byVoice) T.voice++;
     S.correct++;
-    if (byVoice) S.spoken++;
+    var firstSpoken = false;
+    if (byVoice) {
+      S.spoken++;
+      firstSpoken = firstEver("spoken");
+    }
     addXp(byVoice ? 12 : 6);
     earnStars(1);
     save();
@@ -11764,6 +11814,7 @@
     burst(byVoice ? 70 : 40);
     mood("cheer");
     speak(step.opts[k].et);
+    if (firstSpoken) celebrateFirst("🎤", "Sa ütlesid esimese sõna valjusti!", "Du sa ditt första ord högt!");
     setTimeout(function () {
       T.phase = "reply";
       renderTalk();
