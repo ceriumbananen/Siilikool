@@ -10,10 +10,10 @@
   /* orter utan stopp – bara namn på kartan. Rakvere/Jõhvi/Paide/Võru/Valga är redan riktiga
        TRIP-stopp med egen nål och namn på nästan samma plats, så de är inte med här (krockande text) */
   var MAPTOWNS = [
-    { et: "Rapla", x: 155.2, y: 65.5, end: true },
-    { et: "Kärdla", x: 60.0, y: 65.3, end: true },
-    { et: "Elva", x: 230.9, y: 134.7, end: true, dy: -3 },
-    { et: "Türi", x: 181.0, y: 83.0, end: true },
+    { et: "Rapla", x: 147.7, y: 86.8, end: true },
+    { et: "Kärdla", x: 60.6, y: 96.1 },
+    { et: "Elva", x: 229.5, y: 150.5, end: true, dy: -3 },
+    { et: "Türi", x: 175.3, y: 102.5, end: true },
   ];
   /* varje ort har tre uppdrag och en souvenir */
   var TRIPTASKS = window.SiiriData.TRIPTASKS;
@@ -7124,31 +7124,26 @@
   }
 
   /* ---------- RESAN GENOM ESTLAND ---------- */
-  var EST_LAND = [
-    "M274.4 196.7 L273.2 197 L266.7 195.8 L259.6 192.2 L256.5 189.4 L253.4 189.6 L249.6 191.3 L236.3 196.4 L233 195.3 L225.3 190.2 L221.4 184.7 L212.9 173.7 L212.2 171.1 L211 169.1 L201.8 166.3 L198.4 162.2 L195.6 161.6 L191.6 159.6 L180.7 151.1 L178 150.1 L177.3 151.7 L177.7 153.7 L177 154.9 L175.5 154.8 L173.1 151.7 L170.1 148.9 L160.7 154.2 L157.4 155.6 L154.5 155.9 L139.8 162.7 L135.2 166.4 L133.4 166.1 L133.7 162.6 L139.9 145 L141.1 131.2 L143.3 129.2 L144 127.3 L143 122.8 L136.6 120 L134.1 120.5 L131.7 125.2 L129.4 128.6 L123.7 130.7 L118.8 127.2 L107.6 122.2 L104.6 115.8 L103.9 109.3 L98 103.1 L95.5 95.7 L96.5 90.6 L101.9 87.1 L103.4 84.2 L96.7 84.7 L95.2 83.9 L94.8 81.2 L91.8 72.2 L94.5 68.7 L95.7 65.3 L93.5 62.3 L94.2 58.9 L95.8 55.5 L94.8 47.7 L101.5 43.5 L108.2 40.6 L122.2 39 L120.8 31.9 L126.5 31.6 L136.1 22.9 L145.5 24.4 L159.2 18.6 L185.5 18.6 L189.2 15.1 L188.6 11.7 L188.6 8 L193.6 9.1 L201.8 8.5 L233 15.6 L240.5 15.6 L251.1 22.9 L256.8 24.9 L273.7 24.9 L299.5 28.2 L304.7 23.2 L305.2 21.8 L307.6 24.6 L310.8 29.1 L311.6 31.7 L310.6 33.1 L307.4 34.5 L306.8 35.8 L305.4 38.1 L301.7 38.6 L299.9 40.3 L297.5 47.9 L293.3 60.4 L287 70.1 L281.9 75.3 L279.6 79.4 L278.3 84.2 L277.9 89 L282.8 115.7 L282.8 120.5 L281.6 125.3 L280.8 130.4 L281.4 134.8 L284.6 142.2 L288 153.2 L289.3 160.4 L291.7 163 L293.8 164.9 L294.3 166.1 L294.2 167.4 L293.2 168.8 L283.3 172.5 L281.9 175.6 L280.9 179.2 L276.7 184.3 L275.4 189.1 L274.6 194.7 L274.4 196.7 Z",
-    "M53.9 98.9 L57.3 101.1 L60.3 100.5 L63.3 98.9 L70 100.3 L85.4 111.3 L86.8 114.3 L77.7 115.5 L75.6 118.9 L73.4 121.3 L70.9 122.1 L66.3 126.7 L60.5 131.2 L59.1 133.8 L48.4 133.4 L42.5 135.1 L37.7 140.2 L35.8 149.8 L32.3 157.4 L28.8 160.2 L25.1 160.7 L24.1 157.7 L24.6 154.9 L32.3 144.2 L34 140.7 L30.1 139.1 L26.8 135.4 L19.7 131.1 L18.4 127.6 L20.1 127.3 L21.7 126.2 L23.6 123.3 L24.4 120 L18.7 110.1 L21.7 108.6 L25.3 108.9 L28.9 111.8 L33 108.4 L34.8 107.9 L37.7 109.2 L40.5 102.7 L47.2 100.5 L50.6 98.5 L53.9 98.9 Z",
-    "M68.2 80.6 L64.3 85 L62.1 83.3 L61 81.1 L55.9 91.2 L50.4 92.9 L47.2 90.9 L47.6 87.1 L44.4 77.4 L39.5 74.4 L32.8 74.3 L27.8 70.2 L46.7 67.4 L48.7 62.8 L52.6 57.8 L55.4 57.3 L58 58.4 L58.3 62.3 L59 63.9 L67.5 65.9 L70.9 72.2 L72.2 80 L68.2 80.6 Z",
-    "M87.8 105.3 L83.9 106.2 L74.7 99.9 L76.9 95.7 L79.4 94 L87.3 96.6 L88.3 103.1 L87.8 105.3 Z",
-  ];
-  var EST_PEIPUS =
-    "M279 66.9 L294.4 90.2 L286.9 117 L283.6 147.4 L275.7 165.3 L266.4 159 L272 127.7 L260.4 99.1 L268.3 75.9 Z";
-  var EST_VORTS = "M216.1 105.4 L220.8 125.9 L213.8 143.8 L207.7 127.7 L210.5 109.8 Z";
+  /* kartan är en handmålad illustration (public/images/map/estonia.webp, se
+     tripMapSVG()) istället för en platt vektorform - orterna/vägen/Siiri ligger kvar som
+     SVG ovanpå, positionerade för att träffa rätt plats på just den bilden. */
+  var MAP_IMG = "/images/map/estonia.webp";
   /* kartan följer årstiden (samma seasonNow() som hemskärmens hälsning redan läser) istället
-     för att se likadan ut i juli som i januari - bara färger + ströddda ikoner, ingen ny
-     partikelmotor (seasonFx() kör redan canvas-snö/kronblad på andra skärmar). */
+     för att se likadan ut i juli som i januari - bara ströddda ikoner ovanpå kartbilden, ingen
+     ny partikelmotor (seasonFx() kör redan canvas-snö/kronblad på andra skärmar). */
   var MAP_DECO_SPOTS = [
-    { x: 70, y: 55 },
-    { x: 250, y: 45 },
-    { x: 110, y: 155 },
-    { x: 270, y: 130 },
-    { x: 180, y: 95 },
+    { x: 181.7, y: 80.1 },
+    { x: 227.1, y: 80.1 },
+    { x: 196.8, y: 128.1 },
+    { x: 257.3, y: 153.8 },
+    { x: 166.5, y: 153.8 },
   ];
   function mapSeasonTheme() {
     var fx = seasonNow().fx;
-    if (fx === "snow") return { landA: "#F3F8F6", landB: "#D8E6E2", seaA: "#D7E6EC", seaB: "#AEC7D6", deco: "❄️" };
-    if (fx === "petals") return { landA: "#E7F4CF", landB: "#BFE0A8", seaA: "#CFEAF4", seaB: "#A8D3E6", deco: "🌸" };
-    if (fx === "leaves") return { landA: "#F0DFA0", landB: "#D9A85C", seaA: "#C2D8DE", seaB: "#93B4BE", deco: "🍂" };
-    return { landA: "#D8EDCB", landB: "#A8CE97", seaA: "#CDE8F3", seaB: "#A8D3E6", deco: "" };
+    if (fx === "snow") return { deco: "❄️" };
+    if (fx === "petals") return { deco: "🌸" };
+    if (fx === "leaves") return { deco: "🍂" };
+    return { deco: "" };
   }
   function tripMapSVG() {
     var n = tripReached(),
@@ -7157,32 +7152,10 @@
       mt2 = mapSeasonTheme();
     s +=
       '<svg viewBox="0 0 330 205" class="estmap" role="img" aria-label="Karta över Estland">' +
-      '<defs><linearGradient id="mland" x1="0" y1="0" x2="0.3" y2="1">' +
-      '<stop offset="0%" stop-color="' +
-      mt2.landA +
-      '"/><stop offset="100%" stop-color="' +
-      mt2.landB +
-      '"/></linearGradient>' +
-      '<linearGradient id="msea" x1="0" y1="0" x2="0" y2="1">' +
-      '<stop offset="0%" stop-color="' +
-      mt2.seaA +
-      '"/><stop offset="100%" stop-color="' +
-      mt2.seaB +
-      '"/></linearGradient></defs>' +
-      '<rect x="0" y="0" width="330" height="205" rx="18" fill="url(#msea)"/>';
-    for (i = 0; i < EST_LAND.length; i++) {
-      s +=
-        '<path d="' +
-        EST_LAND[i] +
-        '" fill="url(#mland)" stroke="#6E9E5E" stroke-width="1.3" stroke-linejoin="round"/>';
-    }
-    s +=
-      '<path d="' +
-      EST_PEIPUS +
-      '" fill="#B6DCEC" stroke="#8CBBD2" stroke-width="1"/>' +
-      '<path d="' +
-      EST_VORTS +
-      '" fill="#B6DCEC" stroke="#8CBBD2" stroke-width="1"/>';
+      '<defs><clipPath id="mclip"><rect x="0" y="0" width="330" height="205" rx="18"/></clipPath></defs>' +
+      '<image href="' +
+      MAP_IMG +
+      '" x="0" y="0" width="330" height="205" preserveAspectRatio="none" clip-path="url(#mclip)"/>';
     if (mt2.deco) {
       for (i = 0; i < MAP_DECO_SPOTS.length; i++) {
         s +=
