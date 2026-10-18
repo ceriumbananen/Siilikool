@@ -487,14 +487,12 @@
      ska alltid kunna trycka på en figur, var den än dyker upp. */
   function rivalIcon(r, px) {
     var size = r.img ? Math.round(px * 1.5) : px,
+      /* height, inte en fyrkantig width=height-ruta - källbilderna är olika breda (en svans
+         eller ett föremål som sträcker ut åt sidan gör kanvasen bredare utan att själva
+         figuren är större), och en fyrkantig ruta med object-fit:contain hade då krympt just
+         de bredare figurerna i höjd för att få plats. Samma fix som .charcard-img. */
       inner = r.img
-        ? '<img src="' +
-          r.img +
-          '" alt="" style="width:' +
-          size +
-          "px;height:" +
-          size +
-          'px;object-fit:contain;vertical-align:middle">'
+        ? '<img src="' + r.img + '" alt="" style="height:' + size + 'px;width:auto;vertical-align:middle">'
         : '<span style="font-size:' + size + 'px;line-height:1">' + r.em + "</span>";
     return (
       '<span class="charpeek" data-char="rival:' +
