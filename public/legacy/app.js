@@ -87,6 +87,16 @@
     return n;
   }
   /* något händer på vägen mellan två orter */
+  /* ett överlägg (helskärms-dialog, se .overlay/.oc i style.css) - html blir .oc:ens
+     innehåll. Kom ihåg att koppla på knappar (querySelector + onclick) på den returnerade
+     noden efteråt, precis som förut; bara skapandet av själva rutan är gemensamt här. */
+  function overlay(html) {
+    var d = document.createElement("div");
+    d.className = "overlay";
+    d.innerHTML = html;
+    document.body.appendChild(d);
+    return d;
+  }
   function roadStop() {
     var leg = tripReached() - 1,
       ev = roadEvent(leg),
@@ -96,27 +106,25 @@
     addXp(12);
     save();
     refreshTop();
-    var d = document.createElement("div");
-    d.className = "overlay";
-    d.innerHTML =
+    var d = overlay(
       '<div class="oc roadcard"><p class="kicker">🥾 ' +
-      km +
-      " km på vägen till " +
-      esc(TRIP[leg].et) +
-      "</p>" +
-      '<span class="rem">' +
-      ev.em +
-      "</span>" +
-      "<h3>" +
-      esc(ev.et) +
-      "</h3><p>" +
-      esc(ev.sv) +
-      "</p>" +
-      '<p class="qsub">⭐ +' +
-      gain * starMult() +
-      "</p>" +
-      '<button class="btn big wide" id="rgo">Fortsätt 🗺️</button></div>';
-    document.body.appendChild(d);
+        km +
+        " km på vägen till " +
+        esc(TRIP[leg].et) +
+        "</p>" +
+        '<span class="rem">' +
+        ev.em +
+        "</span>" +
+        "<h3>" +
+        esc(ev.et) +
+        "</h3><p>" +
+        esc(ev.sv) +
+        "</p>" +
+        '<p class="qsub">⭐ +' +
+        gain * starMult() +
+        "</p>" +
+        '<button class="btn big wide" id="rgo">Fortsätt 🗺️</button></div>',
+    );
     speak(ev.et);
     d.querySelector("#rgo").onclick = function () {
       d.remove();
@@ -161,24 +169,11 @@
       burst(160);
     }, 420);
     setTimeout(function () {
-      var d = document.createElement("div");
-      d.className = "overlay";
-      d.innerHTML =
+      var d = overlay(
         '<div class="oc" style="border-color:var(--berry)"><p class="kicker">🎒 Alla uppdrag klara i ' +
-        esc(from.et) +
-        "!</p>" +
-        (gifted
-          ? '<div style="font-size:64px">' +
-            it.em +
-            "</div><h3>" +
-            esc(it.et) +
-            "</h3>" +
-            "<p>" +
-            esc(it.sv) +
-            " — souvenir från " +
-            esc(from.et) +
-            ", gratis till marknaden</p>"
-          : it
+          esc(from.et) +
+          "!</p>" +
+          (gifted
             ? '<div style="font-size:64px">' +
               it.em +
               "</div><h3>" +
@@ -186,17 +181,28 @@
               "</h3>" +
               "<p>" +
               esc(it.sv) +
-              " — du har redan den här souveniren från " +
+              " — souvenir från " +
               esc(from.et) +
-              "</p>"
-            : "") +
-        (last
-          ? '<p class="qsub" style="margin-top:8px">Du har rest genom hela Estland!</p>'
-          : '<p class="qsub" style="margin-top:8px">Siiri vandrar vidare till <b>' + esc(nx.et) + "</b>.</p>") +
-        '<button class="btn big wide" id="tadv">' +
-        (last ? "Till kartan 🗺️" : "Vandra vidare 🥾") +
-        "</button></div>";
-      document.body.appendChild(d);
+              ", gratis till marknaden</p>"
+            : it
+              ? '<div style="font-size:64px">' +
+                it.em +
+                "</div><h3>" +
+                esc(it.et) +
+                "</h3>" +
+                "<p>" +
+                esc(it.sv) +
+                " — du har redan den här souveniren från " +
+                esc(from.et) +
+                "</p>"
+              : "") +
+          (last
+            ? '<p class="qsub" style="margin-top:8px">Du har rest genom hela Estland!</p>'
+            : '<p class="qsub" style="margin-top:8px">Siiri vandrar vidare till <b>' + esc(nx.et) + "</b>.</p>") +
+          '<button class="btn big wide" id="tadv">' +
+          (last ? "Till kartan 🗺️" : "Vandra vidare 🥾") +
+          "</button></div>",
+      );
       if (it) speak(it.et);
       d.querySelector("#tadv").onclick = function () {
         d.remove();
@@ -425,29 +431,27 @@
     if (!S.mstyle) S.mstyle = {};
     S.mstyle[r.id] = diff().id;
     save();
-    var d = document.createElement("div");
-    d.className = "overlay";
-    d.innerHTML =
+    var d = overlay(
       '<div class="oc"><p class="kicker">Nytt märke upplåst!</p>' +
-      medalSVG(r, "ov", false, diff().id) +
-      "<h3>" +
-      esc(r.et) +
-      "</h3><p>" +
-      esc(r.sv) +
-      " · " +
-      diff().em +
-      " " +
-      diff().sv +
-      "</p>" +
-      '<p style="margin-top:8px">' +
-      (S.name ? esc(S.name) + " har" : "Du har") +
-      " klättrat till märke " +
-      (newI + 1) +
-      " av " +
-      RANKS.length +
-      ".</p>" +
-      '<button class="btn big wide" id="ocdone">Toppen! 🎉</button></div>';
-    document.body.appendChild(d);
+        medalSVG(r, "ov", false, diff().id) +
+        "<h3>" +
+        esc(r.et) +
+        "</h3><p>" +
+        esc(r.sv) +
+        " · " +
+        diff().em +
+        " " +
+        diff().sv +
+        "</p>" +
+        '<p style="margin-top:8px">' +
+        (S.name ? esc(S.name) + " har" : "Du har") +
+        " klättrat till märke " +
+        (newI + 1) +
+        " av " +
+        RANKS.length +
+        ".</p>" +
+        '<button class="btn big wide" id="ocdone">Toppen! 🎉</button></div>',
+    );
     sndLvl();
     burst(190);
     setTimeout(function () {
@@ -525,22 +529,20 @@
   function openCharCard(key) {
     var c = charLookup(key);
     if (!c) return;
-    var d = document.createElement("div");
-    d.className = "overlay";
-    d.innerHTML =
+    var d = overlay(
       '<div class="oc charcard">' +
-      (c.img
-        ? '<img src="' + c.img + '" alt="" class="charcard-img">'
-        : '<div style="font-size:84px">' + c.em + "</div>") +
-      "<h3>" +
-      esc(c.name) +
-      "</h3>" +
-      (c.sub && c.sub !== c.name ? '<p class="kicker" style="margin-top:-4px">' + esc(c.sub) + "</p>" : "") +
-      "<p>" +
-      esc(c.fact) +
-      "</p>" +
-      '<button class="btn ghost wide" id="charcardclose" style="margin-top:8px">Stäng</button></div>';
-    document.body.appendChild(d);
+        (c.img
+          ? '<img src="' + c.img + '" alt="" class="charcard-img">'
+          : '<div style="font-size:84px">' + c.em + "</div>") +
+        "<h3>" +
+        esc(c.name) +
+        "</h3>" +
+        (c.sub && c.sub !== c.name ? '<p class="kicker" style="margin-top:-4px">' + esc(c.sub) + "</p>" : "") +
+        "<p>" +
+        esc(c.fact) +
+        "</p>" +
+        '<button class="btn ghost wide" id="charcardclose" style="margin-top:8px">Stäng</button></div>',
+    );
     d.querySelector("#charcardclose").onclick = function () {
       d.remove();
     };
@@ -672,22 +674,20 @@
     S.holseen = today();
     save();
     setTimeout(function () {
-      var d = document.createElement("div");
-      d.className = "overlay";
-      d.innerHTML =
+      var d = overlay(
         '<div class="oc"><p class="kicker">Idag är det något särskilt!</p>' +
-        '<div style="font-size:64px">' +
-        hol.em +
-        "</div><h3>" +
-        esc(hol.et) +
-        "</h3><p>" +
-        esc(hol.tr) +
-        "</p>" +
-        '<p class="qsub" style="margin-top:4px">' +
-        esc(hol.sv) +
-        "</p>" +
-        '<button class="btn big wide" id="holok">Aitäh!</button></div>';
-      document.body.appendChild(d);
+          '<div style="font-size:64px">' +
+          hol.em +
+          "</div><h3>" +
+          esc(hol.et) +
+          "</h3><p>" +
+          esc(hol.tr) +
+          "</p>" +
+          '<p class="qsub" style="margin-top:4px">' +
+          esc(hol.sv) +
+          "</p>" +
+          '<button class="btn big wide" id="holok">Aitäh!</button></div>',
+      );
       burst(180);
       speak(hol.et);
       d.querySelector("#holok").onclick = function () {
@@ -932,19 +932,17 @@
         et: "Me oleme juba " + S.daysPlayed + " päeva koos mänginud!",
         sv: "Vi har spelat tillsammans i " + S.daysPlayed + " dagar!",
       };
-      var d = document.createElement("div");
-      d.className = "overlay";
-      d.innerHTML =
+      var d = overlay(
         '<div class="oc" style="border-color:#E0912A"><p class="kicker">🦔💛 Sõbrad!</p>' +
-        '<div style="font-size:64px">🤝</div>' +
-        '<h3 style="font-size:22px">' +
-        esc(line.et) +
-        "</h3><p>" +
-        esc(line.sv) +
-        (S.name ? " Tubli, " + esc(S.name) + "!" : "") +
-        "</p>" +
-        '<button class="btn big wide" id="friendok">Tubli!</button></div>';
-      document.body.appendChild(d);
+          '<div style="font-size:64px">🤝</div>' +
+          '<h3 style="font-size:22px">' +
+          esc(line.et) +
+          "</h3><p>" +
+          esc(line.sv) +
+          (S.name ? " Tubli, " + esc(S.name) + "!" : "") +
+          "</p>" +
+          '<button class="btn big wide" id="friendok">Tubli!</button></div>',
+      );
       burst(120);
       fanfare(2);
       speak(line.et);
@@ -964,20 +962,18 @@
   }
   function celebrateFirst(em, et, sv) {
     setTimeout(function () {
-      var d = document.createElement("div");
-      d.className = "overlay";
-      d.innerHTML =
+      var d = overlay(
         '<div class="oc" style="border-color:#D9A52B"><p class="kicker">✨ Esimene kord!</p>' +
-        '<div style="font-size:64px">' +
-        em +
-        "</div>" +
-        '<h3 style="font-size:22px">' +
-        esc(et) +
-        "</h3><p>" +
-        esc(sv) +
-        "</p>" +
-        '<button class="btn big wide" id="firstok">Tubli!</button></div>';
-      document.body.appendChild(d);
+          '<div style="font-size:64px">' +
+          em +
+          "</div>" +
+          '<h3 style="font-size:22px">' +
+          esc(et) +
+          "</h3><p>" +
+          esc(sv) +
+          "</p>" +
+          '<button class="btn big wide" id="firstok">Tubli!</button></div>',
+      );
       burst(160);
       fanfare(3);
       speak(et);
@@ -1003,21 +999,19 @@
       save();
       addXp(60);
       setTimeout(function () {
-        var d = document.createElement("div");
-        d.className = "overlay";
-        d.innerHTML =
+        var d = overlay(
           '<div class="oc"><p class="kicker">Dagens utmaning klar!</p>' +
-          '<div style="font-size:64px">' +
-          p.q.em +
-          "</div><h3>" +
-          esc(p.q.sv) +
-          "</h3>" +
-          "<p>+60 poäng · " +
-          S.flames +
-          (S.flames === 1 ? " dagsutmaning" : " dagsutmaningar") +
-          " klarade 🌟</p>" +
-          '<button class="btn big wide" id="qdone">Nice!</button></div>';
-        document.body.appendChild(d);
+            '<div style="font-size:64px">' +
+            p.q.em +
+            "</div><h3>" +
+            esc(p.q.sv) +
+            "</h3>" +
+            "<p>+60 poäng · " +
+            S.flames +
+            (S.flames === 1 ? " dagsutmaning" : " dagsutmaningar") +
+            " klarade 🌟</p>" +
+            '<button class="btn big wide" id="qdone">Nice!</button></div>',
+        );
         burst(160);
         sndLvl();
         d.querySelector("#qdone").onclick = function () {
@@ -2639,21 +2633,19 @@
     var e = EGGS[id];
     if (!e) return;
     speak(e.et);
-    var d = document.createElement("div");
-    d.className = "overlay";
-    d.style.background = "rgba(12,28,18,.55)";
-    d.innerHTML =
+    var d = overlay(
       '<div class="oc" style="border-color:#6B4FD8"><p class="kicker">🤫 Hemlighet!</p>' +
-      '<div style="font-size:64px">' +
-      (id === "gold" ? "🌟" : id === "tickle" ? "🤭" : id === "snow" ? "❄️" : "🦔") +
-      "</div>" +
-      '<h3 style="font-size:22px">' +
-      esc(e.et) +
-      "</h3><p>" +
-      esc(e.sv) +
-      "</p>" +
-      '<button class="btn big wide" id="eggok">Hihi!</button></div>';
-    document.body.appendChild(d);
+        '<div style="font-size:64px">' +
+        (id === "gold" ? "🌟" : id === "tickle" ? "🤭" : id === "snow" ? "❄️" : "🦔") +
+        "</div>" +
+        '<h3 style="font-size:22px">' +
+        esc(e.et) +
+        "</h3><p>" +
+        esc(e.sv) +
+        "</p>" +
+        '<button class="btn big wide" id="eggok">Hihi!</button></div>',
+    );
+    d.style.background = "rgba(12,28,18,.55)";
     d.querySelector("#eggok").onclick = function () {
       d.remove();
     };
@@ -2712,21 +2704,19 @@
     var e = EGGS2[id];
     if (!e) return;
     speak(e.et);
-    var d = document.createElement("div");
-    d.className = "overlay";
-    d.style.background = "rgba(12,28,18,.55)";
-    d.innerHTML =
+    var d = overlay(
       '<div class="oc" style="border-color:#6B4FD8"><p class="kicker">🤫 Hemlighet!</p>' +
-      '<div style="font-size:64px">' +
-      em +
-      "</div>" +
-      '<h3 style="font-size:22px">' +
-      esc(e.et) +
-      "</h3><p>" +
-      esc(e.sv) +
-      "</p>" +
-      '<button class="btn big wide" id="eggok2">Hihi!</button></div>';
-    document.body.appendChild(d);
+        '<div style="font-size:64px">' +
+        em +
+        "</div>" +
+        '<h3 style="font-size:22px">' +
+        esc(e.et) +
+        "</h3><p>" +
+        esc(e.sv) +
+        "</p>" +
+        '<button class="btn big wide" id="eggok2">Hihi!</button></div>',
+    );
+    d.style.background = "rgba(12,28,18,.55)";
     d.querySelector("#eggok2").onclick = function () {
       d.remove();
     };
@@ -3912,14 +3902,12 @@
   function checkPause() {
     if (pauseShown || Date.now() - sessionStart < 40 * 60 * 1000) return;
     pauseShown = true;
-    var d = document.createElement("div");
-    d.className = "overlay";
-    d.innerHTML =
+    var d = overlay(
       '<div class="oc"><p class="kicker">Siiri sträcker på sig</p><div style="font-size:52px">🫖</div>' +
-      "<h3>Dags för en paus?</h3><p>Ni har hållit på i fyrtio minuter. Orden sitter bättre om man vilar en stund emellan.</p>" +
-      '<button class="btn green big wide" id="pz">Okej, vi pausar</button>' +
-      '<button class="btn ghost wide" id="pn" style="margin-top:8px">Vi fortsätter lite till</button></div>';
-    document.body.appendChild(d);
+        "<h3>Dags för en paus?</h3><p>Ni har hållit på i fyrtio minuter. Orden sitter bättre om man vilar en stund emellan.</p>" +
+        '<button class="btn green big wide" id="pz">Okej, vi pausar</button>' +
+        '<button class="btn ghost wide" id="pn" style="margin-top:8px">Vi fortsätter lite till</button></div>',
+    );
     d.querySelector("#pz").onclick = function () {
       d.remove();
       go(homeScreen, false);
@@ -4498,14 +4486,12 @@
     on("bkexp", function () {
       var code = exportCode(),
         msg = document.getElementById("bkmsg");
-      var d = document.createElement("div");
-      d.className = "overlay";
-      d.innerHTML =
+      var d = overlay(
         '<div class="oc"><p class="kicker">📋 Din kod</p>' +
-        '<p class="qsub">Markera och kopiera. Spara den i ett mejl till dig själv.</p>' +
-        '<textarea id="bkarea" readonly style="width:100%;height:110px;font-size:11px;border-radius:14px;border:3px solid var(--line);padding:8px;background:var(--bg);color:var(--ink)"></textarea>' +
-        '<button class="btn big wide" id="bkclose" style="margin-top:10px">Klar</button></div>';
-      document.body.appendChild(d);
+          '<p class="qsub">Markera och kopiera. Spara den i ett mejl till dig själv.</p>' +
+          '<textarea id="bkarea" readonly style="width:100%;height:110px;font-size:11px;border-radius:14px;border:3px solid var(--line);padding:8px;background:var(--bg);color:var(--ink)"></textarea>' +
+          '<button class="btn big wide" id="bkclose" style="margin-top:10px">Klar</button></div>',
+      );
       var ta = d.querySelector("#bkarea");
       ta.value = code;
       try {
@@ -4524,16 +4510,14 @@
       };
     });
     on("bkimp", function () {
-      var d = document.createElement("div");
-      d.className = "overlay";
-      d.innerHTML =
+      var d = overlay(
         '<div class="oc" style="border-color:var(--berry)"><p class="kicker">📥 Återställ</p>' +
-        '<p class="qsub">Klistra in koden. Den nuvarande profilen skrivs över.</p>' +
-        '<textarea id="imarea" style="width:100%;height:110px;font-size:11px;border-radius:14px;border:3px solid var(--line);padding:8px;background:var(--bg);color:var(--ink)"></textarea>' +
-        '<p class="qsub" id="immsg" style="min-height:18px">&nbsp;</p>' +
-        '<button class="btn big wide" id="imok">Återställ</button>' +
-        '<button class="btn ghost wide" id="imno" style="margin-top:8px">Avbryt</button></div>';
-      document.body.appendChild(d);
+          '<p class="qsub">Klistra in koden. Den nuvarande profilen skrivs över.</p>' +
+          '<textarea id="imarea" style="width:100%;height:110px;font-size:11px;border-radius:14px;border:3px solid var(--line);padding:8px;background:var(--bg);color:var(--ink)"></textarea>' +
+          '<p class="qsub" id="immsg" style="min-height:18px">&nbsp;</p>' +
+          '<button class="btn big wide" id="imok">Återställ</button>' +
+          '<button class="btn ghost wide" id="imno" style="margin-top:8px">Avbryt</button></div>',
+      );
       d.querySelector("#imno").onclick = function () {
         d.remove();
       };
@@ -4763,18 +4747,16 @@
             S.holseen = null;
             save();
             var hh = holidayNow() || HOLIDAYS[0];
-            var d = document.createElement("div");
-            d.className = "overlay";
-            d.innerHTML =
+            var d = overlay(
               '<div class="oc"><p class="kicker">Testvisning</p><div style="font-size:64px">' +
-              hh.em +
-              "</div>" +
-              "<h3>" +
-              esc(hh.et) +
-              "</h3><p>" +
-              esc(hh.tr) +
-              '</p><button class="btn big wide" id="hok">Stäng</button></div>';
-            document.body.appendChild(d);
+                hh.em +
+                "</div>" +
+                "<h3>" +
+                esc(hh.et) +
+                "</h3><p>" +
+                esc(hh.tr) +
+                '</p><button class="btn big wide" id="hok">Stäng</button></div>',
+            );
             burst(140);
             speak(hh.et);
             d.querySelector("#hok").onclick = function () {
@@ -4885,20 +4867,18 @@
     }
   }
   function confirmBox(title, text, okText, cb) {
-    var d = document.createElement("div");
-    d.className = "overlay";
-    d.innerHTML =
+    var d = overlay(
       '<div class="oc" style="border-color:var(--berry)"><p class="kicker">' +
-      esc(title) +
-      "</p>" +
-      '<div style="font-size:44px">⚠️</div><p>' +
-      esc(text) +
-      "</p>" +
-      '<button class="btn big wide" id="cbyes" style="background:var(--berry);box-shadow:0 5px 0 #8E1338;margin-top:8px">' +
-      esc(okText) +
-      "</button>" +
-      '<button class="btn ghost wide" id="cbno" style="margin-top:8px">Avbryt</button></div>';
-    document.body.appendChild(d);
+        esc(title) +
+        "</p>" +
+        '<div style="font-size:44px">⚠️</div><p>' +
+        esc(text) +
+        "</p>" +
+        '<button class="btn big wide" id="cbyes" style="background:var(--berry);box-shadow:0 5px 0 #8E1338;margin-top:8px">' +
+        esc(okText) +
+        "</button>" +
+        '<button class="btn ghost wide" id="cbno" style="margin-top:8px">Avbryt</button></div>',
+    );
     d.querySelector("#cbyes").onclick = function () {
       d.remove();
       cb();
@@ -4918,21 +4898,19 @@
     }
     var a = 6 + ((Math.random() * 4) | 0),
       b = 6 + ((Math.random() * 4) | 0);
-    var d = document.createElement("div");
-    d.className = "overlay";
-    d.innerHTML =
+    var d = overlay(
       '<div class="oc"><h3>För vuxna</h3>' +
-      '<p class="qsub">Svara på frågan för att fortsätta.</p>' +
-      '<label class="adultq" for="adultans">Vad är ' +
-      a +
-      " × " +
-      b +
-      "?</label>" +
-      '<input class="type" id="adultans" type="text" inputmode="numeric" pattern="[0-9]*" autocomplete="off">' +
-      '<p class="qsub" id="adultmsg" role="status" style="min-height:18px">&nbsp;</p>' +
-      '<button class="btn big wide" id="adultok">Fortsätt</button>' +
-      '<button class="btn ghost wide" id="adultno" style="margin-top:8px">Avbryt</button></div>';
-    document.body.appendChild(d);
+        '<p class="qsub">Svara på frågan för att fortsätta.</p>' +
+        '<label class="adultq" for="adultans">Vad är ' +
+        a +
+        " × " +
+        b +
+        "?</label>" +
+        '<input class="type" id="adultans" type="text" inputmode="numeric" pattern="[0-9]*" autocomplete="off">' +
+        '<p class="qsub" id="adultmsg" role="status" style="min-height:18px">&nbsp;</p>' +
+        '<button class="btn big wide" id="adultok">Fortsätt</button>' +
+        '<button class="btn ghost wide" id="adultno" style="margin-top:8px">Avbryt</button></div>',
+    );
     var inp = d.querySelector("#adultans");
     function check() {
       if (parseInt(inp.value, 10) === a * b) {
@@ -4958,16 +4936,14 @@
     }, 80);
   }
   function askAdmin() {
-    var d = document.createElement("div");
-    d.className = "overlay";
-    d.innerHTML =
-      '<div class="oc" style="border-color:#C8305A"><p class="kicker">🛠️ Låst läge</p>' +
-      '<h3 style="font-size:19px">Kod</h3>' +
-      '<input class="type" id="admcode" type="password" autocomplete="off" placeholder="••••••••" style="font-size:19px">' +
-      '<p class="qsub" id="admmsg" style="min-height:18px">&nbsp;</p>' +
-      '<button class="btn big wide" id="admok">Lås upp</button>' +
-      '<button class="btn ghost wide" id="admno" style="margin-top:8px">Avbryt</button></div>';
-    document.body.appendChild(d);
+    var d = overlay(
+      '<div class="oc" style="border-color:var(--berry)"><p class="kicker">🛠️ Låst läge</p>' +
+        '<h3 style="font-size:19px">Kod</h3>' +
+        '<input class="type" id="admcode" type="password" autocomplete="off" placeholder="••••••••" style="font-size:19px">' +
+        '<p class="qsub" id="admmsg" style="min-height:18px">&nbsp;</p>' +
+        '<button class="btn big wide" id="admok">Lås upp</button>' +
+        '<button class="btn ghost wide" id="admno" style="margin-top:8px">Avbryt</button></div>',
+    );
     var inp = d.querySelector("#admcode"),
       msg = d.querySelector("#admmsg");
     setTimeout(function () {
@@ -5506,23 +5482,21 @@
     }
     sndLvl();
     burst(190);
-    var d = document.createElement("div");
-    d.className = "overlay";
-    d.innerHTML =
+    var d = overlay(
       '<div class="oc"><p class="kicker">🎁 ' +
-      esc(UI.bag.et) +
-      "</p>" +
-      '<div class="bagpop">' +
-      gift.em +
-      "</div><h3>" +
-      gift.big +
-      "</h3><p>" +
-      gift.sub +
-      "</p>" +
-      (gift.word ? '<button class="btn ghost" id="bagsay" style="margin-top:8px">🔊 Hör ordet igen</button>' : "") +
-      '<button class="btn big wide" id="bagok" style="margin-top:8px">Aitäh, Siiri!</button>' +
-      '<p class="qsub" style="margin-top:8px">En ny påse väntar imorgon.</p></div>';
-    document.body.appendChild(d);
+        esc(UI.bag.et) +
+        "</p>" +
+        '<div class="bagpop">' +
+        gift.em +
+        "</div><h3>" +
+        gift.big +
+        "</h3><p>" +
+        gift.sub +
+        "</p>" +
+        (gift.word ? '<button class="btn ghost" id="bagsay" style="margin-top:8px">🔊 Hör ordet igen</button>' : "") +
+        '<button class="btn big wide" id="bagok" style="margin-top:8px">Aitäh, Siiri!</button>' +
+        '<p class="qsub" style="margin-top:8px">En ny påse väntar imorgon.</p></div>',
+    );
     if (gift.word)
       d.querySelector("#bagsay").onclick = function () {
         speak(gift.word.et);
@@ -11618,14 +11592,12 @@
       save();
       if (S.hardWins === 1) {
         setTimeout(function () {
-          var d = document.createElement("div");
-          d.className = "overlay";
-          d.innerHTML =
-            '<div class="oc" style="border-color:#C8305A"><p class="kicker">🔥 Svår nivå klarad!</p>' +
-            '<div style="font-size:64px">🐉</div><h3>Tre plagg låstes upp</h3>' +
-            "<p>Eldkrona, blixtar och drakvingar finns nu på marknaden — bara för den som spelar på svår.</p>" +
-            '<button class="btn big wide" id="hwok">Till garderoben</button></div>';
-          document.body.appendChild(d);
+          var d = overlay(
+            '<div class="oc" style="border-color:var(--berry)"><p class="kicker">🔥 Svår nivå klarad!</p>' +
+              '<div style="font-size:64px">🐉</div><h3>Tre plagg låstes upp</h3>' +
+              "<p>Eldkrona, blixtar och drakvingar finns nu på marknaden — bara för den som spelar på svår.</p>" +
+              '<button class="btn big wide" id="hwok">Till garderoben</button></div>',
+          );
           burst(180);
           sndLvl();
           d.querySelector("#hwok").onclick = function () {
@@ -11755,28 +11727,26 @@
     if ((S.tough || 0) >= 1 || (S.easy || 0) >= 3) {
       var easier = (S.tough || 0) >= 1;
       setTimeout(function () {
-        var d = document.createElement("div");
-        d.className = "overlay";
-        d.innerHTML =
+        var d = overlay(
           '<div class="oc"><p class="kicker">' +
-          (easier ? "Siiri undrar en sak" : "Siiri har en idé") +
-          "</p>" +
-          '<div style="font-size:52px">' +
-          (easier ? "🍃" : "🔥") +
-          "</div>" +
-          "<h3>" +
-          (easier ? "Ska vi ta det lite lugnare?" : "Vill du prova svårare?") +
-          "</h3>" +
-          "<p>" +
-          (easier
-            ? "Du får fler bilder som hjälp och färre svarsalternativ. Du kan byta tillbaka när du vill."
-            : "Du klarade flera omgångar utan ett enda fel. På svår nivå finns egna plagg och hemligheter.") +
-          "</p>" +
-          '<button class="btn green big wide" id="dyes">' +
-          (easier ? "🍃 Byt till Lätt" : "🔥 Byt till Svår") +
-          "</button>" +
-          '<button class="btn ghost wide" id="dno" style="margin-top:8px">Nej tack, det går bra</button></div>';
-        document.body.appendChild(d);
+            (easier ? "Siiri undrar en sak" : "Siiri har en idé") +
+            "</p>" +
+            '<div style="font-size:52px">' +
+            (easier ? "🍃" : "🔥") +
+            "</div>" +
+            "<h3>" +
+            (easier ? "Ska vi ta det lite lugnare?" : "Vill du prova svårare?") +
+            "</h3>" +
+            "<p>" +
+            (easier
+              ? "Du får fler bilder som hjälp och färre svarsalternativ. Du kan byta tillbaka när du vill."
+              : "Du klarade flera omgångar utan ett enda fel. På svår nivå finns egna plagg och hemligheter.") +
+            "</p>" +
+            '<button class="btn green big wide" id="dyes">' +
+            (easier ? "🍃 Byt till Lätt" : "🔥 Byt till Svår") +
+            "</button>" +
+            '<button class="btn ghost wide" id="dno" style="margin-top:8px">Nej tack, det går bra</button></div>',
+        );
         d.querySelector("#dyes").onclick = function () {
           S.diff = easier ? "latt" : "svar";
           S.tough = 0;
@@ -12267,21 +12237,19 @@
     if (backupLooksBetter()) {
       setTimeout(function () {
         var p = backupInfo();
-        var d = document.createElement("div");
-        d.className = "overlay";
-        d.innerHTML =
+        var d = overlay(
           '<div class="oc" style="border-color:var(--honey)"><p class="kicker">💾 Säkerhetskopia</p>' +
-          '<div style="font-size:52px">🦔</div><h3>Vi hittade en sparad kopia</h3>' +
-          "<p>Den är från " +
-          esc(backupAge(p)) +
-          " och innehåller ⭐ " +
-          (p.data.stars || 0) +
-          " och " +
-          (p.data.correct || 0) +
-          " rätta svar. Vill du hämta tillbaka den?</p>" +
-          '<div class="row"><button class="btn green" id="bkyes">Ja, hämta tillbaka</button>' +
-          '<button class="btn ghost" id="bkno">Nej tack</button></div></div>';
-        document.body.appendChild(d);
+            '<div style="font-size:52px">🦔</div><h3>Vi hittade en sparad kopia</h3>' +
+            "<p>Den är från " +
+            esc(backupAge(p)) +
+            " och innehåller ⭐ " +
+            (p.data.stars || 0) +
+            " och " +
+            (p.data.correct || 0) +
+            " rätta svar. Vill du hämta tillbaka den?</p>" +
+            '<div class="row"><button class="btn green" id="bkyes">Ja, hämta tillbaka</button>' +
+            '<button class="btn ghost" id="bkno">Nej tack</button></div></div>',
+        );
         d.querySelector("#bkyes").onclick = function () {
           if (restoreBackup()) location.reload();
           else d.remove();
