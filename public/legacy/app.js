@@ -7137,17 +7137,31 @@
           "</text>";
       }
     }
-    /* orter utan stopp */
+    /* orter utan stopp - men klickbara sido-stopp: ingen spärr, inget att missa, bara en
+       bonus (uttal + lite stjärnor första gången) för den som utforskar kartan nyfiket */
     for (i = 0; i < MAPTOWNS.length; i++) {
       var mt = MAPTOWNS[i];
       var ax = mt.end ? "end" : "start",
-        tx = mt.x + (mt.end ? -4 : 4);
+        tx = mt.x + (mt.end ? -4 : 4),
+        sideFound = (S.firsts || []).indexOf("side:" + mt.et) >= 0;
       s +=
-        '<g class="mtown"><circle cx="' +
+        '<g class="mtown' +
+        (sideFound ? " found" : "") +
+        '" data-side="' +
+        esc(mt.et) +
+        '" style="cursor:pointer">' +
+        '<circle cx="' +
         mt.x +
         '" cy="' +
         mt.y +
-        '" r="2.2" fill="#6E8A66"/>' +
+        '" r="7" fill="transparent"/>' +
+        '<circle cx="' +
+        mt.x +
+        '" cy="' +
+        mt.y +
+        '" r="2.2" fill="' +
+        (sideFound ? "#D9A52B" : "#6E8A66") +
+        '"/>' +
         '<text x="' +
         tx +
         '" y="' +
@@ -7813,6 +7827,29 @@
         };
       })(ms[k]);
     }
+    var sides = app.querySelectorAll("[data-side]"),
+      sk;
+    for (sk = 0; sk < sides.length; sk++) {
+      (function (el) {
+        el.onclick = function () {
+          sideStopTap(el.getAttribute("data-side"));
+        };
+      })(sides[sk]);
+    }
+  }
+  /* sido-stoppen på kartan (MAPTOWNS) - frivillig utforskning, ingen spärr och inget att
+     missa. Uttal varje gång, en liten engångsbonus (S.firsts, samma lista som
+     celebrateFirst() använder) första gången man trycker på var och en. */
+  function sideStopTap(et) {
+    speak(et);
+    tone(700, 0.08, 0);
+    if (firstEver("side:" + et)) {
+      S.stars += 10;
+      save();
+      refreshTop();
+      burst(40);
+    }
+    tripScreen();
   }
   var DU = null;
   function rivalOpen(r) {
