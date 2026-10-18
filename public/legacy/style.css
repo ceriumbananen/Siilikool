@@ -1891,9 +1891,38 @@ body {
   }
 }
 
+#mearrive {
+  opacity: 0;
+  animation: arriveLabel 4.2s ease forwards;
+  pointer-events: none;
+}
+
+@keyframes arriveLabel {
+  0%,
+  55% {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+
+  65%,
+  85% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  100% {
+    opacity: 0;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   #mewalk[style] {
     animation: none;
+  }
+
+  #mearrive {
+    animation: none;
+    opacity: 1;
   }
 }
 

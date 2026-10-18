@@ -7262,6 +7262,27 @@
       '" y="' +
       (py + 6) +
       '" text-anchor="middle" font-size="17">🦔</text></g>';
+    /* en kort "framme!"-bildtext som dyker upp precis när gånganimationen landar (samma
+       --fx/--fy-mönster), så ankomsten känns som en liten höjdpunkt istället för att bara
+       vara en prick som flyttat sig */
+    if (walking) {
+      /* klämd mot kartkanten annars - flera orter (t.ex. Narva) ligger nära övre/högra
+         kanten av viewBox:en, så etiketten måste både klampas i x och kunna hamna under
+         Siiri istället för ovanför när det inte finns plats upptill */
+      var ax = Math.min(304, Math.max(26, px)),
+        ay = py - 10 >= 8 ? py - 10 : py + 24;
+      s +=
+        '<g id="mearrive" transform="translate(' +
+        ax +
+        "," +
+        ay +
+        ')"><rect x="-26" y="-11" width="52" height="15" rx="7" fill="#2A1B0C" opacity=".72"/>' +
+        '<text x="0" y="0" text-anchor="middle" font-size="9" fill="#fff" font-weight="700">' +
+        me.em +
+        " " +
+        esc(me.et) +
+        "!</text></g>";
+    }
     s += "</svg>";
     return s;
   }
