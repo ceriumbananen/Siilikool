@@ -5072,13 +5072,21 @@ body {
   border-radius: var(--r-md);
 }
 
+/* skalas efter HÖJD, inte bredd - annars gör de bredare källbilderna (t.ex. en svans eller
+   ett stenblock som sträcker ut åt sidan) den figuren skenbart mindre än en som råkar ha en
+   smalare/högre bildkant, trots att själva figuren är lika stor. .charcard breddas för att
+   även den bredaste bilden (Suur Tõll, ~1.8:1) får plats vid den höjden. */
 .charcard-img {
-  width: 100%;
-  max-width: 220px;
-  height: auto;
+  width: auto;
+  height: 180px;
+  max-width: 100%;
   object-fit: contain;
   margin: 0 auto 4px;
   display: block;
+}
+
+.oc.charcard {
+  max-width: 380px;
 }
 
 /* ---------- theme grid ---------- */
