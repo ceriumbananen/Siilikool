@@ -5032,6 +5032,14 @@ body {
   opacity: 0.55;
 }
 
+.scrapcard-lore {
+  float: right;
+  width: 84px;
+  height: 84px;
+  object-fit: contain;
+  margin: 0 0 6px 10px;
+}
+
 /* ---------- theme grid ---------- */
 h2.sec {
   font-size: clamp(18px, 3vw, 22px);

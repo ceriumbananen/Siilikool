@@ -96,7 +96,8 @@ const badgeRows = computed(() =>
         <ul class="trophy-page__duels">
           <li v-for="row in duelRows" :key="row.rival.id" class="trophy-page__duel">
             <span class="trophy-page__duel-emoji" aria-hidden="true">
-              {{ row.rival.em }}
+              <img v-if="row.rival.img" :src="row.rival.img" alt="" class="trophy-page__duel-img" />
+              <template v-else>{{ row.rival.em }}</template>
               <span v-if="(row.record?.w || 0) >= 5" class="trophy-page__duel-cup" aria-hidden="true">🏆</span>
             </span>
             <span>
@@ -270,6 +271,13 @@ const badgeRows = computed(() =>
   &__duel-emoji {
     font-size: 1.875rem; // 30px
     position: relative;
+  }
+
+  &__duel-img {
+    width: 1.875rem; // 30px
+    height: 1.875rem;
+    object-fit: contain;
+    vertical-align: middle;
   }
 
   &__duel-cup {

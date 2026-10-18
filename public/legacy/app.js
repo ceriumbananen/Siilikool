@@ -511,6 +511,7 @@
     {
       id: "vanapagan",
       em: "😈",
+      img: "/images/rivals/vanapagan.webp",
       et: "Vanapagan",
       sv: "Vanapagan",
       skill: 0.9,
@@ -518,6 +519,21 @@
       desc: "Gammal som jorden och listig som få. I de estniska sagorna vinner alltid den som är klipskast i ord — visa att det är du.",
     },
   ];
+  /* rivaler med en illustrerad bild (r.img, en handritad figur i samma stil som Siiri -
+     se public/images/rivals/) visas med den istället för bara en emoji. px matchar den
+     emoji-storlek (font-size) platsen redan hade, så layouten inte ändras. */
+  function rivalIcon(r, px) {
+    if (!r.img) return r.em;
+    return (
+      '<img src="' +
+      r.img +
+      '" alt="" style="width:' +
+      px +
+      "px;height:" +
+      px +
+      'px;object-fit:contain;vertical-align:middle">'
+    );
+  }
   var TAUNT = window.SiiriData.TAUNT;
   var COACH = [
     { et: "Sa saad hakkama!", sv: "Du klarar det!" },
@@ -7583,13 +7599,17 @@
         open = i < n,
         gift = open ? itemById(SOUVENIR[t.id]) : null;
       if (open) {
+        var story = STORY[t.id] || "",
+          lore = story.indexOf("Kalevipoeg") >= 0 ? "/images/lore/kalevipoeg.webp" : null;
         html +=
           '<div class="card scrapcard">' +
+          (lore ? '<img src="' + lore + '" alt="" class="scrapcard-lore">' : "") +
           '<p class="q" style="text-align:left;margin-bottom:2px">' +
           t.em +
           ' <span lang="et">' +
           esc(t.et) +
           "</span></p>" +
+          (story ? '<p class="storyline">' + story.replace(/\*\*(.+?)\*\*/g, "<b>$1</b>") + "</p>" : "") +
           '<p class="qsub" style="text-align:left">' +
           esc(t.fact) +
           "</p>" +
@@ -8954,7 +8974,7 @@
         (open ? ' data-rival="' + r.id + '"' : "") +
         ">" +
         '<span class="rem">' +
-        (open ? r.em : "🔒") +
+        (open ? rivalIcon(r, 40) : "🔒") +
         "</span>" +
         '<span class="rtx"><b>' +
         esc(r.et) +
@@ -8999,7 +9019,7 @@
     screen = "duel";
     app.innerHTML =
       '<div class="zone map"><span class="zem">' +
-      r.em +
+      rivalIcon(r, 34) +
       "</span><span><b>" +
       esc(r.et) +
       "</b>" +
@@ -9012,7 +9032,7 @@
       '<div class="duelvs"><span>' +
       (S.avatar || "🦔") +
       "</span><b>vs</b><span>" +
-      r.em +
+      rivalIcon(r, 44) +
       "</span></div>" +
       (mem
         ? '<p class="qsub" style="font-weight:600"><span lang="et">' + esc(mem.et) + "</span> — " + esc(mem.sv) + "</p>"
@@ -9084,7 +9104,7 @@
       '<div class="lane"><span class="run" style="left:' +
       you * 82 +
       '%">' +
-      DU.r.em +
+      rivalIcon(DU.r, 28) +
       '</span><span class="flag">🏁</span></div>' +
       '<div class="score"><b>' +
       DU.me +
@@ -9135,7 +9155,7 @@
     }
     var html =
       '<div class="zone map"><span class="zem">' +
-      DU.r.em +
+      rivalIcon(DU.r, 34) +
       "</span><span><b>Rond " +
       Math.min(3, rnd) +
       " av 3</b>" +
@@ -9248,7 +9268,7 @@
             th.className = "rivalthink";
             th.innerHTML =
               '<span class="rem">' +
-              DU.r.em +
+              rivalIcon(DU.r, 26) +
               '</span><span class="dots"><i></i><i></i><i></i></span>' +
               '<span class="rtxt">' +
               esc(DU.r.et) +
@@ -9277,7 +9297,7 @@
               fb.className = "feedback " + (hit ? "no" : "ok");
               fb.innerHTML =
                 '<span class="rivalsay"><span class="rem">' +
-                DU.r.em +
+                rivalIcon(DU.r, 30) +
                 "</span>" +
                 "<span><b>" +
                 esc(DU.r.et) +
@@ -9343,7 +9363,7 @@
       " – " +
       DU.you +
       "</b><span>" +
-      DU.r.em +
+      rivalIcon(DU.r, 44) +
       "</span></div>" +
       '<div class="bigstars">' +
       starStr(st) +
