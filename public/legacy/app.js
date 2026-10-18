@@ -472,54 +472,8 @@
   var EGGS2 = window.SiiriData.EGGS2;
   /* beröm som trappas upp – Siiri säger dem högt */
   /* ---------- DUELLER: motståndare, repliker och regler ---------- */
-  var RIVALS = [
-    {
-      id: "hiir",
-      em: "🐭",
-      et: "Hiir",
-      sv: "Musen",
-      skill: 0.5,
-      need: 0,
-      desc: "Snabb men slarvig. Bra att börja med.",
-    },
-    {
-      id: "rebane",
-      em: "🦊",
-      et: "Rebane",
-      sv: "Räven",
-      skill: 0.66,
-      need: 3,
-      desc: "Kaxig och kvick. Spärrar vägen mot Tartu.",
-    },
-    {
-      id: "karu",
-      em: "🐻",
-      et: "Karu",
-      sv: "Björnen",
-      skill: 0.76,
-      need: 6,
-      desc: "Långsam att svara, men sällan fel.",
-    },
-    {
-      id: "draakon",
-      em: "🐉",
-      et: "Draakon",
-      sv: "Draken",
-      skill: 0.86,
-      need: 9,
-      desc: "Kan nästan varje ord. Nästan.",
-    },
-    {
-      id: "vanapagan",
-      em: "😈",
-      img: "/images/rivals/vanapagan.webp",
-      et: "Vanapagan",
-      sv: "Vanapagan",
-      skill: 0.9,
-      need: 12,
-      desc: "Gammal som jorden och listig som få. I de estniska sagorna vinner alltid den som är klipskast i ord — visa att det är du.",
-    },
-  ];
+  /* app/utils/rivals.ts - en enda källa, delad med Skattkammarens Duellhylla (Vue). */
+  var RIVALS = window.SiiriData.RIVALS;
   /* rivaler med en illustrerad bild (r.img, en handritad figur i samma stil som Siiri -
      se public/images/rivals/) visas med den istället för bara en emoji. px matchar den
      emoji-storlek (font-size) platsen redan hade - men en detaljerad illustration syns
@@ -743,16 +697,8 @@
   }
 
   /* ============ DAGENS UTMANING ============ */
-  var QUESTS = [
-    { id: "right15", em: "🎯", sv: "Få 15 rätt idag", goal: 15, key: "correct" },
-    { id: "speak6", em: "🎤", sv: "Säg 6 ord högt idag", goal: 6, key: "spoken" },
-    { id: "themes2", em: "🏁", sv: "Klara 2 teman idag", goal: 2, key: "themes" },
-    { id: "type8", em: "✏️", sv: "Skriv 8 ord rätt idag", goal: 8, key: "typed" },
-    { id: "talk1", em: "💬", sv: "Prata klart ett samtal", goal: 1, key: "talks" },
-    { id: "right25", em: "🔥", sv: "Få 25 rätt idag", goal: 25, key: "correct" },
-    { id: "mixed1", em: "🎲", sv: "Klara en runda blandade ord", goal: 1, key: "mixed" },
-    { id: "sent3", em: "🧩", sv: "Bygg 3 meningar rätt", goal: 3, key: "sent" },
-  ];
+  /* app/utils/quests.ts - en enda källa, delad med Skattkammaren (Vue). */
+  var QUESTS = window.SiiriData.QUESTS;
   function today() {
     var d = new Date();
     return d.getFullYear() + "-" + (d.getMonth() + 1) + "-" + d.getDate();
@@ -5074,7 +5020,8 @@
     if (c === "skog") document.documentElement.removeAttribute("data-color");
     else document.documentElement.setAttribute("data-color", c);
   }
-  var AVATARS = ["🦔", "🐻", "🦊", "🐰", "🐼", "🦉", "🐸", "🐯", "🦁", "🐨", "🐧", "🦄", "🐢", "🐙"];
+  /* app/utils/avatars.ts - en enda källa, delad med Vue-sidorna. */
+  var AVATARS = window.SiiriData.AVATARS;
   function setupScreen(first) {
     screen = "setup";
     setNav(first ? "" : "me");

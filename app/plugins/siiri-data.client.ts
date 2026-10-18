@@ -32,6 +32,10 @@ export default defineNuxtPlugin(() => {
     SOUVENIR,
     SHOP,
     FURN,
+    /* rivals.ts, avatars.ts, quests.ts */
+    RIVALS,
+    AVATARS,
+    QUESTS,
     /* scenes.ts, praise.ts */
     SCENE,
     SCENE_AED,
