@@ -4991,6 +4991,18 @@ body {
   margin-top: 12px;
 }
 
+/* reseskrapboken (tripScrapbookScreen() i app.js) - en samlad vy av fakta + souvenir per ort */
+.scrapgrid {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.scrapcard.locked {
+  opacity: 0.55;
+}
+
 /* ---------- theme grid ---------- */
 h2.sec {
   font-size: clamp(18px, 3vw, 22px);

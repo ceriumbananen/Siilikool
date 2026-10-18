@@ -7433,16 +7433,20 @@
           : "Alla uppdrag klara!") +
         "</b></p>" +
         taskListHtml(t.id);
-      if (gift)
-        s +=
-          '<p class="qsub" style="text-align:left;margin-top:8px">🎁 Souvenir när allt är klart: <b>' +
-          gift.em +
-          ' <span lang="et">' +
-          esc(gift.et) +
-          "</span></b> — " +
-          esc(gift.sv) +
-          "</p>";
     }
+    /* souveniren visas även på redan klara orter (inte bara "här") - annars syns aldrig
+       vad man faktiskt fick, bara ett löfte innan man var klar */
+    if (gift)
+      s +=
+        '<p class="qsub" style="text-align:left;margin-top:8px">🎁 ' +
+        (isHere ? "Souvenir när allt är klart: " : "Souvenir du fick här: ") +
+        "<b>" +
+        gift.em +
+        ' <span lang="et">' +
+        esc(gift.et) +
+        "</span></b> — " +
+        esc(gift.sv) +
+        "</p>";
     s += '<button class="btn wide" data-practice="' + t.id + '" style="margin-top:8px">🎧 Öva de tre orden</button>';
     if (sta)
       s +=
@@ -7482,6 +7486,47 @@
     }
     return s + "</div></div>";
   }
+  /* reseskrapbok - en samlad översikt av allt barnet redan samlat på resan (fakta + souvenir
+     per ort), istället för att behöva fälla ut varje besökt ort för sig i "Besökta orter". */
+  function tripScrapbookScreen() {
+    screen = "scrapbook";
+    var n = tripReached(),
+      i,
+      html;
+    html =
+      '<div class="zone map"><span class="zem">📖</span><span><b>Reseskrapbok</b>' +
+      "<span>" +
+      (n - 1) +
+      " av " +
+      TRIP.length +
+      " orter samlade</span></span></div>" +
+      '<div class="scrapgrid">';
+    for (i = 0; i < TRIP.length; i++) {
+      var t = TRIP[i],
+        open = i < n,
+        gift = open ? itemById(SOUVENIR[t.id]) : null;
+      if (open) {
+        html +=
+          '<div class="card scrapcard">' +
+          '<p class="q" style="text-align:left;margin-bottom:2px">' +
+          t.em +
+          ' <span lang="et">' +
+          esc(t.et) +
+          "</span></p>" +
+          '<p class="qsub" style="text-align:left">' +
+          esc(t.fact) +
+          "</p>" +
+          (gift ? '<p class="qsub" style="text-align:left"><b>🎁 ' + gift.em + " " + esc(gift.sv) + "</b></p>" : "") +
+          "</div>";
+      } else {
+        html +=
+          '<div class="card scrapcard locked"><p class="q" style="text-align:left;margin-bottom:2px">🔒 ???</p>' +
+          '<p class="qsub" style="text-align:left">Fortsätt resan för att låsa upp.</p></div>';
+      }
+    }
+    html += "</div>";
+    app.innerHTML = html;
+  }
   function tripScreen() {
     screen = "trip";
     setNav("trip");
@@ -7510,6 +7555,9 @@
       '<span class="qbar" style="background:var(--line)"><i style="width:' +
       songPct +
       '%;background:var(--berry)"></i></span>' +
+      (n > 1
+        ? '<button class="btn ghost wide" id="scrapbookbtn" style="margin-top:10px">📖 Reseskrapbok</button>'
+        : "") +
       "</div>";
     html +=
       '<div class="card">' +
@@ -7683,6 +7731,11 @@
     if (sing)
       sing.onclick = function () {
         stationStart("salme");
+      };
+    var scrap = document.getElementById("scrapbookbtn");
+    if (scrap)
+      scrap.onclick = function () {
+        go(tripScrapbookScreen, true);
       };
     var b = app.querySelectorAll("[data-say]"),
       k;
