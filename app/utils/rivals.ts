@@ -24,6 +24,7 @@ export const RIVALS: Rival[] = [
   {
     id: "hiir",
     em: "🐭",
+    img: "/images/rivals/hiir.webp",
     et: "Hiir",
     sv: "Musen",
     skill: 0.5,
