@@ -487,19 +487,25 @@
      ska alltid kunna trycka på en figur, var den än dyker upp. */
   function rivalIcon(r, px) {
     var size = r.img ? Math.round(px * 1.5) : px,
-      /* height, inte en fyrkantig width=height-ruta - källbilderna är olika breda (en svans
+      /* höjd, inte en fyrkantig width=height-ruta - källbilderna är olika breda (en svans
          eller ett föremål som sträcker ut åt sidan gör kanvasen bredare utan att själva
          figuren är större), och en fyrkantig ruta med object-fit:contain hade då krympt just
          de bredare figurerna i höjd för att få plats. Samma fix som .charcard-img. */
       inner = r.img
         ? '<img src="' + r.img + '" alt="" style="height:' + size + 'px;width:auto;vertical-align:middle">'
         : '<span style="font-size:' + size + 'px;line-height:1">' + r.em + "</span>";
+    /* en bredare bild (se ovan) ska ändå CENTRERAS i samma breda/smala utrymme som en smalare
+       skulle fått - annars hamnar titeln bredvid på olika x-position per rival i en lista.
+       display:inline-flex + en bredd (samma som höjden) gör själva ikon-platsen fyrkantig
+       och centrerad, medan bilden inuti fritt får svämma över åt båda hållen om den är bredare. */
     return (
       '<span class="charpeek" data-char="rival:' +
       r.id +
       '" role="button" tabindex="0" aria-label="Visa ' +
       esc(r.et) +
-      '">' +
+      '" style="display:inline-flex;justify-content:center;align-items:center;width:' +
+      size +
+      'px">' +
       inner +
       "</span>"
     );
