@@ -14,4 +14,5 @@ export const RIVALS: Rival[] = [
   { id: "rebane", em: "🦊", et: "Rebane", sv: "Räven" },
   { id: "karu", em: "🐻", et: "Karu", sv: "Björnen" },
   { id: "draakon", em: "🐉", et: "Draakon", sv: "Draken" },
+  { id: "vanapagan", em: "😈", et: "Vanapagan", sv: "Vanapagan" },
 ];

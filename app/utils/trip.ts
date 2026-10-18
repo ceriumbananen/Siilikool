@@ -399,11 +399,14 @@ export const STORY = {
     "Siiri har fått ett brev. Om tolv veckor är det **laulupidu**, den stora sångfesten på Tallinns sångarfält, där hundratusen människor sjunger tillsammans. Men Siiri kan bara första raden i sången. Resten måste hon samla ihop — en rad i varje ort.",
   lahemaa: "I mossen sjunger tranorna en rad som ingen skrivit ner. Siiri lär sig den av dem.",
   narva: "Vid borgen vid floden sjunger en gammal man en rad på andra sidan vattnet. Siiri ropar tillbaka den.",
-  tartu: "På universitetsbiblioteket finns en dammig bok med en bortglömd vers. Siiri läser den högt.",
-  polva: "Kyrkklockan i Põlva slår en melodi. Siiri skriver ner tonerna med en pinne i åkerjorden.",
+  tartu:
+    "Universitetsbiblioteket står på Toomemägi, kullen där en forntida borg en gång vaktades i sagorna om jätten **Kalevipoeg**. I en dammig bok om den hittar Siiri en bortglömd vers. Siiri läser den högt.",
+  polva:
+    "Vid de höga sandstensklipporna i Taevaskoda viskas det att en jätte — kanske Kalevipoeg själv — en gång klöv berget med en enda spark. Kyrkklockan i Põlva slår en melodi som ekar ända dit. Siiri skriver ner tonerna med en pinne i åkerjorden.",
   setomaa:
     "Seto-kvinnorna sjunger leelo, där en börjar och alla andra svarar. De lär Siiri en rad som är äldre än alla hus i byn.",
-  otepaa: "Uppe på kullen i vinterluften ekar en rad tillbaka från skogen. Siiri tar med sig ekot.",
+  otepaa:
+    "Uppe på den urgamla borgkullen, där **Kalevipoeg** själv sägs ha vaktat Estlands gränser, ekar en rad tillbaka från skogen i vinterluften. Siiri tar med sig ekot.",
   viljandi:
     "På folkmusikfestivalen vid slottsruinen spelar någon precis rätt melodi på en kannel. Siiri lär sig raden på ett kvällspass.",
   parnu: "Vågorna vid Pärnu strand sjunger samma rad om och om igen. Siiri sitter i sanden tills hon kan den.",
@@ -414,7 +417,7 @@ export const STORY = {
   johvi:
     "Djupt nere i gruvgången under Jõhvi ekar en rad mellan stenväggarna. Siiri lyssnar tills ekot blir till ord hon kan ta med sig upp.",
   peipsi:
-    "Ute på Peipsi sjö gungar en fiskebåt i takt med en rad som vinden för med sig över vattnet. Siiri ror ut och fångar den i håven.",
+    "Enligt sägnen grävde jätten **Kalevipoeg** själv ut Peipsi sjö. Ute på det stora vattnet gungar en fiskebåt i takt med en rad som vinden för med sig. Siiri ror ut och fångar den i håven.",
   voru: "Uppe i tornet på Suur Munamägi ser Siiri tre länder på en gång — och en rad som svävar mellan dem och bara väntar på att plockas ner.",
   valga:
     "Mitt på gränsen mellan Valga och Valka möts en estnisk och en lettisk röst och sjunger varsin halva av samma rad. Siiri lägger ihop dem till en.",

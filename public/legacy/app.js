@@ -508,6 +508,15 @@
       need: 9,
       desc: "Kan nästan varje ord. Nästan.",
     },
+    {
+      id: "vanapagan",
+      em: "😈",
+      et: "Vanapagan",
+      sv: "Vanapagan",
+      skill: 0.9,
+      need: 12,
+      desc: "Gammal som jorden och listig som få. I de estniska sagorna vinner alltid den som är klipskast i ord — visa att det är du.",
+    },
   ];
   var TAUNT = window.SiiriData.TAUNT;
   var COACH = [

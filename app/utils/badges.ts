@@ -31,7 +31,7 @@ export type Badge = {
 
 const TRIP_LENGTH = TRIP.length;
 const SHOP_LENGTH = SHOP.length;
-const RIVAL_IDS = ["hiir", "rebane", "karu", "draakon"] as const;
+const RIVAL_IDS = ["hiir", "rebane", "karu", "draakon", "vanapagan"] as const;
 /** Hur många teman appen har totalt (THEMES.length i legacy-koden) - badgen "all" och
  * profilsidans "X av Y teman klara"-statistik jämför båda mot den. */
 export const THEMES_LENGTH = THEMES.length;
@@ -83,8 +83,8 @@ export const BADGES: Badge[] = [
   {
     id: "duelall",
     em: "👑",
-    sv: "Slagit alla fyra",
-    test: s => RIVAL_IDS.filter(id => (s.duels || {})[id]?.w).length >= 4,
+    sv: "Slagit alla fem",
+    test: s => RIVAL_IDS.filter(id => (s.duels || {})[id]?.w).length >= 5,
   },
 ];
 
@@ -161,7 +161,7 @@ export function badgeProgress(badge: Badge, s: BadgeProfile): [number, number] |
         10,
       ];
     case "duelall":
-      return [RIVAL_IDS.filter(id => (s.duels || {})[id]?.w).length, 4];
+      return [RIVAL_IDS.filter(id => (s.duels || {})[id]?.w).length, 5];
     default:
       return null; /* kilpkonn m.fl. hemligheter förblir mystiska */
   }
