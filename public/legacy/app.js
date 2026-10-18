@@ -7075,16 +7075,42 @@
   var EST_PEIPUS =
     "M279 66.9 L294.4 90.2 L286.9 117 L283.6 147.4 L275.7 165.3 L266.4 159 L272 127.7 L260.4 99.1 L268.3 75.9 Z";
   var EST_VORTS = "M216.1 105.4 L220.8 125.9 L213.8 143.8 L207.7 127.7 L210.5 109.8 Z";
+  /* kartan följer årstiden (samma seasonNow() som hemskärmens hälsning redan läser) istället
+     för att se likadan ut i juli som i januari - bara färger + ströddda ikoner, ingen ny
+     partikelmotor (seasonFx() kör redan canvas-snö/kronblad på andra skärmar). */
+  var MAP_DECO_SPOTS = [
+    { x: 70, y: 55 },
+    { x: 250, y: 45 },
+    { x: 110, y: 155 },
+    { x: 270, y: 130 },
+    { x: 180, y: 95 },
+  ];
+  function mapSeasonTheme() {
+    var fx = seasonNow().fx;
+    if (fx === "snow") return { landA: "#F3F8F6", landB: "#D8E6E2", seaA: "#D7E6EC", seaB: "#AEC7D6", deco: "❄️" };
+    if (fx === "petals") return { landA: "#E7F4CF", landB: "#BFE0A8", seaA: "#CFEAF4", seaB: "#A8D3E6", deco: "🌸" };
+    if (fx === "leaves") return { landA: "#F0DFA0", landB: "#D9A85C", seaA: "#C2D8DE", seaB: "#93B4BE", deco: "🍂" };
+    return { landA: "#D8EDCB", landB: "#A8CE97", seaA: "#CDE8F3", seaB: "#A8D3E6", deco: "" };
+  }
   function tripMapSVG() {
     var n = tripReached(),
       i,
-      s = "";
+      s = "",
+      mt2 = mapSeasonTheme();
     s +=
       '<svg viewBox="0 0 330 205" class="estmap" role="img" aria-label="Karta över Estland">' +
       '<defs><linearGradient id="mland" x1="0" y1="0" x2="0.3" y2="1">' +
-      '<stop offset="0%" stop-color="#D8EDCB"/><stop offset="100%" stop-color="#A8CE97"/></linearGradient>' +
+      '<stop offset="0%" stop-color="' +
+      mt2.landA +
+      '"/><stop offset="100%" stop-color="' +
+      mt2.landB +
+      '"/></linearGradient>' +
       '<linearGradient id="msea" x1="0" y1="0" x2="0" y2="1">' +
-      '<stop offset="0%" stop-color="#CDE8F3"/><stop offset="100%" stop-color="#A8D3E6"/></linearGradient></defs>' +
+      '<stop offset="0%" stop-color="' +
+      mt2.seaA +
+      '"/><stop offset="100%" stop-color="' +
+      mt2.seaB +
+      '"/></linearGradient></defs>' +
       '<rect x="0" y="0" width="330" height="205" rx="18" fill="url(#msea)"/>';
     for (i = 0; i < EST_LAND.length; i++) {
       s +=
@@ -7099,6 +7125,18 @@
       '<path d="' +
       EST_VORTS +
       '" fill="#B6DCEC" stroke="#8CBBD2" stroke-width="1"/>';
+    if (mt2.deco) {
+      for (i = 0; i < MAP_DECO_SPOTS.length; i++) {
+        s +=
+          '<text x="' +
+          MAP_DECO_SPOTS[i].x +
+          '" y="' +
+          MAP_DECO_SPOTS[i].y +
+          '" font-size="11" opacity=".55" style="pointer-events:none">' +
+          mt2.deco +
+          "</text>";
+      }
+    }
     /* orter utan stopp */
     for (i = 0; i < MAPTOWNS.length; i++) {
       var mt = MAPTOWNS[i];
