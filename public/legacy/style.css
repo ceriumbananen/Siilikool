@@ -2289,7 +2289,7 @@ body {
 
 .lane {
   position: relative;
-  height: 36px;
+  height: 46px;
   border-bottom: 3px dotted var(--line);
 }
 

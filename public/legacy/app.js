@@ -521,16 +521,18 @@
   ];
   /* rivaler med en illustrerad bild (r.img, en handritad figur i samma stil som Siiri -
      se public/images/rivals/) visas med den istället för bara en emoji. px matchar den
-     emoji-storlek (font-size) platsen redan hade, så layouten inte ändras. */
+     emoji-storlek (font-size) platsen redan hade - men en detaljerad illustration syns
+     sämre än en enkel, grafisk emoji vid samma storlek, så den skalas upp en bit extra. */
   function rivalIcon(r, px) {
     if (!r.img) return r.em;
+    var size = Math.round(px * 1.5);
     return (
       '<img src="' +
       r.img +
       '" alt="" style="width:' +
-      px +
+      size +
       "px;height:" +
-      px +
+      size +
       'px;object-fit:contain;vertical-align:middle">'
     );
   }
