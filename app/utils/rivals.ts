@@ -16,8 +16,13 @@ export type Rival = {
   skill: number;
   /** Antal besökta Teekond-orter som krävs för att låsa upp rivalen. */
   need: number;
-  /** Kort beskrivning, visas i rivallistan och figur-kortet (openCharCard() i app.js). */
+  /** Kort beskrivning, visas i rivallistan och duellens setup-ruta. */
   desc: string;
+  /** Lite längre, påhittad historia om rivalen - visas i figur-kortet (openCharCard() i
+   * app.js) istället för desc, när den finns. Bara för de påhittade djur-rivalerna; de
+   * estniska folktrofigurerna (Vanapagan här, Kalevipoeg/Suur Tõll i LORE) har redan sin
+   * egen, riktiga historia i desc/fact och behöver ingen. */
+  story?: string;
 };
 
 export const RIVALS: Rival[] = [
@@ -30,6 +35,8 @@ export const RIVALS: Rival[] = [
     skill: 0.5,
     need: 0,
     desc: "Snabb men slarvig. Bra att börja med.",
+    story:
+      "En gång gömde sig Hiir i Siiris ryggsäck hela vägen till skolan, bara för äventyrets skull. Hon kom hem med halva läxan borttappad på vägen, men hade upptäckt tre nya gömställen ingen annan mus känt till. Numera utmanar hon alla hon möter, mest för att hon inte kan sitta still.",
   },
   {
     id: "rebane",
@@ -40,6 +47,8 @@ export const RIVALS: Rival[] = [
     skill: 0.66,
     need: 3,
     desc: "Kaxig och kvick. Spärrar vägen mot Tartu.",
+    story:
+      "Rebane bor i en lya vid vägkanten strax utanför Tartu, och ingen kommer förbi utan att först svara på hennes frågor. Hon lärde sig alla sina ord på en enda vinter, av ren envishet, och har inte förlorat en enda duell sedan dess — än.",
   },
   {
     id: "karu",
@@ -50,6 +59,8 @@ export const RIVALS: Rival[] = [
     skill: 0.76,
     need: 6,
     desc: "Långsam att svara, men sällan fel.",
+    story:
+      "Karu läser en sida i taget i byns lilla bibliotek och skyndar sig aldrig för någon. Han svarar hellre sent och rätt än snabbt och fel, och säger ofta att den som väntar lugnt till slut alltid hittar rätt ord.",
   },
   {
     id: "draakon",
@@ -60,6 +71,8 @@ export const RIVALS: Rival[] = [
     skill: 0.86,
     need: 9,
     desc: "Kan nästan varje ord. Nästan.",
+    story:
+      "Draakon är den minsta draken i hela skogen och lite blyg för sin storlek, men hans minne är desto större. Han har läst nästan hela ordboken från pärm till pärm — nästan, för sidan med sitt eget namn rev han av sig och åt upp av misstag.",
   },
   {
     id: "vanapagan",

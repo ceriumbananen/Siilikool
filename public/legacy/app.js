@@ -517,7 +517,13 @@
     if (kind === "rival") {
       for (i = 0; i < RIVALS.length; i++) {
         if (RIVALS[i].id === id) {
-          return { img: RIVALS[i].img, em: RIVALS[i].em, name: RIVALS[i].et, sub: RIVALS[i].sv, fact: RIVALS[i].desc };
+          return {
+            img: RIVALS[i].img,
+            em: RIVALS[i].em,
+            name: RIVALS[i].et,
+            sub: RIVALS[i].sv,
+            fact: RIVALS[i].story || RIVALS[i].desc,
+          };
         }
       }
     }
