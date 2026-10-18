@@ -26,6 +26,7 @@ export default defineNuxtPlugin(() => {
     TRIP,
     TRIPTASKS,
     STORY,
+    LORE,
     STATIONS,
     STSKIP,
     SOUVENIR,

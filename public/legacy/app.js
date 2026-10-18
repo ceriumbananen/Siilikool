@@ -39,6 +39,7 @@
     return S.tripDone;
   }
   var STORY = window.SiiriData.STORY;
+  var LORE = window.SiiriData.LORE;
   function tripReached() {
     return Math.max(1, Math.min(TRIP.length, tripDone() + 1));
   }
@@ -522,20 +523,100 @@
   /* rivaler med en illustrerad bild (r.img, en handritad figur i samma stil som Siiri -
      se public/images/rivals/) visas med den istället för bara en emoji. px matchar den
      emoji-storlek (font-size) platsen redan hade - men en detaljerad illustration syns
-     sämre än en enkel, grafisk emoji vid samma storlek, så den skalas upp en bit extra. */
+     sämre än en enkel, grafisk emoji vid samma storlek, så den skalas upp en bit extra.
+     Ikonen går alltid att klicka eller trycka Enter/mellanslag på (data-char, se
+     openCharCard() nedan) för att se figuren i helformat med en faktaruta - nyfikna barn
+     ska alltid kunna trycka på en figur, var den än dyker upp. */
   function rivalIcon(r, px) {
-    if (!r.img) return r.em;
-    var size = Math.round(px * 1.5);
+    var size = r.img ? Math.round(px * 1.5) : px,
+      inner = r.img
+        ? '<img src="' +
+          r.img +
+          '" alt="" style="width:' +
+          size +
+          "px;height:" +
+          size +
+          'px;object-fit:contain;vertical-align:middle">'
+        : '<span style="font-size:' + size + 'px;line-height:1">' + r.em + "</span>";
     return (
-      '<img src="' +
-      r.img +
-      '" alt="" style="width:' +
-      size +
-      "px;height:" +
-      size +
-      'px;object-fit:contain;vertical-align:middle">'
+      '<span class="charpeek" data-char="rival:' +
+      r.id +
+      '" role="button" tabindex="0" aria-label="Visa ' +
+      esc(r.et) +
+      '">' +
+      inner +
+      "</span>"
     );
   }
+  /* en figur (Duell-rival eller folktrofigur som Kalevipoeg) som går att klicka/trycka Enter
+     på var den än visas, för ett förstorat kort med namn och fakta. key är "rival:<id>"
+     (RIVALS) eller "lore:<id>" (LORE, app/utils/trip.ts). */
+  function charLookup(key) {
+    var parts = key.split(":"),
+      kind = parts[0],
+      id = parts[1],
+      i;
+    if (kind === "rival") {
+      for (i = 0; i < RIVALS.length; i++) {
+        if (RIVALS[i].id === id) {
+          return { img: RIVALS[i].img, em: RIVALS[i].em, name: RIVALS[i].et, sub: RIVALS[i].sv, fact: RIVALS[i].desc };
+        }
+      }
+    }
+    if (kind === "lore" && LORE[id]) {
+      return { img: LORE[id].img, em: "📖", name: LORE[id].et, sub: LORE[id].sv, fact: LORE[id].fact };
+    }
+    return null;
+  }
+  function openCharCard(key) {
+    var c = charLookup(key);
+    if (!c) return;
+    var d = document.createElement("div");
+    d.className = "overlay";
+    d.innerHTML =
+      '<div class="oc charcard">' +
+      (c.img
+        ? '<img src="' + c.img + '" alt="" class="charcard-img">'
+        : '<div style="font-size:84px">' + c.em + "</div>") +
+      "<h3>" +
+      esc(c.name) +
+      "</h3>" +
+      (c.sub && c.sub !== c.name ? '<p class="kicker" style="margin-top:-4px">' + esc(c.sub) + "</p>" : "") +
+      "<p>" +
+      esc(c.fact) +
+      "</p>" +
+      '<button class="btn ghost wide" id="charcardclose" style="margin-top:8px">Stäng</button></div>';
+    document.body.appendChild(d);
+    d.querySelector("#charcardclose").onclick = function () {
+      d.remove();
+    };
+  }
+  /* fångas i fångstfasen (sista argumentet true), innan klicket hinner bubbla upp till t.ex.
+     rivalkortets egen knapp - annars skulle ett tryck på figuren både öppna kortet och
+     starta duellen samtidigt. */
+  document.addEventListener(
+    "click",
+    function (e) {
+      var t = e.target.closest && e.target.closest("[data-char]");
+      if (!t) return;
+      e.stopPropagation();
+      e.preventDefault();
+      openCharCard(t.getAttribute("data-char"));
+    },
+    true,
+  );
+  document.addEventListener(
+    "keydown",
+    function (e) {
+      if (e.key !== "Enter" && e.key !== " ") return;
+      var t = e.target.closest && e.target.closest("[data-char]");
+      if (!t) return;
+      e.stopPropagation();
+      e.preventDefault();
+      openCharCard(t.getAttribute("data-char"));
+    },
+    true,
+  );
   var TAUNT = window.SiiriData.TAUNT;
   var COACH = [
     { et: "Sa saad hakkama!", sv: "Du klarar det!" },
@@ -7575,10 +7656,24 @@
         gift = open ? itemById(SOUVENIR[t.id]) : null;
       if (open) {
         var story = STORY[t.id] || "",
-          lore = story.indexOf("Kalevipoeg") >= 0 ? "/images/lore/kalevipoeg.webp" : null;
+          loreKey = null;
+        for (var lk in LORE) {
+          if (story.indexOf(LORE[lk].et) >= 0) {
+            loreKey = lk;
+            break;
+          }
+        }
         html +=
           '<div class="card scrapcard">' +
-          (lore ? '<img src="' + lore + '" alt="" class="scrapcard-lore">' : "") +
+          (loreKey
+            ? '<span class="charpeek scrapcard-lore" data-char="lore:' +
+              loreKey +
+              '" role="button" tabindex="0" aria-label="Visa ' +
+              esc(LORE[loreKey].et) +
+              '"><img src="' +
+              LORE[loreKey].img +
+              '" alt=""></span>'
+            : "") +
           '<p class="q" style="text-align:left;margin-bottom:2px">' +
           t.em +
           ' <span lang="et">' +

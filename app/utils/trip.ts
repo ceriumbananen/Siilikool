@@ -650,6 +650,18 @@ export const STSKIP = [
   "lamp",
 ];
 
+/* folktrofigurer som dyker upp i berättelsetexterna (STORY ovan) och går att klicka på
+   där de visas, t.ex. Kalevipoeg-porträttet i Reseskrapboken - se openCharCard() i
+   public/legacy/app.js. */
+export const LORE = {
+  kalevipoeg: {
+    et: "Kalevipoeg",
+    sv: "Kalevipoeg",
+    img: "/images/lore/kalevipoeg.webp",
+    fact: "Jätten Kalevipoeg är hjälten i Estlands nationalepos, nedtecknat på 1800-talet efter gamla folksägner. Enligt sägnerna formade han själv landets berg och sjöar och vaktade Estlands gränser mot fiender. Flera av orterna Siiri besöker på sin resa - Tartu, Põlva, Otepää och Peipsi sjö - har egna sägner om honom.",
+  },
+};
+
 /** Souveniren (ett plagg i SHOP) man får i varje ort på resan. */
 export const SOUVENIR: Record<string, string> = {
   tallinn: "sall",

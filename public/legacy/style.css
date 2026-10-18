@@ -5034,10 +5034,32 @@ body {
 
 .scrapcard-lore {
   float: right;
+  display: block;
   width: 84px;
   height: 84px;
-  object-fit: contain;
   margin: 0 0 6px 10px;
+  cursor: pointer;
+}
+
+.scrapcard-lore img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+/* ---------- figur-kort: klicka på en rival eller folktrofigur för ett förstorat kort ---------- */
+.charpeek {
+  cursor: pointer;
+  border-radius: var(--r-md);
+}
+
+.charcard-img {
+  width: 100%;
+  max-width: 220px;
+  height: auto;
+  object-fit: contain;
+  margin: 0 auto 4px;
+  display: block;
 }
 
 /* ---------- theme grid ---------- */
