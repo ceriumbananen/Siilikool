@@ -4337,6 +4337,10 @@
     }
   }
 
+  /* en siffra + etikett i en .stats-grid (se parentScreen()/adminScreen()) */
+  function statTile(value, label) {
+    return '<div class="stat"><b>' + value + "</b><span>" + label + "</span></div>";
+  }
   /* ---------- VANEMALE: sidan för föräldern ---------- */
   function parentScreen() {
     screen = "parent";
@@ -4369,30 +4373,14 @@
       (S.name ? esc(S.name) : "Spelaren") +
       " just nu</p>" +
       '<div class="stats">' +
-      '<div class="stat"><b>' +
-      strong +
-      "</b><span>ord som sitter</span></div>" +
-      '<div class="stat"><b>' +
-      weak +
-      "</b><span>ord som vacklar</span></div>" +
-      '<div class="stat"><b>' +
-      unseen +
-      "</b><span>ord kvar att möta</span></div>" +
-      '<div class="stat"><b>' +
-      (S.flames || 0) +
-      "</b><span>dagsutmaningar klarade</span></div>" +
-      '<div class="stat"><b>' +
-      (S.lessons || 0) +
-      "</b><span>avklarade lektioner</span></div>" +
-      '<div class="stat"><b>' +
-      S.correct +
-      "</b><span>rätta svar totalt</span></div>" +
-      '<div class="stat"><b>' +
-      S.spoken +
-      "</b><span>ord sagda högt</span></div>" +
-      '<div class="stat"><b>' +
-      S.typed +
-      "</b><span>ord skrivna</span></div>" +
+      statTile(strong, "ord som sitter") +
+      statTile(weak, "ord som vacklar") +
+      statTile(unseen, "ord kvar att möta") +
+      statTile(S.flames || 0, "dagsutmaningar klarade") +
+      statTile(S.lessons || 0, "avklarade lektioner") +
+      statTile(S.correct, "rätta svar totalt") +
+      statTile(S.spoken, "ord sagda högt") +
+      statTile(S.typed, "ord skrivna") +
       "</div>" +
       '<p class="qsub" style="text-align:left;margin-top:10px">Ett ord räknas som att det <b>sitter</b> först när barnet ' +
       "klarat det flera gånger, helst genom att skriva eller säga det — inte bara peka på rätt bild.</p></div>";
@@ -4620,7 +4608,7 @@
       bankN = Object.keys(bank()).length,
       namesN = Object.keys(BANKS.names || {}).length;
     var html =
-      '<div class="card" style="border-color:#C8305A">' +
+      '<div class="card" style="border-color:var(--berry)">' +
       '<p class="q" style="text-align:left">🛠️ Admin</p>' +
       '<p class="qsub" style="text-align:left">Version ' +
       APPVER +
@@ -4629,30 +4617,14 @@
       "</p>" +
       '<p class="qsub" style="text-align:left">Felsökningsläge. Barnet ser aldrig den här sidan.</p>' +
       '<div class="stats">' +
-      '<div class="stat"><b>' +
-      wordCount +
-      "</b><span>ord i spelet</span></div>" +
-      '<div class="stat"><b>' +
-      bankN +
-      "</b><span>ljudklipp laddade</span></div>" +
-      '<div class="stat"><b>' +
-      namesN +
-      "</b><span>namn</span></div>" +
-      '<div class="stat"><b>' +
-      parts +
-      "</b><span>ljuddelar</span></div>" +
-      '<div class="stat"><b>' +
-      TRIP.length +
-      "</b><span>orter</span></div>" +
-      '<div class="stat"><b>' +
-      SHOP.length +
-      "</b><span>plagg</span></div>" +
-      '<div class="stat"><b>' +
-      SENTENCES.length +
-      "</b><span>meningar</span></div>" +
-      '<div class="stat"><b>' +
-      SECRETS.length +
-      "</b><span>hemligheter</span></div>" +
+      statTile(wordCount, "ord i spelet") +
+      statTile(bankN, "ljudklipp laddade") +
+      statTile(namesN, "namn") +
+      statTile(parts, "ljuddelar") +
+      statTile(TRIP.length, "orter") +
+      statTile(SHOP.length, "plagg") +
+      statTile(SENTENCES.length, "meningar") +
+      statTile(SECRETS.length, "hemligheter") +
       "</div></div>";
     html +=
       '<div class="card"><p class="q" style="text-align:left">Lås upp</p><div class="row" style="justify-content:flex-start">' +
