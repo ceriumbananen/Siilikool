@@ -5669,6 +5669,17 @@
     else if (s.eng === "seq") stSeq(id, true);
     else if (s.eng === "finale") stFinale(true);
   }
+  /* tre svårighetsnivåer baserat på var i resan orten ligger (tidig/mitten/sen tredjedel) -
+     samma sex motorer (collect/catch/sort/count/pairs/seq) återanvänds på 16 av 20 orter, så
+     de behöver själva växa med spelaren istället för att kännas exakt likadana vid ort 18
+     som vid ort 2. Bara fler alternativ/distraktorer - aldrig nya ord eller kortare tid, så
+     det är fortfarande samma sorts uppgift, bara lite klurigare. */
+  function stTier(cityId) {
+    var i;
+    for (i = 0; i < TRIP.length; i++) if (TRIP[i].id === cityId) break;
+    if (i >= TRIP.length) return 0;
+    return i < 7 ? 0 : i < 14 ? 1 : 2;
+  }
   /* ord ur ett visst tema, med fallback */
   function stPool(themeId, n) {
     var i,
@@ -6059,7 +6070,7 @@
     setNav("home");
     btnBack.hidden = false;
     var s = stationOf(id);
-    if (first) ST = { city: id, round: 0, n: 6, wrong: 0, stars: 0, pool: stPool(s.pool, 30) };
+    if (first) ST = { city: id, round: 0, n: 6, wrong: 0, stars: 0, pool: stPool(s.pool, 30), tier: stTier(id) };
     if (ST.round >= ST.n) {
       stDone(60 + ST.round * 9, s.em + " " + s.et, "Du klarade alla " + ST.n + " beställningarna.", null, id);
       speak("Hästi tehtud!");
@@ -6068,7 +6079,7 @@
     var num = 1 + ((Math.random() * 3) | 0),
       NUMW = ["üks", "kaks", "kolm"];
     var t = ST.pool[(Math.random() * ST.pool.length) | 0];
-    var items = stCrates(t, ST.pool, num, 6),
+    var items = stCrates(t, ST.pool, num, 6 + ST.tier),
       i;
     ST.need = num;
     ST.have = 0;
@@ -6153,7 +6164,7 @@
     setNav("home");
     btnBack.hidden = false;
     var s = stationOf(id);
-    if (first) ST = { city: id, round: 0, n: 8, wrong: 0, stars: 0, pool: stPool(s.pool, 24) };
+    if (first) ST = { city: id, round: 0, n: 8, wrong: 0, stars: 0, pool: stPool(s.pool, 24), tier: stTier(id) };
     if (ST.round >= ST.n) {
       stDone(70 + ST.round * 8, s.em + " " + s.et, "Du fångade alla " + ST.n + " orden.", null, id);
       speak("Hästi tehtud!");
@@ -6165,7 +6176,7 @@
     });
     var items = [t],
       i;
-    for (i = 0; i < 3; i++) items.push(others[(Math.random() * others.length) | 0]);
+    for (i = 0; i < 3 + ST.tier; i++) items.push(others[(Math.random() * others.length) | 0]);
     items = shuffle(items);
     ST.items = items;
     ST.target = t;
@@ -6178,6 +6189,7 @@
       '<div class="beach ' +
       flow +
       '">';
+    var topStep = items.length > 1 ? Math.min(21, 78 / (items.length - 1)) : 0;
     for (i = 0; i < items.length; i++)
       html +=
         '<button class="float" data-f="' +
@@ -6185,7 +6197,7 @@
         '" style="animation-delay:-' +
         (1.4 + i * 1.5).toFixed(1) +
         "s;top:" +
-        (8 + i * 21) +
+        (8 + i * topStep).toFixed(1) +
         '%">' +
         wIcon(items[i]) +
         "</button>";
@@ -6243,13 +6255,29 @@
     setNav("home");
     btnBack.hidden = false;
     var s = stationOf(id);
-    var BINS = [
-      { id: "punane", sv: "röd", c: "#D6453F" },
-      { id: "sinine", sv: "blå", c: "#3A72C8" },
-      { id: "kollane", sv: "gul", c: "#E8B62C" },
-      { id: "roheline", sv: "grön", c: "#4E9A5C" },
-    ];
-    if (first) ST = { city: id, round: 0, n: 8, wrong: 0, stars: 0, bins: BINS, done: [0, 0, 0, 0] };
+    if (first) {
+      var tier = stTier(id);
+      var BINS = [
+        { id: "punane", sv: "röd", c: "#D6453F" },
+        { id: "sinine", sv: "blå", c: "#3A72C8" },
+        { id: "kollane", sv: "gul", c: "#E8B62C" },
+        { id: "roheline", sv: "grön", c: "#4E9A5C" },
+      ];
+      if (tier >= 1) BINS.push({ id: "roosa", sv: "rosa", c: "#E06A9A" });
+      if (tier >= 2) BINS.push({ id: "lilla", sv: "lila", c: "#8A5CC8" });
+      ST = {
+        city: id,
+        round: 0,
+        n: 8,
+        wrong: 0,
+        stars: 0,
+        tier: tier,
+        bins: BINS,
+        done: BINS.map(function () {
+          return 0;
+        }),
+      };
+    }
     if (ST.round >= ST.n) {
       stDone(70 + ST.round * 8, s.em + " " + s.et, "Allt är sorterat — " + ST.n + " rätt.", null, id);
       speak("Hästi tehtud!");
@@ -6336,7 +6364,7 @@
     setNav("home");
     btnBack.hidden = false;
     var s = stationOf(id);
-    if (first) ST = { city: id, round: 0, n: 7, wrong: 0, stars: 0, pool: stPool(s.pool, 20) };
+    if (first) ST = { city: id, round: 0, n: 7, wrong: 0, stars: 0, pool: stPool(s.pool, 20), tier: stTier(id) };
     if (ST.round >= ST.n) {
       stDone(
         60 + ST.round * 9,
@@ -6351,10 +6379,13 @@
     var maxN = Math.min(8, 3 + Math.floor(ST.round / 2) + 2);
     var num = 1 + ((Math.random() * maxN) | 0);
     var t = ST.pool[(Math.random() * ST.pool.length) | 0];
+    /* fler alternativ än möjliga tal (maxN) går inte att hitta - loopen nedan skulle annars
+       bara ge upp efter 40 försök och tyst visa färre än tänkt */
+    var numOpts = Math.min(maxN, 4 + ST.tier);
     var opts = [num],
       i,
       tries = 0;
-    while (opts.length < 4 && tries < 40) {
+    while (opts.length < numOpts && tries < 40) {
       var c = 1 + ((Math.random() * maxN) | 0);
       tries++;
       if (opts.indexOf(c) < 0) opts.push(c);
@@ -6427,16 +6458,17 @@
     setNav("home");
     btnBack.hidden = false;
     var s = stationOf(id);
-    if (first) ST = { city: id, round: 0, n: 3, wrong: 0, stars: 0, pool: stPool(s.pool, 24) };
+    if (first) ST = { city: id, round: 0, n: 3, wrong: 0, stars: 0, pool: stPool(s.pool, 24), tier: stTier(id) };
     if (ST.round >= ST.n) {
       stDone(70 + ST.round * 12, s.em + " " + s.et, "Alla par hittade.", null, id);
       speak("Hästi tehtud!");
       return;
     }
-    var set = otsiPick(4, ST.pool);
+    var pairN = 4 + ST.tier;
+    var set = otsiPick(pairN, ST.pool);
     ST.set = set;
     ST.picked = null;
-    ST.left = 4;
+    ST.left = set.length;
     ST.lock = false;
     var words = shuffle(set.slice());
     var html =
@@ -6536,14 +6568,15 @@
     setNav("home");
     btnBack.hidden = false;
     var s = stationOf(id);
-    if (first) ST = { city: id, round: 0, n: 5, wrong: 0, stars: 0, pool: stPool(s.pool, 16) };
+    if (first) ST = { city: id, round: 0, n: 5, wrong: 0, stars: 0, pool: stPool(s.pool, 16), tier: stTier(id) };
     if (ST.round >= ST.n) {
       stDone(70 + ST.round * 10, s.em + " " + s.et, "Du klarade alla " + ST.n + " slingorna.", null, id);
       speak("Hästi tehtud!");
       return;
     }
-    var len = Math.min(5, 2 + Math.floor(ST.round / 1.5));
-    var choices = otsiPick(Math.min(5, ST.pool.length), ST.pool);
+    var capLen = 5 + ST.tier;
+    var len = Math.min(capLen, 2 + Math.floor(ST.round / 1.5));
+    var choices = otsiPick(Math.min(capLen, ST.pool.length), ST.pool);
     var seq = [],
       i;
     for (i = 0; i < len; i++) seq.push(choices[(Math.random() * choices.length) | 0]);
