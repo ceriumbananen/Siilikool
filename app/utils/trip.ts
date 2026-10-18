@@ -413,7 +413,8 @@ export const STORY = {
     "På folkmusikfestivalen vid slottsruinen spelar någon precis rätt melodi på en kannel. Siiri lär sig raden på ett kvällspass.",
   parnu: "Vågorna vid Pärnu strand sjunger samma rad om och om igen. Siiri sitter i sanden tills hon kan den.",
   haapsalu: "I borgens fönster sjunger Vita damen en rad så vacker att Siiri glömmer att bli rädd.",
-  kuressaare: "Väderkvarnarna på Saaremaa gnisslar i takt. Siiri hör en rad i vinden mellan vingarna.",
+  kuressaare:
+    "Nere vid stranden ska jätten **Suur Tõll** en gång ha slungat stenblock mot fiender som kom över havet, för att skydda sin ö. Uppe vid biskopsborgen gnisslar väderkvarnarnas vingar i takt. Siiri hör en rad i vinden mellan dem.",
   rakvere:
     "Vid borgen i Rakvere råmar bronsoxen en rad så djup att marken skakar. Siiri känner den genom fötterna och lär sig den utantill.",
   johvi:
@@ -659,6 +660,12 @@ export const LORE = {
     sv: "Kalevipoeg",
     img: "/images/lore/kalevipoeg.webp",
     fact: "Jätten Kalevipoeg är hjälten i Estlands nationalepos, nedtecknat på 1800-talet efter gamla folksägner. Enligt sägnerna formade han själv landets berg och sjöar och vaktade Estlands gränser mot fiender. Flera av orterna Siiri besöker på sin resa - Tartu, Põlva, Otepää och Peipsi sjö - har egna sägner om honom.",
+  },
+  toll: {
+    et: "Suur Tõll",
+    sv: "Suur Tõll",
+    img: "/images/lore/suur-toll.webp",
+    fact: "Suur Tõll var en jätte på Saaremaa, så stark att han kunde slunga enorma stenblock mot fiender som kom över havet. Enligt sägnerna var han ärkefiende till Vanapagan och gift med Piret. Han avbildas nästan alltid med sin pipa i munnen.",
   },
 };
 
