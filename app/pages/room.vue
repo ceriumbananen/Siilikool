@@ -67,6 +67,21 @@ function onStageClick(e: MouseEvent) {
     }
   }
 }
+/* rummets saker (eld/lampa/fönster/katt) är <g>-element i rå SVG (v-html, se roomSVG() i
+   app/utils/room-svg.ts) - tabindex/role/aria-label sätts där, men tangentbordet ger bara
+   klick-event på <button>/<a>, inte på fokuserade SVG-grupper, så Enter/mellanslag hanteras
+   här precis som ett klick skulle. */
+function onStageKeydown(e: KeyboardEvent) {
+  if (e.key !== "Enter" && e.key !== " ") return;
+  const target = e.target as Element | null;
+  for (const id of Object.keys(ROOM_SPOTS) as RoomSpotId[]) {
+    if (target?.id === id) {
+      e.preventDefault();
+      touchRoomSpot(id, target);
+      return;
+    }
+  }
+}
 function touchRoomSpot(id: RoomSpotId, el: Element) {
   const litClass = `${id}--lit`;
   el.classList.remove(litClass);
@@ -234,19 +249,27 @@ function backFromQuiz() {
       <RoomDiplomaQuiz v-if="quizTheme" :key="quizTheme.id" :theme="quizTheme" @room="backFromQuiz" />
 
       <template v-else>
-        <header class="room-page__hero">
-          <span class="room-page__hero-emoji" aria-hidden="true">🏠</span>
-          <div>
-            <h1>Siiri tuba</h1>
-            <p>Siiris rum — hon är din, gör henne till din egen</p>
-          </div>
-        </header>
+        <UiPageHero
+          emoji="🏠"
+          title="Siiri tuba"
+          subtitle="Siiris rum — hon är din, gör henne till din egen"
+          tone="amber"
+        />
 
         <!-- rummet: hylla, fönster och matta bakom henne -->
-        <div class="room-page__stage" @click="onStageClick">
+        <div class="room-page__stage" @click="onStageClick" @keydown="onStageKeydown">
           <div class="room-page__room" v-html="roomHtml" />
           <div class="room-page__siiri" :class="{ 'room-page__siiri--turned': turned }">
-            <div class="room-page__flip" title="Tryck på Siiri för att vända på henne" @click="flip">
+            <div
+              class="room-page__flip"
+              role="button"
+              tabindex="0"
+              title="Tryck på Siiri för att vända på henne"
+              aria-label="Tryck på Siiri för att vända på henne"
+              @click="flip"
+              @keydown.enter.prevent="flip"
+              @keydown.space.prevent="flip"
+            >
               <div class="room-page__face">
                 <UiSiiriPortrait size="room" />
               </div>
@@ -439,36 +462,6 @@ function backFromQuiz() {
 
 <style lang="scss" scoped>
 .room-page {
-  &__hero {
-    display: flex;
-    align-items: center;
-    gap: $spacing-2;
-    margin: $spacing-1 0 $spacing-2;
-    border-radius: $radius-lg;
-    padding: $spacing-3;
-    color: #fff;
-    box-shadow: $shadow-3;
-    background: linear-gradient(140deg, #e0912a, #a4530c);
-
-    h1 {
-      font-size: $font-size-xl;
-      line-height: 1.1;
-      margin: 0;
-    }
-
-    p {
-      font-size: $font-size-sm;
-      opacity: 0.9;
-      font-weight: 500;
-      margin: 0;
-    }
-  }
-
-  &__hero-emoji {
-    font-size: 2.125rem; // 34px
-    line-height: 1;
-  }
-
   /* rummet */
   &__stage {
     position: relative;
@@ -485,6 +478,17 @@ function backFromQuiz() {
     width: 100%;
     height: auto;
     display: block;
+  }
+
+  /* rummets klickbara saker (eld/lampa/fönster/katt) är <g>-element i rå SVG (v-html, se
+     app/utils/room-svg.ts) - scoped CSS och @include focus-visible når inte dit, så samma
+     fokusring skrivs ut för hand här. */
+  &__room :deep(#roomfire:focus-visible),
+  &__room :deep(#roomlamp:focus-visible),
+  &__room :deep(#roomwindow:focus-visible),
+  &__room :deep(#roompet:focus-visible) {
+    outline: $border-width solid var(--blue);
+    outline-offset: $border-width;
   }
 
   &__siiri {
@@ -507,6 +511,8 @@ function backFromQuiz() {
     cursor: pointer;
     transform-style: preserve-3d;
     transition: transform 0.8s cubic-bezier(0.34, 1.4, 0.4, 1);
+    border-radius: $radius-lg;
+    @include focus-visible;
   }
 
   &__siiri--turned &__flip {
@@ -549,10 +555,13 @@ function backFromQuiz() {
       filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3));
     }
 
-    &:hover,
+    &:hover {
+      opacity: 0.85;
+    }
+
     &:focus-visible {
       opacity: 0.85;
-      outline: none;
+      @include focus-visible;
     }
 
     &:active {

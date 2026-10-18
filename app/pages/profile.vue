@@ -141,13 +141,7 @@ function tapSettingsTitle() {
 <template>
   <UiAppShell active="me">
     <main class="profile-page">
-      <header class="profile-page__hero">
-        <span class="profile-page__hero-emoji" aria-hidden="true">🦔</span>
-        <div>
-          <h1>Minu profiil</h1>
-          <p>Min profil</p>
-        </div>
-      </header>
+      <UiPageHero emoji="🦔" title="Minu profiil" subtitle="Min profil" tone="violet" />
 
       <UiAppCard class="profile-page__section profile-page__me">
         <UiSiiriPortrait />
@@ -390,36 +384,6 @@ function tapSettingsTitle() {
 <style lang="scss" scoped>
 // Bredd-begränsningen kommer från UiAppShell:s __content-omslag, inte härifrån.
 .profile-page {
-  &__hero {
-    display: flex;
-    align-items: center;
-    gap: $spacing-2;
-    margin: $spacing-1 0 $spacing-2;
-    border-radius: $radius-lg;
-    padding: $spacing-3;
-    color: #fff;
-    box-shadow: $shadow-3;
-    background: linear-gradient(140deg, #7b5ad8, #412c86);
-
-    h1 {
-      font-size: $font-size-xl;
-      line-height: 1.1;
-      margin: 0;
-    }
-
-    p {
-      font-size: $font-size-sm;
-      opacity: 0.9;
-      font-weight: 500;
-      margin: 0;
-    }
-  }
-
-  &__hero-emoji {
-    font-size: 2.125rem; // 34px
-    line-height: 1;
-  }
-
   &__section {
     margin-top: $spacing-3;
     text-align: left;

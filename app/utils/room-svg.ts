@@ -307,7 +307,7 @@ function fArt(id: string | null) {
 function fLamp(id: string | null) {
   if (id === "p-floor") {
     return (
-      '<g id="roomlamp" style="cursor:pointer" transform="translate(120,124)">' +
+      '<g id="roomlamp" style="cursor:pointer" tabindex="0" role="button" aria-label="Tryck på lampan" transform="translate(120,124)">' +
       '<ellipse cx="0" cy="104" rx="16" ry="4" fill="#2A1B0C" opacity=".24"/>' +
       '<rect x="-2" y="18" width="4" height="86" fill="#8A7A5E"/><rect x="-10" y="100" width="20" height="5" rx="2.5" fill="#6E6048"/>' +
       '<path d="M-18 18 h36 l-7 -20 h-22 z" fill="#F2D98A"/><path d="M-18 18 h36 l-1 3 h-34 z" fill="#D8B964"/>' +
@@ -496,7 +496,7 @@ function fArtExtra(id: string | null) {
 function fLampExtra(id: string | null) {
   if (id !== "p-ceil") return null;
   return (
-    '<g id="roomlamp" style="cursor:pointer" transform="translate(200,0)">' +
+    '<g id="roomlamp" style="cursor:pointer" tabindex="0" role="button" aria-label="Tryck på lampan" transform="translate(200,0)">' +
     '<rect x="-1.5" y="0" width="3" height="26" fill="#8A7A5E"/>' +
     '<path d="M-22 26 h44 l-9 -16 h-26 z" fill="#E8D8A8"/>' +
     '<path d="M-22 26 h44 l-1.5 3 h-41 z" fill="#C9B882"/>' +
@@ -518,7 +518,7 @@ function fPlantExtra(id: string | null) {
 function fPet(id: string | null) {
   if (id === "d-cat") {
     return (
-      '<g id="roompet" transform="translate(70,193) scale(0.6)" style="cursor:pointer">' +
+      '<g id="roompet" transform="translate(70,193) scale(0.6)" style="cursor:pointer" tabindex="0" role="button" aria-label="Tryck på katten">' +
       '<ellipse cx="50" cy="93" rx="27" ry="5" fill="#2A1B0C" opacity=".18"/>' +
       '<g class="pettail">' +
       '<path d="M64,66 C96,66 108,30 86,8 C98,28 96,62 60,60 Z" fill="#F2A765"/>' +
@@ -648,7 +648,10 @@ function fShelf() {
 function roomSVGInner() {
   var wall = fWall(ctx.furnOf("wall")),
     floor = fFloor(ctx.furnOf("floor"));
-  var fire = '<g id="roomfire" style="cursor:pointer" transform="translate(270,92)">' + FIRESVG + "</g>";
+  var fire =
+    '<g id="roomfire" style="cursor:pointer" tabindex="0" role="button" aria-label="Tryck på elden" transform="translate(270,92)">' +
+    FIRESVG +
+    "</g>";
   return (
     '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 270" class="roomsvg" preserveAspectRatio="xMidYMid slice">' +
     "<defs>" +
@@ -665,7 +668,7 @@ function roomSVGInner() {
     wall.body +
     fWallExtra(ctx.furnOf("wall")) +
     floor.body +
-    '<g id="roomwindow" style="cursor:pointer">' +
+    '<g id="roomwindow" style="cursor:pointer" tabindex="0" role="button" aria-label="Tryck på fönstret">' +
     WINDOWSVG +
     fView(ctx.furnOf("view")) +
     "</g>" +

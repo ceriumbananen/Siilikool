@@ -40,13 +40,7 @@ const badgeRows = computed(() =>
 <template>
   <UiAppShell active="me">
     <main class="trophy-page">
-      <header class="trophy-page__hero">
-        <span class="trophy-page__hero-emoji" aria-hidden="true">🏆</span>
-        <div>
-          <h1>Aarded</h1>
-          <p>Skattkammaren</p>
-        </div>
-      </header>
+      <UiPageHero emoji="🏆" title="Aarded" subtitle="Skattkammaren" tone="gold" />
 
       <UiAppCard class="trophy-page__section">
         <p>
@@ -134,36 +128,6 @@ const badgeRows = computed(() =>
 <style lang="scss" scoped>
 // Bredd-begränsningen kommer från UiAppShell:s __content-omslag, inte härifrån.
 .trophy-page {
-  &__hero {
-    display: flex;
-    align-items: center;
-    gap: $spacing-2;
-    margin: $spacing-1 0 $spacing-2;
-    border-radius: $radius-lg;
-    padding: $spacing-3;
-    color: #fff;
-    box-shadow: $shadow-3;
-    background: linear-gradient(140deg, #d8a32a, #8a6008);
-
-    h1 {
-      font-size: $font-size-xl;
-      line-height: 1.1;
-      margin: 0;
-    }
-
-    p {
-      font-size: $font-size-sm;
-      opacity: 0.9;
-      font-weight: 500;
-      margin: 0;
-    }
-  }
-
-  &__hero-emoji {
-    font-size: 2.125rem; // 34px
-    line-height: 1;
-  }
-
   &__section {
     margin-top: $spacing-3;
 

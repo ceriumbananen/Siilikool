@@ -164,13 +164,7 @@ function toRoom() {
 <template>
   <UiAppShell active="shop">
     <main class="shop-page">
-      <header class="shop-page__hero">
-        <span class="shop-page__hero-emoji" aria-hidden="true">🎪</span>
-        <div>
-          <h1>Laat</h1>
-          <p>Marknaden — som Mardilaat och Märtsilaat i Estland</p>
-        </div>
-      </header>
+      <UiPageHero emoji="🎪" title="Laat" subtitle="Marknaden — som Mardilaat och Märtsilaat i Estland" tone="amber" />
 
       <UiAppCard class="shop-page__siiri">
         <p>
@@ -305,36 +299,6 @@ function toRoom() {
 
 <style lang="scss" scoped>
 .shop-page {
-  &__hero {
-    display: flex;
-    align-items: center;
-    gap: $spacing-2;
-    margin: $spacing-1 0 $spacing-2;
-    border-radius: $radius-lg;
-    padding: $spacing-3;
-    color: #fff;
-    box-shadow: $shadow-3;
-    background: linear-gradient(140deg, #e0912a, #a4530c);
-
-    h1 {
-      font-size: $font-size-xl;
-      line-height: 1.1;
-      margin: 0;
-    }
-
-    p {
-      font-size: $font-size-sm;
-      opacity: 0.9;
-      font-weight: 500;
-      margin: 0;
-    }
-  }
-
-  &__hero-emoji {
-    font-size: 2.125rem; // 34px
-    line-height: 1;
-  }
-
   &__siiri {
     text-align: center;
 

@@ -178,7 +178,7 @@ const optionClass = (sv: string) => {
     padding: $spacing-3;
     color: #fff;
     box-shadow: $shadow-3;
-    background: linear-gradient(140deg, #e0912a, #a4530c);
+    background: linear-gradient(140deg, var(--hero-amber-a), var(--hero-amber-b));
   }
 
   &__dots {

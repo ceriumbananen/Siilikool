@@ -39,6 +39,13 @@
   --honey: #f6b93b;
   --honey-deep: #d98e12;
   --bark: #8a5a3b;
+  /* sidrubrikers gradient-bakgrund (UiPageHero) */
+  --hero-gold-a: #d8a32a;
+  --hero-gold-b: #8a6008;
+  --hero-violet-a: #7b5ad8;
+  --hero-violet-b: #412c86;
+  --hero-amber-a: #e0912a;
+  --hero-amber-b: #a4530c;
   --e1: 0 2px 0 rgba(31, 61, 43, 0.16);
   --e2: 0 5px 0 rgba(31, 61, 43, 0.18);
   --e3: 0 10px 30px rgba(31, 61, 43, 0.12);
@@ -62,6 +69,12 @@
     --honey: #ffcb55;
     --honey-deep: #ffb01f;
     --bark: #c08b65;
+    --hero-gold-a: #e8b94a;
+    --hero-gold-b: #a8780f;
+    --hero-violet-a: #9b82e8;
+    --hero-violet-b: #5c3fb0;
+    --hero-amber-a: #f0a750;
+    --hero-amber-b: #c06a1a;
     --e1: 0 2px 0 rgba(0, 0, 0, 0.4);
     --e2: 0 5px 0 rgba(0, 0, 0, 0.45);
     --e3: 0 10px 30px rgba(0, 0, 0, 0.4);
@@ -84,6 +97,12 @@
   --honey: #ffcb55;
   --honey-deep: #ffb01f;
   --bark: #c08b65;
+  --hero-gold-a: #e8b94a;
+  --hero-gold-b: #a8780f;
+  --hero-violet-a: #9b82e8;
+  --hero-violet-b: #5c3fb0;
+  --hero-amber-a: #f0a750;
+  --hero-amber-b: #c06a1a;
   --e1: 0 2px 0 rgba(0, 0, 0, 0.4);
   --e2: 0 5px 0 rgba(0, 0, 0, 0.45);
   --e3: 0 10px 30px rgba(0, 0, 0, 0.4);
