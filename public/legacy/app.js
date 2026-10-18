@@ -11517,8 +11517,11 @@
       pendAdd("🧰", "Bonuskista", "+" + base * starMult() + " stjärnor till marknaden");
     }
   }
-  function resultScreen() {
-    screen = "result";
+  /* poäng + allt sparat state för den just avslutade rundan (S.best/S.perfect/S.bestRight/
+     uppdrag/resa/S.tough-S.easy-strecket/S.hardWins/XP/märken) - inga animationer eller
+     overlägg här, bara vad som HÄNDE och vad som ska sparas. resultScreen() läser svaret
+     härifrån och sköter firandet och själva skärmen. */
+  function scoreResult() {
     var total = L.rounds.length,
       right = L.right;
     var pct = right / total;
@@ -11540,11 +11543,6 @@
       bumpQuest("themes", 1);
       tripBump("theme", 1);
     }
-    setTimeout(function () {
-      dance(st >= 3);
-    }, 350);
-    if (firstPerfect) celebrateFirst("💯", "Sinu esimene veatu tulemus!", "Ditt första felfria resultat!");
-    maybeChest();
     var wrongN = 0,
       wi;
     for (wi = 0; wi < L.results.length; wi++) if (L.results[wi] === false) wrongN++;
@@ -11559,39 +11557,65 @@
       S.easy = 0;
     }
     save();
+    var firstHardWin = false,
+      hardPerfect = false;
     if (diff().id === "svar" && st > 0) {
       S.hardWins = (S.hardWins || 0) + 1;
       save();
-      if (S.hardWins === 1) {
-        setTimeout(function () {
-          var d = overlay(
-            '<div class="oc" style="border-color:var(--berry)"><p class="kicker">🔥 Svår nivå klarad!</p>' +
-              '<div style="font-size:64px">🐉</div><h3>Tre plagg låstes upp</h3>' +
-              "<p>Eldkrona, blixtar och drakvingar finns nu på marknaden — bara för den som spelar på svår.</p>" +
-              '<button class="btn big wide" id="hwok">Till garderoben</button></div>',
-          );
-          burst(180);
-          sndLvl();
-          d.querySelector("#hwok").onclick = function () {
-            d.remove();
-            go(shopScreen, true);
-          };
-        }, 1200);
-      }
-      if (st === 3 && (S.secrets || []).indexOf("hardperfect") < 0) {
-        setTimeout(function () {
-          eggReward("hardperfect", 80, 50);
-          eggSay2("hardperfect", "🐉");
-        }, 700);
-      }
+      firstHardWin = S.hardWins === 1;
+      hardPerfect = st === 3 && (S.secrets || []).indexOf("hardperfect") < 0;
     }
     addXp(Math.round(st * 15 * diff().mult));
     save();
+    var newB = checkBadges();
+    return {
+      total: total,
+      right: right,
+      st: st,
+      firstPerfect: firstPerfect,
+      newB: newB,
+      firstHardWin: firstHardWin,
+      hardPerfect: hardPerfect,
+    };
+  }
+  function resultScreen() {
+    screen = "result";
+    var r = scoreResult(),
+      total = r.total,
+      right = r.right,
+      st = r.st,
+      newB = r.newB;
+    setTimeout(function () {
+      dance(st >= 3);
+    }, 350);
+    if (r.firstPerfect) celebrateFirst("💯", "Sinu esimene veatu tulemus!", "Ditt första felfria resultat!");
+    maybeChest();
+    if (r.firstHardWin) {
+      setTimeout(function () {
+        var d = overlay(
+          '<div class="oc" style="border-color:var(--berry)"><p class="kicker">🔥 Svår nivå klarad!</p>' +
+            '<div style="font-size:64px">🐉</div><h3>Tre plagg låstes upp</h3>' +
+            "<p>Eldkrona, blixtar och drakvingar finns nu på marknaden — bara för den som spelar på svår.</p>" +
+            '<button class="btn big wide" id="hwok">Till garderoben</button></div>',
+        );
+        burst(180);
+        sndLvl();
+        d.querySelector("#hwok").onclick = function () {
+          d.remove();
+          go(shopScreen, true);
+        };
+      }, 1200);
+    }
+    if (r.hardPerfect) {
+      setTimeout(function () {
+        eggReward("hardperfect", 80, 50);
+        eggSay2("hardperfect", "🐉");
+      }, 700);
+    }
     if (st >= 3)
       setTimeout(function () {
         dance();
       }, 520);
-    var newB = checkBadges();
     if (st >= 2) burst(140);
     var html =
       '<div class="card" style="text-align:center">' +
