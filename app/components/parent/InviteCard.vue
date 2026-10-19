@@ -1,6 +1,5 @@
 <script setup lang="ts">
-/* De vuxna i familjen, och en inbjudningslänk för fler (gäller 7 dagar, en gång). */
-defineProps<{ adults: Member[] }>();
+/* Bjud in en vuxen till familjen: en länk som gäller 7 dagar och kan användas en gång. */
 const api = useParentApi();
 const { busy, err, run } = useBusy();
 const link = ref(""),
@@ -23,10 +22,7 @@ async function copy() {
 
 <template>
   <div class="card">
-    <h2 class="q">Vuxna i familjen</h2>
-    <ul class="wlist">
-      <li v-for="a in adults" :key="a.id">{{ a.avatar }} {{ a.name || "Vuxen" }}</li>
-    </ul>
+    <h2 class="q">Bjud in en vuxen</h2>
     <template v-if="link">
       <p class="qsub">Skicka länken till den vuxna du vill bjuda in. Den gäller i 7 dagar och kan användas en gång.</p>
       <label class="flabel"
@@ -35,7 +31,10 @@ async function copy() {
       /></label>
       <button class="btn ghost wide" @click="copy">{{ copied ? "Kopierad ✓" : "Kopiera länken" }}</button>
     </template>
-    <button v-else class="btn ghost wide" :disabled="busy" @click="invite">Bjud in en vuxen</button>
+    <template v-else>
+      <p class="qsub">Den vuxna får ett eget konto i familjen, med egen e-post och eget lösenord.</p>
+      <button class="btn ghost wide" :disabled="busy" @click="invite">Skapa en inbjudningslänk</button>
+    </template>
     <p v-if="err" class="err" role="alert">{{ err }}</p>
   </div>
 </template>

@@ -29,7 +29,7 @@
 
 const profile = useProfileStore();
 const cloud = useCloudStore();
-const { busy: lockBusy, err: lockErr, run: runLock } = useBusy();
+const { busy: playBusy, err: playErr, run: runPlay } = useBusy();
 
 const ri = computed(() => rankIndex(profile.state.xp));
 const rank = computed(() => RANKS[ri.value]!);
@@ -82,15 +82,19 @@ const petKind = computed(() => {
 const daysPlayed = computed(() => (profile.state.daysPlayed as number | undefined) || 0);
 const hasFacts = computed(() => !!(favColor.value || petName.value || daysPlayed.value));
 
-/** Samma tre fasta platser som slotgrid i profileScreen (inte cloud.devicePlayers(), som
- * filtrerar bort tomma platser - den är till för "Vem spelar?", inte den här listan). */
-const slots = computed(() =>
-  Array.from({ length: 3 }, (_, i) => {
-    const info = profile.slotInfo(i);
-    const link = cloud.links[String(i)];
-    const kind = !link ? "" : link.kind === "child" ? (link.pin ? "child-pin" : "child") : "adult";
-    return { i, info, current: i === profile.slot, kind };
-  }),
+/** Alla spelare på enheten (familjens medlemmar och lokala spelare) - "➕ Ny spelare" lägger till en. */
+const players = computed(() =>
+  profile.players
+    .filter(key => cloud.links[key] || profile.playerUsed(key))
+    .map(key => {
+      const current = key === profile.current;
+      const info = current
+        ? { name: profile.state.name, avatar: profile.state.avatar, xp: profile.state.xp, stars: profile.state.stars }
+        : profile.playerInfo(key);
+      const link = cloud.links[key];
+      const kind = !link ? "" : link.kind === "child" ? (link.pin ? "child-pin" : "child") : "adult";
+      return { key, info, current, kind, name: info?.name || link?.name || "" };
+    }),
 );
 
 function toggleSound() {
@@ -114,11 +118,26 @@ function toggleSecrets() {
   profile.save();
 }
 
-const doLock = () =>
-  runLock(async () => {
-    await cloud.lock();
-    location.href = "/"; /* till spelet – nu som barnenhet */
-  });
+/* inloggad vuxen: familjens medlemmar som inte spelar på enheten än - "Spela som" byter till dem
+   (samma som i Familjen). Barnen och den vuxnas eget spel; inte andra vuxnas. */
+const family = ref<Member[]>([]);
+watch(
+  () => cloud.isAdult,
+  async adult => {
+    family.value = [];
+    if (!adult) return;
+    try {
+      const uid = cloud.session?.user.id;
+      family.value = (await useParentApi().members()).filter(
+        m => !profile.players.includes(memberKey(m.id)) && (m.kind === "child" || m.user_id === uid),
+      );
+    } catch {
+      /* offline: bara spelarna på enheten */
+    }
+  },
+  { immediate: true },
+);
+const playAs = (m: Member) => runPlay(() => cloud.playAs(m));
 
 /* Hemligt adminläge: fem klick på rubriken nedan inom 3,5s, precis som setttl gjorde i
  * profileScreen (se app/utils/legacy-nav.ts för hur hoppet till app.js görs). */
@@ -250,24 +269,37 @@ function tapSettingsTitle() {
         <p>Varje spelare har egna poäng, egen figur och egen garderob.</p>
         <div class="profile-page__slots">
           <button
-            v-for="s in slots"
-            :key="s.i"
+            v-for="s in players"
+            :key="s.key"
             class="profile-page__slot"
             :class="{ 'profile-page__slot--on': s.current }"
-            @click="cloud.requestSlot(s.i)"
+            @click="cloud.requestPlayer(s.key)"
           >
-            <span aria-hidden="true">{{ s.info ? s.info.avatar : "➕" }}</span>
-            <b>{{ s.info ? s.info.name || "Namnlös" : "Ny spelare" }}</b>
+            <span aria-hidden="true">{{ s.info?.avatar || "🦔" }}</span>
+            <b>{{ s.name || "Namnlös" }}</b>
             <small v-if="s.info"
-              >{{ s.info.xp.toLocaleString("sv-SE") }} p · ⭐{{ s.info.stars.toLocaleString("sv-SE") }}</small
+              >{{ (s.info.xp || 0).toLocaleString("sv-SE") }} p · ⭐{{
+                (s.info.stars || 0).toLocaleString("sv-SE")
+              }}</small
             >
-            <small v-else>tom plats</small>
             <small v-if="s.kind === 'child-pin'">☁️ 🔒 PIN</small>
             <small v-else-if="s.kind === 'child'">☁️ familjen</small>
             <small v-else-if="s.kind === 'adult'">☁️ vuxen</small>
             <small v-if="s.current" class="profile-page__slot-current">spelar nu</small>
           </button>
+          <button v-for="m in family" :key="m.id" class="profile-page__slot" :disabled="playBusy" @click="playAs(m)">
+            <span aria-hidden="true">{{ m.avatar }}</span>
+            <b>{{ m.name }}</b>
+            <small>⭐{{ (m.stars || 0).toLocaleString("sv-SE") }}</small>
+            <small>▶ spela som</small>
+          </button>
+          <button class="profile-page__slot" @click="profile.newLocalPlayer('/')">
+            <span aria-hidden="true">➕</span>
+            <b>Ny spelare</b>
+            <small>utan konto</small>
+          </button>
         </div>
+        <p v-if="playErr" role="alert">{{ playErr }}</p>
       </UiAppCard>
       <WhoPlays />
 
@@ -275,14 +307,12 @@ function tapSettingsTitle() {
         <h2>Perekond · Familj</h2>
         <template v-if="cloud.isAdult">
           <p>
-            Du är inloggad som vuxen{{ cloud.familyName ? ` i ${cloud.familyName}` : "" }}. Barn, glosor och familjekod
-            finns i föräldraläget.
+            Du är inloggad som vuxen{{ cloud.familyName ? ` i ${cloud.familyName}` : "" }}. Alla i familjen, glosor,
+            koder och ”Lämna över till barnen” finns i Familjen.
           </p>
           <div class="profile-page__row">
-            <a class="profile-page__btn profile-page__btn--green" href="/parent">👨‍👩‍👧 Föräldraläget</a>
-            <UiAppButton variant="ghost" :disabled="lockBusy" @click="doLock">🔒 Lås enheten</UiAppButton>
+            <a class="profile-page__btn profile-page__btn--green" href="/familj">👨‍👩‍👧 Familjen</a>
           </div>
-          <p v-if="lockErr" role="alert">{{ lockErr }}</p>
         </template>
         <template v-else-if="cloud.isFamilyDevice">
           <p>
@@ -293,13 +323,19 @@ function tapSettingsTitle() {
           <div class="profile-page__row">
             <UiAppButton variant="green" @click="cloud.openPicker()">👥 Byt spelare</UiAppButton>
             <a class="profile-page__btn profile-page__btn--ghost" href="/join">➕ Lägg till spelare</a>
-            <a v-if="cloud.isLocked" class="profile-page__btn profile-page__btn--ghost" href="/parent">🔓 Lås upp</a>
+            <a v-if="cloud.isLocked" class="profile-page__btn profile-page__btn--ghost" href="/familj">🔓 Lås upp</a>
           </div>
         </template>
         <template v-else-if="cloud.session">
           <p>Du är inloggad men inte med i någon familj än.</p>
           <div class="profile-page__row">
-            <a class="profile-page__btn profile-page__btn--green" href="/parent">👨‍👩‍👧 Föräldraläget</a>
+            <a class="profile-page__btn profile-page__btn--green" href="/familj">👨‍👩‍👧 Skapa familjen</a>
+          </div>
+        </template>
+        <template v-else-if="cloud.link?.kind === 'adult'">
+          <p>Spelet hör till ditt konto, men du är utloggad. Logga in igen så sparas det som vanligt.</p>
+          <div class="profile-page__row">
+            <a class="profile-page__btn profile-page__btn--green" href="/">🔑 Logga in</a>
           </div>
         </template>
         <template v-else>
@@ -308,12 +344,12 @@ function tapSettingsTitle() {
               cloud.link
                 ? "Spelet hör till familjen, men enheten är utloggad. Skriv familjekoden igen så sparas det som vanligt."
                 : `Spela med familjen: spelet sparas i familjekontot och följer med till andra enheter, och glosorna kommer
-            från de vuxna.`
+            från de vuxna. Framsteg, skolans glosor och säkerhetskopia finns under För vuxna.`
             }}
           </p>
           <div class="profile-page__row">
             <a class="profile-page__btn profile-page__btn--green" href="/join">🔑 Jag har en familjekod</a>
-            <a class="profile-page__btn profile-page__btn--ghost" href="/parent">👩 Jag är vuxen</a>
+            <a class="profile-page__btn profile-page__btn--ghost" href="/familj">🔐 För vuxna</a>
           </div>
         </template>
       </UiAppCard>
@@ -360,11 +396,11 @@ function tapSettingsTitle() {
         <!-- Tillfälligt utkommenterade tills vi vet vad vi vill göra med denna actions meny -->
         <!-- <a class="profile-page__btn profile-page__btn--wide profile-page__btn--ghost" href="/"
               @click="markLegacyScreen('words')">📖 Sõnastik · Ordlistan</a> -->
+        <!-- utan familjekonton finns Familj-kortet inte: då är det här ingången till det vuxna -->
         <a
-          v-if="!(cloud.link?.kind === 'child' || cloud.isLocked)"
+          v-if="!cloud.enabled"
           class="profile-page__btn profile-page__btn--wide profile-page__btn--ghost"
-          href="/"
-          @click="markLegacyScreen('parent')"
+          href="/familj"
         >
           🔐 För vuxna
         </a>

@@ -26,3 +26,6 @@ tools/audio_coverage_report.txt
 !.yarn/sdks
 !.yarn/versions
 .pnp.*
+
+# bygget som tests/e2e kör mot (yarn test:e2e)
+tests/.site/

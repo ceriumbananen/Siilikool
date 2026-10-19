@@ -29,9 +29,9 @@ export interface StoredFamily {
   name: string;
 }
 
-/* en spelare på enheten i "Vem spelar?" (en profilplats som används) */
+/* en spelare på enheten i "Vem spelar?" */
 export interface DevicePlayer {
-  slot: number;
+  key: string /* spelarens nyckel på enheten ("m:<medlem>" eller "l:<lokal>", app/stores/profile.ts) */;
   name: string;
   avatar: string;
   kind: "" | "adult" | "child" /* tom = spelet finns bara på enheten */;

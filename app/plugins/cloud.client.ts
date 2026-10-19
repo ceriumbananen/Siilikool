@@ -16,10 +16,8 @@ export interface SiiriCloudBridge {
     family: string /* familjens namn, om det är känt */;
     signedIn: boolean;
   };
-  /* märke på en profilplats i spelarlistan: "child" | "child-pin" | "adult" | "" */
-  slotKind(slot: number): string;
   /* byter spelare – på en familjeenhet via "Vem spelar?" när barnet har PIN-kod */
-  requestSlot(slot: number): void;
+  requestPlayer(key: string): void;
   choosePlayer(): void;
   lock(): Promise<void>;
   unlink(): Promise<void>;
@@ -42,11 +40,7 @@ export default defineNuxtPlugin(() => {
       family: cloud.familyName,
       signedIn: !!cloud.session,
     }),
-    slotKind: slot => {
-      const l = cloud.links[String(slot)];
-      return !l ? "" : l.kind === "child" ? (l.pin ? "child-pin" : "child") : "adult";
-    },
-    requestSlot: slot => cloud.requestSlot(slot),
+    requestPlayer: key => cloud.requestPlayer(key),
     choosePlayer: () => cloud.openPicker(),
     lock: () => cloud.lock(),
     unlink: () => cloud.removePlayer(),

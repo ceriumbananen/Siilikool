@@ -15,6 +15,7 @@ export interface Family {
 /* en medlem i familjen (vuxen eller barn), utan själva spelet */
 export interface Member {
   id: string;
+  user_id: string | null /* vuxna: kontot – så att man ser vem som är "du" */;
   kind: "adult" | "child";
   name: string;
   avatar: string;
@@ -48,8 +49,14 @@ export interface ChildProgress {
   correct: number;
   lessons: number;
   badges: number;
-  words: { practiced: number; strong: number; shaky: number };
-  hard: { et: string; misses: number }[];
+  flames: number /* dagsutmaningar klarade */;
+  spoken: number /* ord sagda högt */;
+  typed: number /* ord skrivna */;
+  words: { practiced: number; strong: number; shaky: number; unseen: number };
+  /* de svåraste orden just nu (sv och em när ordet finns i spelet) */
+  hard: { et: string; sv: string; em: string; misses: number }[];
+  /* hur många ord som sitter, tema för tema (medalj vid 40/70/95 %) */
+  themes: { id: string; sv: string; em: string; strong: number; total: number; pct: number; medal: "" | "gold" | "silver" | "bronze" }[];
   school: { name: string; daysLeft: number; words: { et: string; sv: string; known: boolean }[] } | null;
   doneLists: number;
 }

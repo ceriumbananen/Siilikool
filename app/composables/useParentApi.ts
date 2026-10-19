@@ -7,7 +7,7 @@ function must<T>(r: { data: T; error: { message: string } | null }): T {
   return r.data;
 }
 
-const MEMBER_LIST = "id, kind, name, avatar, has_pin, updated_at, stars:data->stars, xp:data->xp";
+const MEMBER_LIST = "id, user_id, kind, name, avatar, has_pin, updated_at, stars:data->stars, xp:data->xp";
 const LIST_COLS = "id, member_id, name, words, days, created_at";
 
 export function useParentApi() {
@@ -16,7 +16,7 @@ export function useParentApi() {
 
   return {
     /* ---------- inloggning med e-postlänk (eller koden i samma mejl) ---------- */
-    /* länken leder tillbaka till sidan man står på (föräldraläget eller en inbjudan) */
+    /* länken leder tillbaka till sidan man står på (Familjen eller en inbjudan) */
     async sendLoginLink(email: string) {
       must(
         await sb.auth.signInWithOtp({
@@ -27,6 +27,33 @@ export function useParentApi() {
     },
     async verifyCode(email: string, token: string) {
       must(await sb.auth.verifyOtp({ email, token: token.replace(/\s/g, ""), type: "email" }));
+    },
+
+    /* ---------- e-post + lösenord (docs/plan-konton-v2.md) ---------- */
+    async signInWithPassword(email: string, password: string) {
+      const r = await sb.auth.signInWithPassword({ email: email.trim(), password });
+      if (r.error) throw new Error(r.error.message);
+    },
+    /* nytt konto. Kräver projektet att e-posten bekräftas finns ingen inloggning än (session null):
+       då kommer man tillbaka via länken i mejlet till `redirectPath` */
+    async signUp(email: string, password: string, redirectPath: string): Promise<{ loggedIn: boolean }> {
+      const data = must(
+        await sb.auth.signUp({
+          email: email.trim(),
+          password,
+          options: { emailRedirectTo: location.origin + redirectPath },
+        }),
+      );
+      return { loggedIn: !!data.session };
+    },
+    /* "Glömt lösenordet?": länken i mejlet loggar in och leder till Familjen, där man väljer ett nytt */
+    async sendPasswordReset(email: string) {
+      must(await sb.auth.resetPasswordForEmail(email.trim(), { redirectTo: location.origin + "/familj?nyttLosen=1" }));
+    },
+    /* nytt lösenord för den som är inloggad (också konton som hittills bara loggat in med e-postkod) */
+    async setPassword(password: string) {
+      const r = await sb.auth.updateUser({ password });
+      if (r.error) throw new Error(r.error.message);
     },
 
     /* ---------- familjen ---------- */

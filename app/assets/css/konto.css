@@ -1,4 +1,4 @@
-/* Föräldrasidorna (/parent, /join, /invite) bygger på den gamla appens färger och kort (public/legacy/style.css),
+/* Föräldrasidorna (/familj, /join, /invite) bygger på den gamla appens färger och kort (public/legacy/style.css),
    men lugnare: samma familj som spelet, utan godisskuggor och tjocka kanter, med mer luft och en neutral brödtext
    för längre förklaringar. Rubrikerna behåller spelets Fredoka. Allt är avgränsat till .wrap.page (sidornas rot),
    eftersom filen laddas globalt och klassnamn som .ok och .pair också finns i spelet. */
@@ -287,6 +287,7 @@
   margin-top: 16px;
   border-bottom: 1px solid var(--line);
   overflow-x: auto;
+  overflow-y: hidden; /* flikarnas -1px-marginal gav annars en lodrät rullningslist */
 }
 
 .wrap.page .tab {

@@ -56,15 +56,13 @@ async function choose(m: { id: string; name: string; has_pin: boolean }, choice?
           ? "Fel PIN-kod. Försök igen."
           : r.error === "locked"
             ? `För många fel försök. Vänta till ${untilText(r.until)}.`
-            : r.error === "full"
-              ? "Den här enheten har redan tre spelare."
-              : "Det gick inte. Fråga en vuxen.",
+            : "Det gick inte. Fråga en vuxen.",
       );
     }
     needsChoice.value = false;
     done.value = m.name;
-    /* till spelet; har en annan profilplats valts går addPlayer redan dit */
-    if (r.slot === profile.slot) location.href = "/";
+    /* till spelet; byttes spelare går addPlayer redan dit */
+    if (r.key === profile.current) location.href = "/";
   });
 }
 
@@ -73,7 +71,8 @@ onMounted(async () => {
   if (cloud.isAdult) return;
   /* låst vuxen enhet: barnen direkt. Annars koden från QR-koden (?kod=…), eller familjen som enheten
      redan hör till. */
-  const fromQr = new URLSearchParams(location.search).get("kod");
+  const q = new URLSearchParams(location.search);
+  const fromQr = q.get("kod");
   if (cloud.isLocked)
     await run(async () => {
       lookup.value = await cloud.familyChildren();
@@ -82,6 +81,9 @@ onMounted(async () => {
     code.value = fromQr;
     await findFamily(fromQr);
   } else if (cloud.family) await findFamily(cloud.family.code);
+  /* barnets egen länk (?barn=<id>, från Familjen → Koder): direkt till barnet, utan "Vem spelar?" */
+  const own = lookup.value?.members?.find(m => m.id === q.get("barn"));
+  if (own) await choose(own);
 });
 </script>
 
@@ -107,10 +109,11 @@ onMounted(async () => {
     <div v-else-if="cloud.isAdult" class="card">
       <h2 class="q">Du är inloggad som vuxen</h2>
       <p class="qsub">
-        Familjekoden är till för barnens enheter. Ska barnen spela här? Lås enheten i föräldraläget, så får de välja vem
-        som spelar. Ditt eget spel sparar du under <b>Ditt eget spel</b> i föräldraläget.
+        Familjekoden är till för barnens enheter. Ska barnen spela här? Välj <b>Lämna över till barnen</b> i Familjen,
+        så får de välja vem som spelar. Vill du själv spela som ett barn: öppna barnet i Familjen och välj
+        <b>Spela som</b>.
       </p>
-      <a href="/parent" class="btn green wide">Till föräldraläget</a>
+      <a href="/familj" class="btn green wide">Till Familjen</a>
     </div>
 
     <!-- vem spelar? -->
@@ -132,7 +135,7 @@ onMounted(async () => {
         </button>
       </div>
       <p v-if="!lookup.members?.length" class="qsub">
-        Familjen har inga barn än. En vuxen lägger till dem i föräldraläget.
+        Familjen har inga barn än. En vuxen lägger till dem på sin enhet, under Familjen.
       </p>
       <template v-if="chosen && needsPin(chosen)">
         <label class="flabel"
@@ -150,13 +153,13 @@ onMounted(async () => {
         /></label>
         <button class="btn green wide" :disabled="busy || pin.length < 4" @click="choose(chosen)">Spela</button>
       </template>
-      <p v-if="cloud.isLocked" class="qsub">🔒 Enheten är låst av en vuxen. <a href="/parent">Lås upp</a></p>
+      <p v-if="cloud.isLocked" class="qsub">🔒 Enheten är låst av en vuxen. <a href="/familj">Lås upp</a></p>
     </div>
 
     <!-- familjekod -->
     <div v-else-if="!cloud.isLocked" class="card">
       <h2 class="q">Skriv familjekoden</h2>
-      <p class="qsub">En vuxen hittar koden i föräldraläget.</p>
+      <p class="qsub">En vuxen hittar koden i Familjen → Koder.</p>
       <label class="flabel"
         >Familjekod
         <input

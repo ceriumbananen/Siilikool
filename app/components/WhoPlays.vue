@@ -16,13 +16,12 @@ watch(
   () => {
     if (!cloud.picker.open) return;
     players.value = cloud.devicePlayers();
-    const pre = cloud.picker.pinSlot;
-    if (pre !== null && !pinFor.value) pinFor.value = players.value.find(p => p.slot === pre) || null;
+    const pre = cloud.picker.pinKey;
+    if (pre !== null && !pinFor.value) pinFor.value = players.value.find(p => p.key === pre) || null;
   },
   { deep: true, immediate: true },
 );
 
-const canAdd = computed(() => cloud.freeSlot() !== null);
 const title = computed(() => cloud.familyName || "Familjen");
 const untilText = (until?: string) =>
   until ? new Date(until).toLocaleTimeString("sv-SE", { hour: "2-digit", minute: "2-digit" }) : "en stund";
@@ -44,7 +43,7 @@ const play = (p: DevicePlayer) =>
   run(async () => {
     let r;
     try {
-      r = await cloud.switchPlayer(p.slot, p.pin ? pin.value : null);
+      r = await cloud.switchPlayer(p.key, p.pin ? pin.value : null);
     } catch {
       throw new Error("PIN-koden kan bara kontrolleras när enheten har nät.");
     }
@@ -75,9 +74,9 @@ function close() {
       <div class="slotgrid">
         <button
           v-for="p in players"
-          :key="p.slot"
+          :key="p.key"
           class="slotbtn"
-          :class="{ on: pinFor?.slot === p.slot }"
+          :class="{ on: pinFor?.key === p.key }"
           :disabled="busy"
           @click="pick(p)"
         >
@@ -85,7 +84,7 @@ function close() {
           <b>{{ p.name || "Namnlös" }}</b>
           <small>{{ p.pin ? "🔒 PIN" : p.current ? "spelade senast" : "" }}</small>
         </button>
-        <a v-if="canAdd" class="slotbtn" href="/join">
+        <a class="slotbtn" href="/join">
           <span class="sav">➕</span>
           <b>Lägg till</b>
           <small>från familjen</small>
