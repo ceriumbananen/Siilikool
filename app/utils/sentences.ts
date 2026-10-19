@@ -144,45 +144,6 @@ export const SENTENCES = [
   { et: "Ma oskan eesti keelt.", sv: "Jag kan estniska.", w: ["Ma", "oskan", "eesti", "keelt"] },
 ];
 
-export const TOKENS = [
-  { et: "Mul" },
-  { et: "on" },
-  { et: "suur" },
-  { et: "Kass" },
-  { et: "Ma" },
-  { et: "söön" },
-  { et: "õuna" },
-  { et: "Isa" },
-  { et: "joob" },
-  { et: "vett" },
-  { et: "Meil" },
-  { et: "kollane" },
-  { et: "Väike" },
-  { et: "laps" },
-  { et: "magab" },
-  { et: "Mulle" },
-  { et: "meeldib" },
-  { et: "Koer" },
-  { et: "jookseb" },
-  { et: "metsas" },
-  { et: "Ema" },
-  { et: "loeb" },
-  { et: "raamatut" },
-  { et: "Päike" },
-  { et: "paistab" },
-  { et: "täna" },
-  { et: "Minu" },
-  { et: "laulab" },
-  { et: "Me" },
-  { et: "sõidame" },
-  { et: "bussiga" },
-  { et: "Siil" },
-  { et: "sööb" },
-  { et: "maasikat" },
-  { et: "Vanaisa" },
-  { et: "diivanil" },
-];
-
 /* Extra meningar för meningsleken (sentStart() i app.js) när barnet har döpt sitt husdjur
    i samtalet "Om djur" (S.petName, se chats.ts). "{name}" byts ut mot namnet vid körning -
    alltid i nominativ (subjektsform), det enda estniska kasuset ett utländskt namn kan stå i

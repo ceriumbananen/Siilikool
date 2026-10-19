@@ -240,8 +240,6 @@
   };
 
   var SENTENCES = window.SiiriData.SENTENCES;
-  /* orden var för sig, så de kan läsas upp när man trycker på dem */
-  var TOKENS = window.SiiriData.TOKENS;
   var PET_SENTENCE_TEMPLATES = window.SiiriData.PET_SENTENCE_TEMPLATES;
 
   var SHOP = window.SiiriData.SHOP;

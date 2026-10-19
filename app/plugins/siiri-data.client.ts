@@ -20,7 +20,6 @@ export default defineNuxtPlugin(() => {
     THEMES,
     WORDART,
     SENTENCES,
-    TOKENS,
     PET_SENTENCE_TEMPLATES,
     CHATS,
     /* trip.ts, shop.ts */
