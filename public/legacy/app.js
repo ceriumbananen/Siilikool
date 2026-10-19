@@ -242,6 +242,7 @@
   var SENTENCES = window.SiiriData.SENTENCES;
   /* orden var för sig, så de kan läsas upp när man trycker på dem */
   var TOKENS = window.SiiriData.TOKENS;
+  var PET_SENTENCE_TEMPLATES = window.SiiriData.PET_SENTENCE_TEMPLATES;
 
   var SHOP = window.SiiriData.SHOP;
   var SLOTS = window.SiiriData.WEAR_SLOTS; /* app/utils/shop.ts */
@@ -5197,6 +5198,20 @@
       sentStart();
     };
   }
+  /* bygger en extra mening av PET_SENTENCE_TEMPLATES (sentences.ts) med husdjurets namn
+     (S.petName, satt i "Om djur"-samtalet eller i Siiri tuba) - null om inget namn finns än. */
+  function petSentence() {
+    var name = (S.petName || "").trim();
+    if (!name) return null;
+    var tpl = PET_SENTENCE_TEMPLATES[Math.floor(Math.random() * PET_SENTENCE_TEMPLATES.length)];
+    return {
+      et: tpl.et.replace("{name}", name),
+      sv: tpl.sv.replace("{name}", name),
+      w: tpl.w.map(function (tk) {
+        return tk === "{name}" ? name : tk;
+      }),
+    };
+  }
   function sentStart() {
     var scored = SENTENCES.map(function (s) {
       var ww = 0,
@@ -5210,12 +5225,15 @@
     }).sort(function (a, b) {
       return b.w - a.w;
     });
-    LS = {
-      list: shuffle(
+    var pet = petSentence(),
+      list = shuffle(
         scored.slice(0, 12).map(function (x) {
           return x.s;
         }),
-      ).slice(0, 6),
+      ).slice(0, pet ? 5 : 6);
+    if (pet) list.splice(Math.floor(Math.random() * (list.length + 1)), 0, pet);
+    LS = {
+      list: list,
       i: 0,
       right: 0,
       placed: [],
@@ -10547,11 +10565,21 @@
     L = { theme: t, phase: "learn", learnIdx: 0, learnList: need, rounds: [], idx: 0, results: [], right: 0 };
     learnCard();
   }
+  /* pekar ut ett ord barnet redan nämnt i ett samtal (S.favFood/S.favColor, se chats.ts) när
+     det dyker upp i rätt tema - en liten "jag minns dig"-stund, inte bara i chatten. */
+  function personalNote(t, w) {
+    var sv = (w.sv || "").trim().toLowerCase();
+    if (t.id === "toit" && S.favFood && S.favFood.trim().toLowerCase() === sv)
+      return "Du sa att du gillar " + w.sv + "!";
+    if (t.id === "varvid" && S.favColor && S.favColor.trim().toLowerCase() === sv) return "Det är din favoritfärg!";
+    return "";
+  }
   function learnCard() {
     screen = "learn";
     var t = L.theme,
       list = L.learnList || t.words,
-      w = list[L.learnIdx];
+      w = list[L.learnIdx],
+      pn = personalNote(t, w);
     var html =
       '<div class="qsub">Lär dig först · ' +
       (L.learnIdx + 1) +
@@ -10564,6 +10592,7 @@
       '<div class="trans">' +
       esc(w.sv) +
       "</div>" +
+      (pn ? '<div class="center" style="margin-top:4px"><span class="badge">✨ ' + esc(pn) + "</span></div>" : "") +
       '<div class="hint">säg så här: ' +
       esc(w.hint) +
       "</div>" +
@@ -11907,7 +11936,9 @@
           : "Skriv ditt eget svar.") +
         "</div>" +
         '<label class="sr-only" for="freeans">Ditt svar</label>' +
-        '<input class="type" id="freeans" maxlength="24" autocomplete="off" autocapitalize="off" placeholder="skriv här" value="' +
+        '<input class="type" id="freeans" maxlength="24" autocomplete="off" autocapitalize="off"' +
+        (step.numeric ? ' inputmode="numeric" pattern="[0-9]*"' : "") +
+        ' placeholder="skriv här" value="' +
         esc(prevAns) +
         '">' +
         '<button class="btn green big wide" id="freeok" style="margin-top:10px">Klart →</button>';
@@ -12056,13 +12087,37 @@
       renderTalk();
     }, 1500);
   }
+  /* en svensk rad per fält för "jag minns det här"-svaret nedan - generiskt skulle låta fel
+     för t.ex. ett husdjursnamn eller en ålder ("är din favorit" passar bara favColor/favFood). */
+  var REMEMBER_SV = {
+    favColor: "Ja, jag minns att {v} är din favoritfärg!",
+    favFood: "Ja, jag minns att du gillar {v}!",
+    petName: "Ja, jag minns att ditt husdjur heter {v}!",
+    age: "Ja, jag minns att du är {v} år!",
+    roomColor: "Ja, jag minns att ditt rum är {v}!",
+  };
   /* samma belöning som answerTalk, men för en fritt skriven fråga - inget facit att läsa upp.
      saveAs sparar svaret på S så Siiri minns det och kan hälsa på det nästa gång (renderTalk()). */
   function answerTalkFree(text) {
     if (!text) return;
     var step = T.c.turns[T.i];
+    if (step.numeric) {
+      /* "åtta" eller "8 år" ger ingen siffra att räkna på - behåll då texten barnet skrev
+         hellre än att tappa svaret, S.age används bara när det faktiskt går att tolka. */
+      var digits = text.replace(/\D+/g, "");
+      if (digits) text = digits;
+    }
+    /* samma gräns som husdjurets namn i Siiri tuba (app/pages/room.vue), eftersom det är
+       exakt samma fält (S.petName) */
+    if (step.saveAs === "petName") text = text.slice(0, 16);
     var remembered = !!(step.saveAs && S[step.saveAs] && S[step.saveAs] === text);
     if (step.saveAs) S[step.saveAs] = text;
+    if (step.saveAs === "age") {
+      var ageNum = parseInt(text, 10);
+      /* förifyll svårighetsgraden åt yngre barn - men bara om ingen redan valt en själv i
+         profilen (S.diff är då redan satt), så det här aldrig skriver över ett eget val */
+      if (!isNaN(ageNum) && ageNum > 0 && ageNum <= 6 && !S.diff) S.diff = "latt";
+    }
     T.said++;
     S.correct++;
     addXp(6);
@@ -12071,7 +12126,12 @@
     sndOk();
     burst(40);
     mood("cheer");
-    T.freeReply = remembered ? { et: "Jah, täpselt nii!", sv: "Ja, jag minns att " + text + " är din favorit!" } : null;
+    T.freeReply = remembered
+      ? {
+          et: "Jah, täpselt nii!",
+          sv: (REMEMBER_SV[step.saveAs] || "Ja, jag minns att {v} är ditt svar!").replace("{v}", text),
+        }
+      : null;
     setTimeout(function () {
       T.phase = "reply";
       renderTalk();

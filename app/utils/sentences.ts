@@ -182,3 +182,13 @@ export const TOKENS = [
   { et: "Vanaisa" },
   { et: "diivanil" },
 ];
+
+/* Extra meningar för meningsleken (sentStart() i app.js) när barnet har döpt sitt husdjur
+   i samtalet "Om djur" (S.petName, se chats.ts). "{name}" byts ut mot namnet vid körning -
+   alltid i nominativ (subjektsform), det enda estniska kasuset ett utländskt namn kan stå i
+   utan böjningsändelse, så bytet är grammatiskt korrekt oavsett vilket namn barnet skrivit. */
+export const PET_SENTENCE_TEMPLATES = [
+  { et: "{name} jookseb aias.", sv: "{name} springer i trädgården.", w: ["{name}", "jookseb", "aias"] },
+  { et: "Mulle meeldib {name}.", sv: "Jag gillar {name}.", w: ["Mulle", "meeldib", "{name}"] },
+  { et: "Minu lemmikloom on {name}.", sv: "Mitt husdjur heter {name}.", w: ["Minu", "lemmikloom", "on", "{name}"] },
+];

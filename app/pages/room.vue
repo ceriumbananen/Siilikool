@@ -115,6 +115,27 @@ function savePetName(e: Event) {
   profile.save();
 }
 
+/* "Vilken färg har ditt rum?" i Hemma-samtalet (chats.ts, S.roomColor) - en ram i samma
+   svenska färgord runt rummet, om det är en av de grundfärger temat Värvid redan lär ut.
+   Ovanliga svar ("glittrig", "osynlig" ...) får ingen ram - personalisering ska aldrig se
+   ut som ett fel när appen inte känner igen ordet. */
+const ROOM_COLOR_HEX: Record<string, string> = {
+  röd: "#e2584a",
+  blå: "#4a90c9",
+  gul: "#e8c34a",
+  grön: "#5aa06a",
+  svart: "#3a3a3a",
+  vit: "#e8e4da",
+  rosa: "#e58fc0",
+  lila: "#9b7bc9",
+  grå: "#9a9a9a",
+  brun: "#8a5a3c",
+  orange: "#e0923c",
+};
+const roomAccent = computed(
+  () => ROOM_COLOR_HEX[((s.roomColor as string | undefined) || "").trim().toLowerCase()] || "",
+);
+
 /* Siiri kommenterar utseendet - päls/ögon/kläder ändrades innan bara tyst (en ton + konfetti),
    trots att hon redan har hela mood/reaktionssystemet. Återanvänder roomSaid-bubblan ovan. */
 const APPEARANCE_REACTIONS: { et: string; sv: (detail: string) => string }[] = [
@@ -257,7 +278,12 @@ function backFromQuiz() {
         />
 
         <!-- rummet: hylla, fönster och matta bakom henne -->
-        <div class="room-page__stage" @click="onStageClick" @keydown="onStageKeydown">
+        <div
+          class="room-page__stage"
+          :style="{ '--room-accent': roomAccent || 'transparent' }"
+          @click="onStageClick"
+          @keydown="onStageKeydown"
+        >
           <div class="room-page__room" v-html="roomHtml" />
           <div class="room-page__siiri" :class="{ 'room-page__siiri--turned': turned }">
             <div
@@ -468,9 +494,13 @@ function backFromQuiz() {
     border-radius: $radius-lg;
     overflow: hidden;
     margin-bottom: $spacing-2;
-    box-shadow: $shadow-3;
+    /* --room-accent sätts från S.roomColor (se roomAccent ovan) - transparent syns inte */
+    box-shadow:
+      $shadow-3,
+      0 0 0 0.1875rem var(--room-accent, transparent);
     border: $border-width solid var(--line);
     line-height: 0;
+    transition: box-shadow 0.3s ease;
   }
 
   /* rummets egna animationer (eld, glöd, svans) finns i public/legacy/style.css (.roomsvg) */

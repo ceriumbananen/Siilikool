@@ -66,12 +66,14 @@ export const CHATS = [
         reply: { et: "Mina olen siil.", sv: "Jag är en igelkott." },
       },
       {
-        q: { et: "Kas sul on kodus loom?", sv: "Har du något djur hemma?" },
-        opts: [
-          { et: "Mul on koer.", sv: "Jag har en hund." },
-          { et: "Mul on kass.", sv: "Jag har en katt." },
-        ],
-        reply: { et: "Kui tore!", sv: "Vad roligt!" },
+        q: { et: "Kuidas su lemmiklooma kutsutakse?", sv: "Vad heter ditt husdjur?" },
+        /* fritt svar, samma mönster som favColor nedan. saveAs: "petName" är samma fält som
+           Siiri tuba (app/pages/room.vue) redan använder för att döpa tubans husdjur - så ett
+           namn satt här dyker upp där också, utan att barnet behöver skriva det två gånger. */
+        freeText: true,
+        saveAs: "petName",
+        opts: [],
+        reply: { et: "Milline tore nimi!", sv: "Vilket fint namn!" },
       },
       {
         q: { et: "Kuidas ütleb kass?", sv: "Vad säger katten?" },
@@ -108,10 +110,11 @@ export const CHATS = [
       },
       {
         q: { et: "Mis sulle maitseb?", sv: "Vad tycker du är gott?" },
-        opts: [
-          { et: "Mulle maitseb leib.", sv: "Jag gillar bröd." },
-          { et: "Mulle maitseb jäätis.", sv: "Jag gillar glass." },
-        ],
+        /* fritt svar, samma mönster som favColor. saveAs sparar i S.favFood - används sedan av
+           personalNote() i app.js för att peka ut ordet igen om det dyker upp i Toit-temat. */
+        freeText: true,
+        saveAs: "favFood",
+        opts: [],
         reply: { et: "Mmm, väga hea!", sv: "Mmm, jättegott!" },
       },
       {
@@ -183,10 +186,13 @@ export const CHATS = [
     turns: [
       {
         q: { et: "Kui vana sa oled?", sv: "Hur gammal är du?" },
-        opts: [
-          { et: "Ma olen kaheksa.", sv: "Jag är åtta." },
-          { et: "Ma olen kümme.", sv: "Jag är tio." },
-        ],
+        /* fritt svar (siffror) istället för två fasta åldrar - saveAs sparar i S.age, som
+           answerTalkFree() i app.js använder för att förifylla (aldrig tvinga) svårighetsväljaren
+           åt yngre barn, se setupScreen(). numeric: true ger sifferinmatning på mobilen. */
+        freeText: true,
+        numeric: true,
+        saveAs: "age",
+        opts: [],
         reply: { et: "Sa oled juba suur!", sv: "Du är redan stor!" },
       },
       {
@@ -314,10 +320,11 @@ export const CHATS = [
       },
       {
         q: { et: "Mis värvi on sinu tuba?", sv: "Vilken färg har ditt rum?" },
-        opts: [
-          { et: "Minu tuba on sinine.", sv: "Mitt rum är blått." },
-          { et: "Minu tuba on valge.", sv: "Mitt rum är vitt." },
-        ],
+        /* fritt svar - saveAs sparar i S.roomColor, som Siiri tuba (app/pages/room.vue) läser
+           av för att måla en ram i samma färg runt rummet, om det är en färg appen känner igen. */
+        freeText: true,
+        saveAs: "roomColor",
+        opts: [],
         reply: { et: "Kui ilus!", sv: "Vad fint!" },
       },
       {
