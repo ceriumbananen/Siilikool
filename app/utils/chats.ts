@@ -49,6 +49,21 @@ export const CHATS = [
         reply: { et: "Näeme homme!", sv: "Vi ses imorgon!" },
       },
     ],
+    /* följdfråga om ett svar barnet gav i en annan chatt (se startChat() i app.js, som bygger
+       in den här som en extra fråga precis innan farväl-repliken, bara om S[requires] är satt).
+       "{value}" byts ut mot det sparade svaret. Själva "jag minns"-känslan kommer av att frågan
+       dyker upp i en ANNAN chatt än den där svaret samlades in. */
+    bonus: [
+      {
+        requires: "favSeason",
+        q: { et: "Kas sinu lemmikaastaaeg on ikka {value}?", sv: "Är din favoritårstid fortfarande {value}?" },
+        opts: [
+          { et: "Jah, ikka!", sv: "Ja, fortfarande!" },
+          { et: "Ei, nüüd on teine.", sv: "Nej, nu är det en annan." },
+        ],
+        reply: { et: "Põnev!", sv: "Spännande!" },
+      },
+    ],
   },
   {
     id: "loomad",
@@ -90,6 +105,17 @@ export const CHATS = [
           { et: "Karu on väike.", sv: "Björnen är liten." },
         ],
         reply: { et: "Karu on väga suur!", sv: "Björnen är jättestor!" },
+      },
+    ],
+    bonus: [
+      {
+        requires: "favSubject",
+        q: { et: "Kas sulle meeldib koolis ikka {value}?", sv: "Gillar du fortfarande {value} i skolan?" },
+        opts: [
+          { et: "Jah, väga!", sv: "Ja, jättemycket!" },
+          { et: "Nüüd meeldib mulle midagi muud.", sv: "Nu gillar jag något annat." },
+        ],
+        reply: { et: "Tubli!", sv: "Duktigt!" },
       },
     ],
   },
@@ -176,6 +202,17 @@ export const CHATS = [
         reply: { et: "Lumi on valge ja külm!", sv: "Snön är vit och kall!" },
       },
     ],
+    bonus: [
+      {
+        requires: "roomColor",
+        q: { et: "Kas sinu tuba on ikka {value}?", sv: "Är ditt rum fortfarande {value}?" },
+        opts: [
+          { et: "Jah, ikka.", sv: "Ja, fortfarande." },
+          { et: "Ei, nüüd on teine värv.", sv: "Nej, nu är det en annan färg." },
+        ],
+        reply: { et: "Kui ilus!", sv: "Vad fint!" },
+      },
+    ],
   },
   {
     id: "mina",
@@ -220,6 +257,17 @@ export const CHATS = [
         reply: { et: "See on väga tore!", sv: "Det är jättekul!" },
       },
     ],
+    bonus: [
+      {
+        requires: "petName",
+        q: { et: "Kuidas {value}-l läheb?", sv: "Hur mår {value}?" },
+        opts: [
+          { et: "Tal läheb hästi!", sv: "Hen mår bra!" },
+          { et: "Ta magab praegu.", sv: "Hen sover just nu." },
+        ],
+        reply: { et: "Tore kuulda!", sv: "Kul att höra!" },
+      },
+    ],
   },
   {
     id: "koolis",
@@ -238,10 +286,11 @@ export const CHATS = [
       },
       {
         q: { et: "Mis on sinu lemmikaine?", sv: "Vilket är ditt favoritämne?" },
-        opts: [
-          { et: "Mulle meeldib joonistada.", sv: "Jag gillar att rita." },
-          { et: "Mulle meeldib lugeda.", sv: "Jag gillar att läsa." },
-        ],
+        /* fritt svar, samma mönster som favColor. saveAs sparar i S.favSubject - en annan chatt
+           (loomad) ställer en följdfråga om det här svaret senare, se bonus-fältet nedan. */
+        freeText: true,
+        saveAs: "favSubject",
+        opts: [],
         reply: { et: "Väga hea valik!", sv: "Vilket bra val!" },
       },
       {
@@ -259,6 +308,17 @@ export const CHATS = [
           { et: "Mul on kaks õpetajat.", sv: "Jag har två lärare." },
         ],
         reply: { et: "Tubli õpetaja!", sv: "Vilken bra lärare!" },
+      },
+    ],
+    bonus: [
+      {
+        requires: "age",
+        q: { et: "Oled sa ikka {value}-aastane?", sv: "Är du fortfarande {value} år?" },
+        opts: [
+          { et: "Jah, ikka.", sv: "Ja, fortfarande." },
+          { et: "Ei, nüüd olen vanem!", sv: "Nej, nu är jag äldre!" },
+        ],
+        reply: { et: "Tubli!", sv: "Duktigt!" },
       },
     ],
   },
@@ -286,12 +346,13 @@ export const CHATS = [
         reply: { et: "Pane müts pähe!", sv: "Sätt på dig mössan!" },
       },
       {
-        q: { et: "Kas sulle meeldib lumi?", sv: "Gillar du snö?" },
-        opts: [
-          { et: "Jah, ma armastan lund.", sv: "Ja, jag älskar snö." },
-          { et: "Mulle meeldib suvi.", sv: "Jag gillar sommaren." },
-        ],
-        reply: { et: "Talv on ilus!", sv: "Vintern är vacker!" },
+        q: { et: "Mis on sinu lemmikaastaaeg?", sv: "Vilken är din favoritårstid?" },
+        /* fritt svar istället för ett fast vinter/sommar-val - samma mönster som favColor.
+           saveAs sparar i S.favSeason - "tere"-chatten ställer en följdfråga om det senare. */
+        freeText: true,
+        saveAs: "favSeason",
+        opts: [],
+        reply: { et: "Põnev valik!", sv: "Spännande val!" },
       },
       {
         q: { et: "Mida sa teed vihmaga?", sv: "Vad gör du när det regnar?" },
@@ -342,6 +403,17 @@ export const CHATS = [
           { et: "Isa teeb süüa.", sv: "Pappa lagar mat." },
         ],
         reply: { et: "Mmm, kui hea lõhn!", sv: "Mmm, vad det luktar gott!" },
+      },
+    ],
+    bonus: [
+      {
+        requires: "favFood",
+        q: { et: "Kas sulle meeldib {value} ikka veel?", sv: "Gillar du fortfarande {value}?" },
+        opts: [
+          { et: "Jah, ikka veel!", sv: "Ja, fortfarande!" },
+          { et: "Nüüd meeldib mulle midagi muud.", sv: "Nu gillar jag något annat." },
+        ],
+        reply: { et: "Mmm, tore!", sv: "Mmm, kul!" },
       },
     ],
   },

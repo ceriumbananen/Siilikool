@@ -3364,7 +3364,11 @@
     var t = (et || "").trim();
     return !!(
       t &&
-      (t === (S.petName || "").trim() || t === (S.favFood || "").trim() || t === (S.roomColor || "").trim())
+      (t === (S.petName || "").trim() ||
+        t === (S.favFood || "").trim() ||
+        t === (S.roomColor || "").trim() ||
+        t === (S.favSubject || "").trim() ||
+        t === (S.favSeason || "").trim())
     );
   }
   /* ord värda att hämta uttal live för när de saknar förinspelat ljud - antingen en glosa
@@ -11936,6 +11940,28 @@
       })(b[k]);
     }
   }
+  /* en följdfråga om något barnet svarade i en ANNAN chatt (se chats.ts, "bonus"-fältet) -
+     stoppas in strax före farväl-repliken, bara om S[requires] faktiskt är satt. Bygger en
+     egen kopia av turns, rör aldrig CHATS-datan själv (delas mellan alla profiler). */
+  function chatTurnsWithBonus(c) {
+    if (!c.bonus || !c.bonus.length) return c.turns;
+    var extra = [],
+      i,
+      b,
+      val;
+    for (i = 0; i < c.bonus.length; i++) {
+      b = c.bonus[i];
+      val = S[b.requires];
+      if (!val) continue;
+      extra.push({
+        q: { et: b.q.et.replace("{value}", val), sv: b.q.sv.replace("{value}", val) },
+        opts: b.opts,
+        reply: b.reply,
+      });
+    }
+    if (!extra.length) return c.turns;
+    return c.turns.slice(0, -1).concat(extra, c.turns.slice(-1));
+  }
   function startChat(id) {
     var c = null,
       i;
@@ -11946,7 +11972,15 @@
       talkScreen();
       return;
     }
-    T = { c: c, i: 0, said: 0, voice: 0, phase: "intro" };
+    var withBonus = {
+      id: c.id,
+      em: c.em,
+      sv: c.sv,
+      et: c.et,
+      intro: c.intro,
+      turns: chatTurnsWithBonus(c),
+    };
+    T = { c: withBonus, i: 0, said: 0, voice: 0, phase: "intro" };
     renderTalk();
   }
   function renderTalk() {
@@ -12145,6 +12179,8 @@
     petName: "Ja, jag minns att ditt husdjur heter {v}!",
     age: "Ja, jag minns att du är {v} år!",
     roomColor: "Ja, jag minns att ditt rum är {v}!",
+    favSubject: "Ja, jag minns att du gillar {v}!",
+    favSeason: "Ja, jag minns att din favoritårstid är {v}!",
   };
   /* samma belöning som answerTalk, men för en fritt skriven fråga - inget facit att läsa upp.
      saveAs sparar svaret på S så Siiri minns det och kan hälsa på det nästa gång (renderTalk()). */
