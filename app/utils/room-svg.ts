@@ -528,6 +528,8 @@ function fPet(id: string | null) {
     );
   }
   if (id === "d-bird") {
+    /* illustrerad fågel istället för handritad SVG (public/images/room/bird.webp) - buren
+       (pinne, tak, galler, sittpinne) är kvar som vektor, bara fågeln själv är utbytt. */
     return (
       '<g transform="translate(78,192)">' +
       '<ellipse cx="0" cy="62" rx="18" ry="5" fill="#2A1B0C" opacity=".24"/>' +
@@ -537,20 +539,18 @@ function fPet(id: string | null) {
       '<path d="M-14 10 q14 -8 28 0 v36 q-14 8 -28 0 z" fill="#F2EADA" opacity=".55"/>' +
       '<g stroke="#A8936E" stroke-width="1.2"><path d="M-10 12 v34 M-4 10 v38 M2 10 v38 M8 12 v34"/></g>' +
       '<ellipse cx="0" cy="48" rx="15" ry="4" fill="#A8936E"/>' +
-      '<ellipse cx="0" cy="34" rx="7" ry="6" fill="#E8B62C"/><circle cx="4" cy="29" r="4.4" fill="#F2C94C"/>' +
-      '<path d="M7 29 l5 1.6 l-5 1.6 z" fill="#E86A3A"/><circle cx="5" cy="28" r="1" fill="#2A1B0C"/></g>'
+      '<image href="/images/room/bird.webp" x="-13" y="20" width="26" height="26"/>' +
+      "</g>"
     );
   }
   if (id === "d-hedge") {
+    /* illustrerad valp istället för handritad SVG (public/images/room/hedgehog-pup.webp),
+       samma mönster som katten/fågeln - en egen liten figur, inte Siiri själv. */
     return (
-      '<g transform="translate(320,252)"><ellipse cx="0" cy="5" rx="20" ry="5" fill="#2A1B0C" opacity=".24"/>' +
-      '<ellipse cx="0" cy="-7" rx="17" ry="13" fill="#8A7055"/>' +
-      '<g fill="#6E5540">' +
-      '<path d="M-14 -14 l-3 -7 l7 3 z"/><path d="M-6 -18 l-1 -8 l6 5 z"/><path d="M2 -19 l2 -8 l5 6 z"/>' +
-      '<path d="M10 -15 l6 -6 l2 7 z"/><path d="M15 -8 l8 -3 l-4 6 z"/></g>' +
-      '<ellipse cx="-13" cy="-4" rx="8" ry="7" fill="#F2E4CE"/>' +
-      '<circle cx="-16" cy="-6" r="1.4" fill="#2A1B0C"/><circle cx="-10" cy="-6" r="1.4" fill="#2A1B0C"/>' +
-      '<ellipse cx="-20" cy="-3" rx="2.2" ry="1.8" fill="#3A2A1E"/></g>'
+      '<g transform="translate(320,234)">' +
+      '<ellipse cx="-2" cy="5" rx="18" ry="5" fill="#2A1B0C" opacity=".2"/>' +
+      '<image href="/images/room/hedgehog-pup.webp" x="-19" y="-26.6" width="34" height="31.6"/>' +
+      "</g>"
     );
   }
   return "";
