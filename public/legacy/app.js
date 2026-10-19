@@ -534,6 +534,15 @@
     if (kind === "lore" && LORE[id]) {
       return { img: LORE[id].img, em: "📖", name: LORE[id].et, sub: LORE[id].sv, fact: LORE[id].fact };
     }
+    if (kind === "avatar" && AVATAR_INFO[id]) {
+      return {
+        img: AVATAR_INFO[id].img,
+        em: id,
+        name: AVATAR_INFO[id].et,
+        sub: AVATAR_INFO[id].sv,
+        fact: AVATAR_INFO[id].story,
+      };
+    }
     return null;
   }
   function openCharCard(key) {
@@ -4980,18 +4989,23 @@
   }
   /* app/utils/avatars.ts - en enda källa, delad med Vue-sidorna. */
   var AVATARS = window.SiiriData.AVATARS;
-  var AVATAR_IMG = window.SiiriData.AVATAR_IMG;
+  var AVATAR_INFO = window.SiiriData.AVATAR_INFO;
   /* samma höjd-inte-fyrkant-centrering som rivalIcon() - se den för varför. em är alltid
      den sparade S.avatar-emojin (eller en annan AVATARS-emoji i väljarrutnätet); bilden är
-     bara en kosmetisk uppgradering, S.avatar förblir emojin. */
+     bara en kosmetisk uppgradering, S.avatar förblir emojin. Precis som rivalIcon() går
+     ikonen alltid att klicka/trycka Enter på för figur-kortet (openCharCard() nedan). */
   function avatarIcon(em, px) {
-    var img = AVATAR_IMG[em],
-      size = img ? Math.round(px * 1.5) : px,
-      inner = img
-        ? '<img src="' + img + '" alt="" style="height:' + size + 'px;width:auto;vertical-align:middle">'
+    var info = AVATAR_INFO[em],
+      size = info ? Math.round(px * 1.5) : px,
+      inner = info
+        ? '<img src="' + info.img + '" alt="" style="height:' + size + 'px;width:auto;vertical-align:middle">'
         : '<span style="font-size:' + size + 'px;line-height:1">' + em + "</span>";
     return (
-      '<span style="display:inline-flex;justify-content:center;align-items:center;width:' +
+      '<span class="charpeek" data-char="avatar:' +
+      em +
+      '" role="button" tabindex="0" aria-label="Visa ' +
+      esc(info ? info.et : em) +
+      '" style="display:inline-flex;justify-content:center;align-items:center;width:' +
       size +
       'px">' +
       inner +

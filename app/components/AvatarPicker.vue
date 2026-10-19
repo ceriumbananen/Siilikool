@@ -13,7 +13,7 @@ const model = defineModel<string>({ required: true });
       :aria-label="'Figur ' + a"
       @click="model = a"
     >
-      <img v-if="AVATAR_IMG[a]" :src="AVATAR_IMG[a]" alt="" class="avpick__img" />
+      <img v-if="AVATAR_INFO[a]" :src="AVATAR_INFO[a].img" alt="" class="avpick__img" />
       <template v-else>{{ a }}</template>
     </button>
   </div>

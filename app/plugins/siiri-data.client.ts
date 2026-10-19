@@ -35,7 +35,7 @@ export default defineNuxtPlugin(() => {
     /* rivals.ts, avatars.ts, quests.ts */
     RIVALS,
     AVATARS,
-    AVATAR_IMG,
+    AVATAR_INFO,
     QUESTS,
     /* scenes.ts, praise.ts */
     SCENE,
