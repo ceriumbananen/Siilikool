@@ -517,39 +517,13 @@ function fPlantExtra(id: string | null) {
 }
 function fPet(id: string | null) {
   if (id === "d-cat") {
+    /* illustrerad bild istället för handritad SVG, samma stil som Siiri/rivalerna/
+       avatarerna (se public/images/room/cat.webp) - liggande och hoprullad, inte stående
+       som duell-rivalerna, eftersom det här är ett husdjur barnet döper, inte en karaktär. */
     return (
-      '<g id="roompet" transform="translate(70,193) scale(0.6)" style="cursor:pointer" tabindex="0" role="button" aria-label="Tryck på katten">' +
-      '<ellipse cx="50" cy="93" rx="27" ry="5" fill="#2A1B0C" opacity=".18"/>' +
-      '<g class="pettail">' +
-      '<path d="M64,66 C96,66 108,30 86,8 C98,28 96,62 60,60 Z" fill="#F2A765"/>' +
-      '<path d="M86,16 C96,32 92,54 68,58" fill="none" stroke="#D98A3E" stroke-width="1.6" opacity=".5" stroke-linecap="round"/>' +
-      "</g>" +
-      '<ellipse cx="50" cy="62" rx="28" ry="24" fill="#F2A765"/>' +
-      '<ellipse cx="50" cy="72" rx="19" ry="16" fill="#FDF4E6"/>' +
-      '<path d="M50,78 q0,7 0,11" stroke="#E8C79A" stroke-width="1.3" opacity=".6" stroke-linecap="round"/>' +
-      '<ellipse cx="38" cy="85" rx="9.5" ry="7.5" fill="#FDF4E6"/>' +
-      '<ellipse cx="62" cy="85" rx="9.5" ry="7.5" fill="#FDF4E6"/>' +
-      '<path d="M32,16 Q22,0 42,12 Q38,18 32,16 Z" fill="#F2A765"/>' +
-      '<path d="M33,14 Q27,5 39,12 Q36,15.5 33,14 Z" fill="#FBD9B0"/>' +
-      '<path d="M68,16 Q78,0 58,12 Q62,18 68,16 Z" fill="#F2A765"/>' +
-      '<path d="M67,14 Q73,5 61,12 Q64,15.5 67,14 Z" fill="#FBD9B0"/>' +
-      '<circle cx="50" cy="31" r="22" fill="#F2A765"/>' +
-      '<g stroke="#D98A3E" stroke-width="1.7" fill="none" stroke-linecap="round" opacity=".7">' +
-      '<path d="M43,14 q2,5 0,9"/><path d="M50,12 q0,5 0,9"/><path d="M57,14 q-2,5 0,9"/>' +
-      "</g>" +
-      '<ellipse cx="32" cy="38" rx="5.5" ry="4" fill="#F7C07E" opacity=".5"/>' +
-      '<ellipse cx="68" cy="38" rx="5.5" ry="4" fill="#F7C07E" opacity=".5"/>' +
-      '<g stroke="#FFFDF8" stroke-width="1.1" stroke-linecap="round" opacity=".9">' +
-      '<path d="M28,34 L9,30"/><path d="M28,37 L8,37"/><path d="M28,40 L9,44"/>' +
-      '<path d="M72,34 L91,30"/><path d="M72,37 L92,37"/><path d="M72,40 L91,44"/>' +
-      "</g>" +
-      '<ellipse cx="41.5" cy="33" rx="5" ry="6" fill="#2A2015"/><ellipse cx="58.5" cy="33" rx="5" ry="6" fill="#2A2015"/>' +
-      '<circle cx="39.5" cy="29.5" r="1.7" fill="#fff"/><circle cx="56.5" cy="29.5" r="1.7" fill="#fff"/>' +
-      '<circle cx="43" cy="35" r=".9" fill="#fff" opacity=".7"/><circle cx="60" cy="35" r=".9" fill="#fff" opacity=".7"/>' +
-      '<path d="M46.5,40 L53.5,40 L50,43.5 Z" fill="#E8899A"/>' +
-      '<path d="M50,43.5 L50,45.5" stroke="#C47A4A" stroke-width="1"/>' +
-      '<path d="M50,45.5 q-4,4 -8,0.6" fill="none" stroke="#C47A4A" stroke-width="1.3" stroke-linecap="round"/>' +
-      '<path d="M50,45.5 q4,4 8,0.6" fill="none" stroke="#C47A4A" stroke-width="1.3" stroke-linecap="round"/>' +
+      '<g id="roompet" style="cursor:pointer" tabindex="0" role="button" aria-label="Tryck på katten">' +
+      '<ellipse cx="110" cy="236" rx="36" ry="6" fill="#2A1B0C" opacity=".18"/>' +
+      '<image href="/images/room/cat.webp" x="68" y="188" width="85" height="52.4"/>' +
       "</g>"
     );
   }

@@ -52,7 +52,7 @@ const ROOM_SPOTS: Record<RoomSpotId, RoomSpot> = {
       { et: "päike", sv: "sol" },
     ],
   },
-  roompet: { x: 17, y: 66, dir: "up", words: [{ et: "kass", sv: "katt" }] },
+  roompet: { x: 21, y: 72, dir: "up", words: [{ et: "kass", sv: "katt" }] },
 };
 const roomTurn: Partial<Record<RoomSpotId, number>> = {};
 const roomSaid = ref<{ et: string; sv: string; x: number; y: number; dir: "up" | "left" | "down" } | null>(null);
