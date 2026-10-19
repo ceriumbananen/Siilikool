@@ -5072,11 +5072,17 @@
        senare (hemskärmen föreslår det efter första rundan, och allt finns under Profil) */
     if (!first) html += '<p class="qsub" style="margin-top:18px">Välj din figur</p><div class="avatars" id="avs">';
     for (var i = 0; !first && i < AVATARS.length; i++) {
+      var avInfo = AVATAR_INFO[AVATARS[i]],
+        avOn = AVATARS[i] === (S.avatar || "🦔");
       html +=
         '<button class="av' +
-        (AVATARS[i] === (S.avatar || "🦔") ? " on" : "") +
+        (avOn ? " on" : "") +
         '" data-av="' +
         AVATARS[i] +
+        '" aria-label="Välj ' +
+        esc(avInfo ? avInfo.sv : AVATARS[i]) +
+        '" aria-pressed="' +
+        avOn +
         '">' +
         avatarIcon(AVATARS[i], 30, false) +
         "</button>";
@@ -5089,6 +5095,8 @@
         (DIFFS[i].id === (S.diff || "lagom") ? " on" : "") +
         '" data-dif="' +
         DIFFS[i].id +
+        '" aria-pressed="' +
+        (DIFFS[i].id === (S.diff || "lagom")) +
         '">' +
         '<span class="de">' +
         DIFFS[i].em +
@@ -5109,6 +5117,8 @@
         COLORS[i].id +
         '" aria-label="' +
         COLORS[i].sv +
+        '" aria-pressed="' +
+        (COLORS[i].id === (S.color || "skog")) +
         '">' +
         '<span style="background:linear-gradient(160deg,' +
         COLORS[i].c1 +

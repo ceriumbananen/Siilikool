@@ -63,6 +63,11 @@ function onStageClick(e: MouseEvent) {
     const el = target?.closest?.(`#${id}`);
     if (el) {
       touchRoomSpot(id, el);
+      /* en musklick ska inte lämna kvar fokusringen (den är till för tangentbordsnavigering,
+         se :focus-visible nedan) - annars syns en blå ruta runt t.ex. katten efter varje tryck,
+         tydligast på den nya bilden som fyller hela sin rektangel (ovanligt för tätt mot de
+         gamla handritade formerna). */
+      (el as SVGElement).blur?.();
       return;
     }
   }
