@@ -1071,7 +1071,7 @@
       nxt = RANKS[ri + 1],
       e;
     e = document.getElementById("meav");
-    if (e) e.textContent = S.avatar || "🦔";
+    if (e) e.innerHTML = avatarIcon(S.avatar || "🦔", 19);
     e = document.getElementById("mename");
     if (e) e.textContent = S.name || "Profil";
     e = document.getElementById("rankmini");
@@ -4980,6 +4980,24 @@
   }
   /* app/utils/avatars.ts - en enda källa, delad med Vue-sidorna. */
   var AVATARS = window.SiiriData.AVATARS;
+  var AVATAR_IMG = window.SiiriData.AVATAR_IMG;
+  /* samma höjd-inte-fyrkant-centrering som rivalIcon() - se den för varför. em är alltid
+     den sparade S.avatar-emojin (eller en annan AVATARS-emoji i väljarrutnätet); bilden är
+     bara en kosmetisk uppgradering, S.avatar förblir emojin. */
+  function avatarIcon(em, px) {
+    var img = AVATAR_IMG[em],
+      size = img ? Math.round(px * 1.5) : px,
+      inner = img
+        ? '<img src="' + img + '" alt="" style="height:' + size + 'px;width:auto;vertical-align:middle">'
+        : '<span style="font-size:' + size + 'px;line-height:1">' + em + "</span>";
+    return (
+      '<span style="display:inline-flex;justify-content:center;align-items:center;width:' +
+      size +
+      'px">' +
+      inner +
+      "</span>"
+    );
+  }
   function setupScreen(first) {
     screen = "setup";
     setNav(first ? "" : "me");
@@ -5007,7 +5025,7 @@
         '" data-av="' +
         AVATARS[i] +
         '">' +
-        AVATARS[i] +
+        avatarIcon(AVATARS[i], 30) +
         "</button>";
     }
     if (!first)
@@ -9003,7 +9021,7 @@
       "</span></span></div>" +
       '<div class="card" style="text-align:center">' +
       '<div class="duelvs"><span>' +
-      (S.avatar || "🦔") +
+      avatarIcon(S.avatar || "🦔", 44) +
       "</span><b>vs</b><span>" +
       rivalIcon(r, 44) +
       "</span></div>" +
@@ -9071,7 +9089,7 @@
       '<div class="track"><div class="lane"><span class="run" style="left:' +
       me * 82 +
       '%">' +
-      (S.avatar || "🦔") +
+      avatarIcon(S.avatar || "🦔", 28) +
       "</span>" +
       '<span class="flag">🏁</span></div>' +
       '<div class="lane"><span class="run" style="left:' +
@@ -9330,7 +9348,7 @@
     app.innerHTML =
       '<div class="card" style="text-align:center">' +
       '<div class="duelvs"><span>' +
-      (S.avatar || "🦔") +
+      avatarIcon(S.avatar || "🦔", 44) +
       "</span><b>" +
       DU.me +
       " – " +
