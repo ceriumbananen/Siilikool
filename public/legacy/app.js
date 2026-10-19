@@ -1770,36 +1770,46 @@
     stopSpeak();
     var src = slow ? bank(true)[text] || bank()[text] : bank()[text];
     var haveSlow = !!(slow && bank(true)[text]);
-    if (!src && etVoice) {
-      try {
-        var u = new SpeechSynthesisUtterance(text);
-        u.voice = etVoice;
-        u.lang = etVoice.lang;
-        u.rate = slow ? 0.62 : 0.78;
-        u.pitch = 1.1;
-        u.onstart = function () {
-          startJaw(false);
-        };
-        u.onend = function () {
-          stopJaw();
-        };
-        u.onerror = function () {
-          stopJaw();
-        };
-        speechSynthesis.speak(u);
-        return;
-      } catch (e) {}
-    }
-    if (!src) {
-      /* glosord vars uttal inte hunnit hämtas än: hämta det och spela sedan */
-      if (isSchoolWord(text))
-        ttsNow(text, "normal").then(function (ok) {
-          if (ok) speak(text, slow);
-        });
+    if (!src && needsLiveTts(text) && ttsOk()) {
+      /* ord vars uttal inte hunnit hämtas än (glosa eller barnets eget husdjursnamn/
+         favoritmat/rumsfärg): hämta riktigt Mari-uttal från Neurokõne och spela sedan -
+         samma röst som resten av appen, istället för vilken systemröst enheten råkar ha.
+         Misslyckas hämtningen (offline, API nere) faller vi tillbaka på systemrösten nedan. */
+      ttsNow(text, "normal").then(function (ok) {
+        if (ok) speak(text, slow);
+        else speakSystemVoice(text, slow);
+      });
       return;
     }
+    if (!src && etVoice) {
+      speakSystemVoice(text, slow);
+      return;
+    }
+    if (!src) return;
     qlist = [];
     playSrc(src, slow && !haveSlow ? 0.72 : 1);
+  }
+  /* sista utväg: enhetens egen estniska systemröst (om den har någon), klart sämre än Mari
+     men bättre än tystnad - för text som varken är förinspelad eller går att hämta live. */
+  function speakSystemVoice(text, slow) {
+    if (!etVoice) return;
+    try {
+      var u = new SpeechSynthesisUtterance(text);
+      u.voice = etVoice;
+      u.lang = etVoice.lang;
+      u.rate = slow ? 0.62 : 0.78;
+      u.pitch = 1.1;
+      u.onstart = function () {
+        startJaw(false);
+      };
+      u.onend = function () {
+        stopJaw();
+      };
+      u.onerror = function () {
+        stopJaw();
+      };
+      speechSynthesis.speak(u);
+    } catch (e) {}
   }
   /* säger flera ord i följd, som en mening */
   function speakSeq(list) {
@@ -3348,6 +3358,21 @@
         return w.et === et;
       })
     );
+  }
+  /* exakt samma text som ett fält barnet själv skrivit i ett samtal (S.petName/favFood/
+     roomColor, se chats.ts) - inte en delsträng, så en hel ihopbyggd mening (som råkar
+     innehålla t.ex. husdjurets namn) aldrig skickas i sin helhet till Neurokõne. */
+  function isPersonalWord(et) {
+    var t = (et || "").trim();
+    return !!(
+      t &&
+      (t === (S.petName || "").trim() || t === (S.favFood || "").trim() || t === (S.roomColor || "").trim())
+    );
+  }
+  /* ord värda att hämta uttal live för när de saknar förinspelat ljud - antingen en glosa
+     från läxlistan eller något barnet själv skrivit, se speak(). */
+  function needsLiveTts(et) {
+    return isSchoolWord(et) || isPersonalWord(et);
   }
   /* ser till att alla ord i glosorna har ljud: tar från cachen, hämtar det som saknas
        och rensar bort ljud från gamla listor. onProgress(klara, totalt) är valfri.

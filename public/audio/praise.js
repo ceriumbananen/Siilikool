@@ -1,0 +1,1 @@
+window.addAudio("praise",{"normal": {"Kuula hoolikalt!": "audio/clips/normal/kuula-hoolikalt.mp3"}, "slow": {"Kuula hoolikalt!": "audio/clips/slow/kuula-hoolikalt.mp3"}});
