@@ -25,6 +25,7 @@ from extract_audio import CORE, PUBLIC, banks_in  # noqa: E402
 
 ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..")
 UTILS = os.path.join(ROOT, "app", "utils")
+APP_JS = os.path.join(ROOT, "public", "legacy", "app.js")
 REPORT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "audio_coverage_report.txt")
 
 ET_RE = re.compile(r'\bet:\s*"((?:[^"\\]|\\.)*)"')
@@ -72,6 +73,22 @@ def load_have():
     return have
 
 
+def js_block(text, var_name):
+    """Texten för 'var NAME = [' till matchande ']' - för datalistor i app.js självt
+    (inte app/utils/*.ts), t.ex. MODES. Enkel parentesräkning, inte en riktig JS-parser,
+    men datalistorna här är aldrig så komplexa att det behövs mer."""
+    start = text.index("var %s = [" % var_name) + len("var %s = [" % var_name) - 1
+    depth = 0
+    for i in range(start, len(text)):
+        if text[i] == "[":
+            depth += 1
+        elif text[i] == "]":
+            depth -= 1
+            if depth == 0:
+                return text[start : i + 1]
+    raise ValueError("okänt slut på %s i app.js" % var_name)
+
+
 def categories():
     themes = read(os.path.join(UTILS, "themes.ts"))
     sentences_full = read(os.path.join(UTILS, "sentences.ts"))
@@ -81,6 +98,7 @@ def categories():
     shop = block(read(os.path.join(UTILS, "shop.ts")), "SHOP")
     praise = read(os.path.join(UTILS, "praise.ts"))
     praise_taunt = block(praise, "PRAISE") + block(praise, "TAUNT")
+    modes = js_block(read(APP_JS), "MODES")
     return [
         ("teman (THEMES)", "theme", sorted(set(et_fields(themes)))),
         ("meningar (SENTENCES, hela fraser)", "sent", sorted(set(et_fields(sentences)))),
@@ -89,6 +107,7 @@ def categories():
         ("orter (TRIP)", "trip", sorted(set(et_fields(trip)))),
         ("marknaden (SHOP)", "shop", sorted(set(et_fields(shop)))),
         ("beröm & pikar (PRAISE/TAUNT)", "praise", sorted(set(et_fields(praise_taunt)))),
+        ("spellägenas namn (MODES, app.js)", "chat", sorted(set(et_fields(modes)))),
     ]
 
 

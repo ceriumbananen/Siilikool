@@ -409,7 +409,8 @@
         !!(typeof LS !== "undefined" && LS) ||
         !!(typeof DU !== "undefined" && DU) ||
         !!(typeof MM !== "undefined" && MM) ||
-        !!(typeof RN !== "undefined" && RN)
+        !!(typeof RN !== "undefined" && RN) ||
+        !!(typeof BT !== "undefined" && BT)
       );
     } catch (e) {
       return false;
@@ -3990,6 +3991,7 @@
       { k: "otsi", em: "🔍", et: "Otsi!", sv: "Hitta det Siiri säger", grp: "gör" },
       { k: "mem", em: "🃏", et: "Mälumäng", sv: "Memory", grp: "gör" },
       { k: "rain", em: "🌧️", et: "Sõnasadu", sv: "Ordregnet", grp: "gör" },
+      { k: "boat", em: "🛶", et: "Paadisõit", sv: "Barkbåten", grp: "gör" },
       { k: "speed", em: "🎲", et: esc(UI.mix.et), sv: esc(UI.mix.sv), grp: "öva" },
       { k: "sent", em: "🧩", et: esc(UI.sent.et), sv: esc(UI.sent.sv), grp: "öva" },
       { k: "talk", em: "💬", et: esc(UI.talk.et), sv: esc(UI.talk.sv), grp: "öva" },
@@ -4328,11 +4330,12 @@
       talk: talkScreen,
       mem: memIntro,
       rain: rainIntro,
+      boat: boatIntro,
       duel: duelIntro,
       chal: chIntro,
       otsi: otsiIntro,
     };
-    var keys = ["speed", "sent", "talk", "mem", "rain", "duel", "chal", "otsi"];
+    var keys = ["speed", "sent", "talk", "mem", "rain", "boat", "duel", "chal", "otsi"];
     for (i = 0; i < keys.length; i++) {
       (function (k) {
         var el = app.querySelector('[data-go="' + k + '"]');
@@ -4344,6 +4347,7 @@
               talk: UI.talk.et,
               mem: "Mälumäng",
               rain: "Sõnasadu",
+              boat: "Paadisõit",
               duel: "Duell",
               chal: "Väljakutse",
               otsi: "Otsi!",
@@ -9881,6 +9885,168 @@
     RN = null;
     mood("cheer");
     document.getElementById("again").onclick = rainIntro;
+    document.getElementById("home").onclick = function () {
+      go(homeScreen, false);
+    };
+  }
+
+  /* ---------- PAADISÕIT (barkbåten) ----------
+     Samma spel som Sõnasadu (välj rätt ord bland fyra, resten är distraktion) men orden
+     flyter förbi horisontellt på en flod istället för att falla från himlen - se BT jämfört
+     med RN ovan. Egen kopia snarare än en delad motor: två likadana spel är inte värt risken
+     att röra det redan fungerande ordregnet för att klämma in en gemensam funktion. */
+  var BT = null;
+  /* Siiri sitter i barkbåten - samma illustration som resten av appen (public/images/siiri/
+     siiri-body.webp), inte en handritad SVG-siluett. Hon visas här i sin vanliga gräddvita
+     grundfärg, utan barnets valda pälsfärg: den riktiga färglagda siilSVG() har ett fast id
+     ("s-svg") som resten av motorn letar upp för munrörelser/humör/lutning, och att lägga in
+     en andra kopia av den på samma sida hade krockat med det. Båten och seglet är vektor -
+     enkla föremål, ingen anledning att illustrera dem. */
+  function boatIcon() {
+    return (
+      '<span class="riverboat" aria-hidden="true">' +
+      '<svg class="riverboat-hull" viewBox="0 0 90 70">' +
+      '<path d="M66 9 Q40 20 66 46 Z" fill="#F2EADA" stroke="#C9BBA0" stroke-width="1"/>' +
+      '<line x1="66" y1="8" x2="66" y2="49" stroke="#6E4A30" stroke-width="2"/>' +
+      '<path d="M3 49 Q45 55 87 49 Q66 67 45 65 Q24 67 3 49 Z" fill="#8A5A3C" stroke="#6E4A30" stroke-width="1.5"/>' +
+      '<path d="M3 49 Q45 55 87 49" fill="none" stroke="#A9754E" stroke-width="1.3" opacity=".8"/>' +
+      "</svg>" +
+      '<img class="riverboat-siiri" src="/images/siiri/siiri-body.webp" alt="">' +
+      "</span>"
+    );
+  }
+  function boatIntro() {
+    screen = "boat";
+    prefetchAllThemes();
+    app.innerHTML =
+      '<div class="zone play"><span class="zem">🛶</span><span><b>Paadisõit</b><span>Barkbåten — fånga rätt ord</span></span></div>' +
+      '<div class="card" style="text-align:center"><p class="qsub">Siiri åker barkbåt nerför floden. Orden flyter förbi på vattnet. Tryck på det ord Siiri ber om. Missar du dyker det upp igen — ingen stress.</p>' +
+      '<div class="center">' +
+      siilSVG("small") +
+      "</div>" +
+      '<button class="btn green big wide" id="start">Sätt igång 🛶</button></div>';
+    document.getElementById("start").onclick = boatStart;
+  }
+  function boatStart() {
+    BT = { i: 0, n: 10, right: 0, pool: pickWeighted(allWords(), 20) };
+    boatRound();
+  }
+  function boatRound() {
+    if (!BT) return;
+    if (BT.i >= BT.n) {
+      boatEnd();
+      return;
+    }
+    BT.lock = false;
+    var target = BT.pool[BT.i % BT.pool.length],
+      all = optionPool(target, allWords()),
+      opts = [target],
+      i,
+      tries = 0;
+    while (opts.length < 4 && tries < 80) {
+      var c = all[(Math.random() * all.length) | 0];
+      tries++;
+      var dup = false;
+      for (i = 0; i < opts.length; i++) if (opts[i].et === c.et || opts[i].sv === c.sv) dup = true;
+      if (!dup) opts.push(c);
+    }
+    opts = shuffle(opts);
+    var html =
+      '<div class="zone play"><span class="zem">🛶</span><span><b>Paadisõit</b>' +
+      "<span>ord " +
+      (BT.i + 1) +
+      " av " +
+      BT.n +
+      " · " +
+      BT.right +
+      " rätt</span></span></div>" +
+      '<div class="card"><p class="q">Hitta ordet för</p>' +
+      promptHtml(target, target.sv) +
+      '<div class="center"><button class="speakbtn sm" id="say" aria-label="Hör ordet">🔊</button></div>' +
+      '<div class="riverbox">' +
+      boatIcon();
+    for (i = 0; i < opts.length; i++) {
+      html +=
+        '<button class="riverword" data-et="' +
+        esc(opts[i].et) +
+        '" style="top:' +
+        (8 + i * 22) +
+        "%;animation-duration:" +
+        (7 + i * 1.3) +
+        "s;animation-delay:" +
+        i * 0.7 +
+        's">' +
+        esc(opts[i].et) +
+        "</button>";
+    }
+    html += '</div><div class="feedback" id="fb"></div></div><div class="center">' + siilSVG("small") + "</div>";
+    app.innerHTML = html;
+    speak(target.et);
+    document.getElementById("say").onclick = function () {
+      speak(target.et);
+    };
+    var ds = app.querySelectorAll("[data-et]");
+    for (i = 0; i < ds.length; i++) {
+      (function (el) {
+        el.onclick = function () {
+          if (!BT || BT.lock) return;
+          BT.lock = true;
+          for (var j = 0; j < ds.length; j++) {
+            ds[j].disabled = true;
+            ds[j].style.animationPlayState = "paused";
+          }
+          var ok = el.getAttribute("data-et") === target.et;
+          el.classList.add(ok ? "hit" : "miss");
+          wmemHit(target.et, ok, "choose", target.sv);
+          praiseSay(ok ? BT.right + 1 : 0, ok, document.getElementById("fb"));
+          if (ok) {
+            BT.right++;
+            S.correct++;
+            earnStars(2);
+            addXp(10);
+            sndOk();
+            buzz(18);
+            mood("cheer");
+            save();
+            refreshTop();
+          } else {
+            sndNo();
+            mood("oops");
+          }
+          BT.i++;
+          setTimeout(function () {
+            if (BT) boatRound();
+          }, 800);
+        };
+      })(ds[i]);
+    }
+  }
+  function boatEnd() {
+    var r = BT.right,
+      n = BT.n;
+    save();
+    burst(150);
+    fanfare(2);
+    tripBump("hear", r);
+    tripBump("mix", 1);
+    var st = r >= n ? 3 : r >= n * 0.7 ? 2 : r >= n * 0.4 ? 1 : 0;
+    app.innerHTML =
+      '<div class="card" style="text-align:center"><div class="bigstars">' +
+      starStr(st) +
+      "</div>" +
+      '<div class="bigscore">' +
+      r +
+      " / " +
+      n +
+      '</div><p class="q">Bra fångat!</p>' +
+      '<div class="center">' +
+      siilSVG("small") +
+      "</div>" +
+      '<div class="row"><button class="btn green big" id="again">En gång till 🛶</button>' +
+      '<button class="btn ghost big" id="home">Tillbaka</button></div></div>';
+    BT = null;
+    mood("cheer");
+    document.getElementById("again").onclick = boatIntro;
     document.getElementById("home").onclick = function () {
       go(homeScreen, false);
     };
