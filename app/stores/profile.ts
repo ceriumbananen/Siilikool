@@ -1,19 +1,28 @@
-/* Spelarens data (S i den gamla koden), profilerna och reservkopiorna.
-   Flyttat från public/legacy/app.js så att den gamla koden och Vue delar samma data:
-   den gamla koden får `state` via window.SiiriStore och ändrar fälten direkt, och eftersom
-   `state` är reaktiv ser Vue-komponenterna ändringarna. Nycklar och format i localStorage
-   är exakt som förut, så befintliga spelare behåller allt. */
+/* Spelarens data (S i den gamla koden), spelarna på enheten och reservkopiorna.
+   Den gamla koden får `state` via window.SiiriStore och ändrar fälten direkt, och eftersom
+   `state` är reaktiv ser Vue-komponenterna ändringarna.
 
-const KEY = "siiri-eesti-v1";
-const SLOTKEY = "siiri-eesti-slots"; /* vilken profil som är vald */
+   Spelarna (docs/plan-konton-v2.md, steg 2): varje spelare på enheten har en egen nyckel -
+   "m:<id>" för en medlem i familjen (spelet sparas också i kontot) och "l:<slump>" för en lokal
+   spelare utan konto. Spelet sparas under "siiri-p-<nyckel>", listan i "siiri-players" och den
+   som spelar nu i "siiri-current". Förut fanns tre fasta profilplatser (siiri-eesti-v1, -1, -2);
+   de flyttas hit en gång och ligger sedan kvar orörda som en extra kopia. */
+
 const SCHEMA = 2;
+const PLAYERS_KEY = "siiri-players";
+const CURRENT_KEY = "siiri-current";
+export const LINKS_KEY = "siiri-links"; /* kopplingarna spelare -> medlem (app/stores/cloud.ts) */
+const saveKey = (k: string) => `siiri-p-${k}`;
+const backupKey = (k: string) => `siiri-p-${k}-backup`;
 
-function slotKey(i: number) {
-  return KEY + (i ? "-" + i : "");
-}
-function bkKey(i: number) {
-  return slotKey(i) + "-backup";
-}
+/* de tre gamla profilplatserna */
+const OLD_KEY = "siiri-eesti-v1";
+const OLD_SLOTKEY = "siiri-eesti-slots";
+const OLD_LINKS = "siiri-eesti-cloud";
+const oldSlotKey = (i: number) => OLD_KEY + (i ? "-" + i : "");
+
+export const memberKey = (memberId: string) => `m:${memberId}`;
+export const newLocalKey = () => `l:${Math.random().toString(36).slice(2, 10)}${Date.now().toString(36).slice(-4)}`;
 
 /* localStorage kan saknas eller kasta (privat läge, blockerad lagring) – appen ska fungera ändå */
 function read(key: string): string | null {
@@ -102,15 +111,73 @@ export function migrate(o: any): any {
   return o;
 }
 
-function readSlotIndex(): number {
-  return parseInt(read(SLOTKEY) || "0", 10) || 0;
+function readJson<T>(key: string): T | null {
+  try {
+    return JSON.parse(read(key) || "null");
+  } catch {
+    return null;
+  }
+}
+
+/* En sparfil "används" när spelaren har kommit igång (namn, poäng eller klar med starten). */
+function used(raw: string | null): boolean {
+  if (!raw) return false;
+  try {
+    const p = JSON.parse(raw);
+    return !!(p && (p.name || p.xp || p.stars || p.setupdone));
+  } catch {
+    return false;
+  }
+}
+
+/* Engångsflytt från de tre profilplatserna: varje plats som används blir en spelare (kopplad till
+   sin medlem, eller lokal), med reservkopian. Platsen som spelades blir den som spelar nu. */
+function migrateSlots(): { players: string[]; current: string } {
+  const oldLinks = readJson<Record<string, CloudLink>>(OLD_LINKS) || {};
+  const cur = parseInt(read(OLD_SLOTKEY) || "0", 10) || 0;
+  const players: string[] = [],
+    links: Record<string, CloudLink> = {};
+  let current: string | null = null;
+  for (let i = 0; i < 3; i++) {
+    const raw = read(oldSlotKey(i));
+    const l = oldLinks[String(i)]?.kind ? oldLinks[String(i)]! : null;
+    if (!used(raw) && !l) {
+      if (i === cur) current = newLocalKey(); /* en tom plats som var vald: en ny, tom spelare */
+      continue;
+    }
+    const key = l ? memberKey(l.id) : newLocalKey();
+    if (players.includes(key)) continue;
+    if (raw) write(saveKey(key), raw);
+    const bk = read(oldSlotKey(i) + "-backup");
+    if (bk) write(backupKey(key), bk);
+    if (l) links[key] = l;
+    players.push(key);
+    if (i === cur) current = key;
+  }
+  if (!current) current = players[0] || newLocalKey();
+  if (!players.includes(current)) players.push(current);
+  write(PLAYERS_KEY, JSON.stringify(players));
+  write(CURRENT_KEY, current);
+  if (Object.keys(links).length) write(LINKS_KEY, JSON.stringify(links));
+  return { players, current };
+}
+
+/* spelarna på enheten och den som spelar nu. Tomma lokala spelare (påbörjade men aldrig spelade)
+   städas bort, utom den som spelar nu. */
+function loadPlayers(): { players: string[]; current: string } {
+  let players = readJson<string[]>(PLAYERS_KEY);
+  if (!Array.isArray(players)) return migrateSlots();
+  let current = read(CURRENT_KEY) || players[0] || newLocalKey();
+  players = players.filter(k => k === current || k.startsWith("m:") || used(read(saveKey(k))));
+  if (!players.includes(current)) players.push(current);
+  return { players, current };
 }
 
 /* standardvärden + det som finns sparat (fält som är undefined skriver inte över standard) */
-function loadSlot(i: number): SaveData {
+function loadSave(key: string): SaveData {
   const s = defaultSave();
   try {
-    const raw = read(slotKey(i));
+    const raw = read(saveKey(key));
     if (raw) {
       const p = migrate(JSON.parse(raw));
       for (const k in p) {
@@ -124,13 +191,17 @@ function loadSlot(i: number): SaveData {
 }
 
 export const useProfileStore = defineStore("profile", () => {
-  const slot = ref(readSlotIndex());
-  const state = reactive<SaveData>(loadSlot(slot.value));
+  const start = loadPlayers();
+  const players = ref<string[]>(start.players);
+  const current = ref(start.current);
+  const state = reactive<SaveData>(loadSave(current.value));
+  const persistPlayers = () => write(PLAYERS_KEY, JSON.stringify(players.value));
+  persistPlayers();
 
   function save() {
     state.ver = SCHEMA;
     state.t = Date.now(); /* när den sparades – avgör vilken version som är senast vid synk */
-    write(slotKey(slot.value), JSON.stringify(toRaw(state)));
+    write(saveKey(current.value), JSON.stringify(toRaw(state)));
   }
 
   /* byter allt innehåll men behåller samma objekt, så att den gamla kodens S fortsätter peka rätt */
@@ -140,10 +211,10 @@ export const useProfileStore = defineStore("profile", () => {
     save();
   }
 
-  /* ---------- profiler (tre platser) ---------- */
-  function slotInfo(i: number): SlotInfo | null {
+  /* ---------- spelarna på enheten ---------- */
+  function playerInfo(key: string): SlotInfo | null {
     try {
-      const raw = read(slotKey(i));
+      const raw = read(saveKey(key));
       if (!raw) return null;
       const p = JSON.parse(raw);
       return {
@@ -157,20 +228,63 @@ export const useProfileStore = defineStore("profile", () => {
       return null;
     }
   }
-  /* byter profil och laddar om – till `to` (t.ex. spelet från /join), annars samma sida */
-  function switchSlot(i: number, to?: string) {
-    write(SLOTKEY, String(i));
+  /** Har spelaren kommit igång (namn, poäng eller klar med starten)? */
+  function playerUsed(key: string): boolean {
+    return key === current.value ? hasProgress(state) || !!state.name : used(read(saveKey(key)));
+  }
+  /** Lägger till en spelare i listan (spelet hämtas/sparas när man byter till den). */
+  function addPlayer(key: string) {
+    if (!players.value.includes(key)) {
+      players.value = [...players.value, key];
+      persistPlayers();
+    }
+  }
+  /** Byter spelare och laddar om - till `to` (t.ex. spelet från /join), annars samma sida. */
+  function switchPlayer(key: string, to?: string) {
+    addPlayer(key);
+    write(CURRENT_KEY, key);
     if (to) location.href = to;
     else location.reload();
+  }
+  /** En ny lokal spelare (utan konto) - börjar med att välja namn. */
+  function newLocalPlayer(to = "/") {
+    switchPlayer(newLocalKey(), to);
+  }
+  /** Ger en spelare en ny nyckel och flyttar spelet och reservkopian dit - när ett lokalt spel blir
+   * en medlems ("m:<id>"), eller en medlem tas bort från enheten och spelet blir lokalt igen. */
+  function rekey(from: string, to: string) {
+    if (from === to) return;
+    for (const [a, b] of [
+      [saveKey(from), saveKey(to)],
+      [backupKey(from), backupKey(to)],
+    ] as const) {
+      const v = read(a);
+      if (v !== null) write(b, v);
+      remove(a);
+    }
+    players.value = players.value.includes(to)
+      ? players.value.filter(k => k !== from)
+      : players.value.map(k => (k === from ? to : k));
+    persistPlayers();
+    if (current.value === from) {
+      current.value = to;
+      write(CURRENT_KEY, to);
+    }
+  }
+  /** Spelen för alla spelare på enheten (den som spelar nu ur minnet) - t.ex. för glosornas uttal. */
+  function playerSaves(): SaveData[] {
+    return players.value
+      .map(k => (k === current.value ? toRaw(state) : readJson<SaveData>(saveKey(k))))
+      .filter((x): x is SaveData => !!x);
   }
 
   /* ---------- automatisk reservkopia ---------- */
   function autoBackup(why?: string) {
-    write(bkKey(slot.value), JSON.stringify({ t: Date.now(), why: why || "", data: toRaw(state) }));
+    write(backupKey(current.value), JSON.stringify({ t: Date.now(), why: why || "", data: toRaw(state) }));
   }
   function backupInfo(): Backup | null {
     try {
-      const raw = read(bkKey(slot.value));
+      const raw = read(backupKey(current.value));
       if (!raw) return null;
       const p = JSON.parse(raw);
       return p && p.data ? p : null;
@@ -186,7 +300,7 @@ export const useProfileStore = defineStore("profile", () => {
   function restoreBackup() {
     const p = backupInfo();
     if (!p) return false;
-    write(slotKey(slot.value), JSON.stringify(p.data));
+    write(saveKey(current.value), JSON.stringify(p.data));
     return true;
   }
   /* Diplom, rekord, resan och samlingar som finns i reservkopian men saknas i spelet läggs tillbaka –
@@ -239,17 +353,23 @@ export const useProfileStore = defineStore("profile", () => {
 
   /* raderar den profil som spelas nu (förut raderades alltid profil 1, oavsett vilken som var vald) */
   function wipe() {
-    remove(slotKey(slot.value));
+    remove(saveKey(current.value));
     replace(defaultSave());
   }
 
   return {
-    slot,
+    players,
+    current,
     state,
     save,
     replace,
-    slotInfo,
-    switchSlot,
+    playerInfo,
+    playerUsed,
+    addPlayer,
+    switchPlayer,
+    newLocalPlayer,
+    rekey,
+    playerSaves,
     autoBackup,
     backupInfo,
     backupAge,

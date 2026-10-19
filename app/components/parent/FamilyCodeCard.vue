@@ -24,7 +24,8 @@ const rotate = () =>
   <div class="card">
     <h2 class="q">Familjekod</h2>
     <p class="qsub">
-      På barnets enhet: <b>Profil → Familj</b>, skriv koden och välj vem som spelar. Eller skanna QR-koden.
+      På barnets enhet: välj <b>Är du ett barn med en familjekod?</b> på startskärmen (eller <b>Profil → Familj</b>),
+      skriv koden och välj vem som spelar. Eller skanna QR-koden.
     </p>
     <div class="pair">{{ pretty }}</div>
     <!-- SVG som QR-biblioteket ritar från appens egen adress -->

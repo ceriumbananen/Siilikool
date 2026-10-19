@@ -784,15 +784,6 @@
        reaktiva objekt som lagret håller – fält ändras direkt som förut, och save() sparar. */
   var STORE = window.SiiriStore;
   var S = STORE.state;
-  function curSlot() {
-    return STORE.slot;
-  }
-  function slotInfo(i) {
-    return STORE.slotInfo(i);
-  }
-  function switchSlot(i) {
-    STORE.switchSlot(i);
-  }
   function save() {
     STORE.save();
   }
@@ -811,10 +802,6 @@
   }
   function backupLooksBetter() {
     return STORE.backupLooksBetter();
-  }
-  /* säkerhetskopia: all data som en kod man kan spara eller flytta */
-  function exportCode() {
-    return STORE.exportCode();
   }
   /* familjekontot (Nuxt-appen, app/stores/cloud.ts) – finns bara om konton är påslagna */
   function cloudOn() {
@@ -841,86 +828,6 @@
   function childDevice() {
     var c = cloudInfo();
     return c.kind === "child" || c.locked;
-  }
-  /* märke på en spelare i profilväxlaren: sparas i familjen (och har PIN-kod) */
-  function slotTag(i) {
-    if (!cloudOn()) return "";
-    var k = window.SiiriCloud.slotKind(i);
-    return k === "child-pin"
-      ? "<small>☁️ 🔒 PIN</small>"
-      : k === "child"
-        ? "<small>☁️ familjen</small>"
-        : k === "adult"
-          ? "<small>☁️ vuxen</small>"
-          : "";
-  }
-  /* kortet Familj i profilen: vad som gäller beror på vem som är inloggad på enheten */
-  function familyCard() {
-    if (!cloudOn()) return "";
-    var c = cloudInfo(),
-      row = '<div class="row" style="justify-content:flex-start;margin-top:8px">',
-      h =
-        '<div class="card"><p class="q" style="text-align:left">Perekond · Familj</p><p class="qsub" style="text-align:left">';
-    if (c.adult)
-      h +=
-        "Du är inloggad som vuxen" +
-        (c.family ? " i " + esc(c.family) : "") +
-        ". Barn, glosor och familjekod finns i föräldraläget.</p>" +
-        row +
-        '<a class="btn green" href="/parent">👨‍👩‍👧 Föräldraläget</a>' +
-        '<button class="btn ghost" id="famlock">🔒 Lås enheten</button></div>' +
-        '<p class="qsub" id="fammsg" style="text-align:left;margin-top:8px"></p>';
-    else if (c.familyDevice)
-      h +=
-        (c.locked ? "🔒 Enheten är låst av en vuxen. " : "") +
-        (c.family ? "Ni spelar i " + esc(c.family) + "." : "Ni spelar i familjen.") +
-        " Spelet sparas i familjekontot och glosorna kommer från de vuxna.</p>" +
-        row +
-        '<button class="btn green" id="famswitch">👥 Byt spelare</button>' +
-        '<a class="btn ghost" href="/join">➕ Lägg till spelare</a>' +
-        (c.locked ? '<a class="btn ghost" href="/parent">🔓 Lås upp</a>' : "") +
-        "</div>";
-    else if (c.signedIn)
-      h +=
-        "Du är inloggad men inte med i någon familj än.</p>" +
-        row +
-        '<a class="btn green" href="/parent">👨‍👩‍👧 Föräldraläget</a></div>';
-    else
-      h +=
-        (c.linked
-          ? "Spelet hör till familjen, men enheten är utloggad. Skriv familjekoden igen så sparas det som vanligt."
-          : "Spela med familjen: spelet sparas i familjekontot och följer med till andra enheter, och glosorna kommer från de vuxna.") +
-        "</p>" +
-        row +
-        '<a class="btn green" href="/join">🔑 Jag har en familjekod</a>' +
-        '<a class="btn ghost" href="/parent">👩 Jag är vuxen</a></div>';
-    return h + "</div>";
-  }
-  function cloudLine() {
-    var c = cloudInfo();
-    if (!c.linked)
-      return (
-        "Allt sparas bara i den här webbläsaren. Spara en kod om du byter dator eller rensar historiken." +
-        (cloudOn()
-          ? " Eller gå med i familjen, så sparas spelet i familjekontot och följer med till andra enheter."
-          : "")
-      );
-    if (c.needsLogin)
-      return (
-        "☁️ Kopplad till familjekontot" +
-        (c.name ? " (" + esc(c.name) + ")" : "") +
-        ", men enheten är utloggad – se Familj ovan."
-      );
-    return (
-      "☁️ Sparas i familjekontot" +
-      (c.name ? " som " + esc(c.name) : "") +
-      " och följer med till andra enheter." +
-      (c.status === "offline" ? " Just nu offline – det skickas när nätet är tillbaka." : "") +
-      " Koden nedan är en extra säkerhetskopia."
-    );
-  }
-  function importCode(code) {
-    return STORE.importCode(code);
   }
   function newDay() {
     var t = today();
@@ -3315,20 +3222,14 @@
   }
   /* glosorna i alla profiler på enheten – deras uttal får inte städas bort när en annan spelare spelar */
   function allSchoolWords() {
-    var out = [],
-      i,
-      raw,
-      p;
-    for (i = 0; i < 3; i++) {
-      try {
-        raw = i === curSlot() ? S : JSON.parse(localStorage.getItem("siiri-eesti-v1" + (i ? "-" + i : "")) || "null");
-        p = raw && raw.school && raw.school.words;
-        if (p)
-          p.forEach(function (w) {
-            if (w && w.et) out.push(w.et);
-          });
-      } catch (e) {}
-    }
+    var out = [];
+    STORE.playerSaves().forEach(function (raw) {
+      var p = raw && raw.school && raw.school.words;
+      if (p)
+        p.forEach(function (w) {
+          if (w && w.et) out.push(w.et);
+        });
+    });
     return out;
   }
   /* ett glosord utan ljud spelas upp: hämta uttalet nu (en gång per ord och session) */
@@ -3499,9 +3400,9 @@
       }
       html +=
         '</div><button class="btn green big wide" id="schoolplay" style="margin-top:10px">▶️ Öva på orden</button>' +
-        /* glosor från familjen tas bort av de vuxna i föräldraläget */
+        /* glosor från familjen tas bort av de vuxna i Familjen */
         (s.cloudId || childDevice()
-          ? '<p class="qsub" style="margin-top:8px">Glosorna kommer från familjen – de vuxna byter dem i föräldraläget.</p>'
+          ? '<p class="qsub" style="margin-top:8px">Glosorna kommer från familjen – de vuxna byter dem i Familjen.</p>'
           : '<button class="btn ghost wide" id="schoolclear" style="margin-top:8px">Ta bort listan</button>') +
         "</div>";
     }
@@ -3509,7 +3410,7 @@
       if (!s)
         html +=
           '<div class="card"><p class="kicker">Inga glosor just nu</p>' +
-          '<p class="qsub">När en vuxen lägger in veckans ord i föräldraläget dyker de upp här.</p></div>';
+          '<p class="qsub">När en vuxen lägger in veckans ord i Familjen dyker de upp här.</p></div>';
       app.innerHTML = html;
       schoolBind();
       return;
@@ -3866,7 +3767,15 @@
 
   /* ============ SKÄRMAR ============ */
   var screen = "home";
+  /* toppfältet (profil, märke, stjärnor) och nivåmätaren */
+  function showTop(on) {
+    var t = document.querySelector(".topbar"),
+      m = document.querySelector(".meter");
+    if (t) t.hidden = !on;
+    if (m) m.hidden = !on;
+  }
   function go(fn, isSub) {
+    showTop(true);
     btnBack.hidden = !isSub;
     window.scrollTo(0, 0);
     /* riktning: inåt när man öppnar något, utåt när man går tillbaka */
@@ -4115,7 +4024,7 @@
           "</span></span></div>") +
       "</div>";
 
-    /* skolans glosor, om en lista är igång (att ändra listan är en vuxensak och ligger under För vuxna) */
+    /* skolans glosor, om en lista är igång (att ändra listan är en vuxensak och ligger under För vuxna i Familjen) */
     (function () {
       var sc = schoolSet();
       if (!sc) return;
@@ -4247,7 +4156,7 @@
     };
     document.getElementById("questbtn").onclick = function () {
       /* Skattkammaren är flyttad till en egen Nuxt-sida (app/pages/trophy.vue) - en vanlig
-         navigering dit, precis som länken till /parent redan gör */
+         navigering dit */
       location.href = "/trophy";
     };
     var qsw = document.getElementById("questswap");
@@ -4380,199 +4289,10 @@
     }
   }
 
-  /* en siffra + etikett i en .stats-grid (se parentScreen()/adminScreen()) */
+  /* en siffra + etikett i en .stats-grid (adminScreen()) */
   function statTile(value, label) {
     return '<div class="stat"><b>' + value + "</b><span>" + label + "</span></div>";
   }
-  /* ---------- VANEMALE: sidan för föräldern ---------- */
-  function parentScreen() {
-    screen = "parent";
-    setNav("me");
-    var all = allWords(),
-      i,
-      strong = 0,
-      weak = 0,
-      unseen = 0,
-      m;
-    for (i = 0; i < all.length; i++) {
-      m = (S.wordmem || {})[mkey(all[i].et, all[i].sv)];
-      if (!m) unseen++;
-      else if ((m.s || 0) >= 2) strong++;
-      else weak++;
-    }
-    var days = Object.keys(S.wordmem || {}).length ? null : null;
-    var hw = hardWords(12),
-      t,
-      mm;
-    var html =
-      '<div class="zone me"><span class="zem">🔐</span><span><b>För vuxna</b>' +
-      "<span>Vad barnet faktiskt kan, glosor och säkerhetskopia</span></span></div>";
-    /* föräldraläget: barn, glosor, familjekod och lås (Nuxt-sidan /parent) */
-    if (cloudOn())
-      html +=
-        '<a class="btn green wide" href="/parent" style="margin-bottom:12px">👨‍👩‍👧 Föräldraläget · barn, glosor och familjekod</a>';
-    html +=
-      '<div class="card"><p class="q" style="text-align:left">' +
-      (S.name ? esc(S.name) : "Spelaren") +
-      " just nu</p>" +
-      '<div class="stats">' +
-      statTile(strong, "ord som sitter") +
-      statTile(weak, "ord som vacklar") +
-      statTile(unseen, "ord kvar att möta") +
-      statTile(S.flames || 0, "dagsutmaningar klarade") +
-      statTile(S.lessons || 0, "avklarade lektioner") +
-      statTile(S.correct, "rätta svar totalt") +
-      statTile(S.spoken, "ord sagda högt") +
-      statTile(S.typed, "ord skrivna") +
-      "</div>" +
-      '<p class="qsub" style="text-align:left;margin-top:10px">Ett ord räknas som att det <b>sitter</b> först när barnet ' +
-      "klarat det flera gånger, helst genom att skriva eller säga det — inte bara peka på rätt bild.</p></div>";
-    /* per tema */
-    html += '<div class="card"><p class="q" style="text-align:left">Tema för tema</p><div class="parentlist">';
-    for (i = 0; i < THEMES.length; i++) {
-      t = THEMES[i];
-      mm = themeMastery(t);
-      html +=
-        '<div class="prow"><span class="pem">' +
-        t.em +
-        "</span>" +
-        '<span class="ptx"><b>' +
-        esc(t.sv) +
-        "</b>" +
-        '<span class="qbar" style="background:var(--line)"><i style="width:' +
-        mm.pct +
-        "%;background:" +
-        (mm.medal === "gold" ? "var(--honey)" : mm.medal === "silver" ? "var(--blue)" : "var(--moss)") +
-        '"></i></span>' +
-        "<small>" +
-        mm.strong +
-        " av " +
-        mm.total +
-        " ord sitter" +
-        (mm.medal ? " · " + masteryEm(mm.medal) : "") +
-        "</small></span></div>";
-    }
-    html += "</div></div>";
-    if (hw.length) {
-      html += '<div class="card"><p class="q" style="text-align:left">Ord att öva tillsammans</p><div class="shelf">';
-      for (i = 0; i < hw.length; i++) {
-        html +=
-          '<button class="shelfitem" data-say="' +
-          esc(hw[i].w.et) +
-          '"><span class="em">' +
-          wIcon(hw[i].w) +
-          "</span>" +
-          "<b>" +
-          esc(hw[i].w.et) +
-          "</b><small>" +
-          esc(hw[i].w.sv) +
-          "</small></button>";
-      }
-      html +=
-        '</div><p class="qsub" style="text-align:left;margin-top:10px">Appen tar redan upp dem oftare. Att säga dem högt hemma hjälper mest.</p></div>';
-    }
-    html +=
-      '<div class="card"><p class="q" style="text-align:left">Om inlärningen</p>' +
-      '<p class="qsub" style="text-align:left">Orden återkommer med växande mellanrum — en dag, två, fyra, åtta, sexton, trettio. ' +
-      "Ett fel nollställer intervallet. Det är samma princip som i forskningen kring repetition över tid, och den är " +
-      "inbyggd i alla spellägen, så barnet möter rätt ord utan att behöva välja dem.</p></div>";
-    /* skolans glosor (på en enhet utan familjekonto – med konto skickas de från föräldraläget).
-       cloudOn() betyder bara att molnfunktionen FINNS i appen (sant i princip alltid i skarp drift) -
-       det som faktiskt ska styra är om DEN HÄR spelaren är kopplad till en familj eller inte,
-       annars försvinner knappen för alla och ingen kan någonsin skapa sin första läxlista */
-    if (!cloudInfo().linked)
-      html +=
-        '<button class="bigcard school" id="toschool">' +
-        '<span class="bcem">📝</span>' +
-        '<span class="bctx"><b>Skolans glosor</b>' +
-        "<small>" +
-        (schoolSet()
-          ? esc(schoolSet().name) + " — " + schoolDone() + " av " + schoolSet().words.length + " sitter · ändra"
-          : "Klistra in veckans ord så övar Siiri dem") +
-        "</small></span>" +
-        '<span class="bcgo">›</span></button>';
-    /* säkerhetskopiering */
-    html +=
-      '<div class="card"><p class="q" style="text-align:left">Säkerhetskopia</p>' +
-      '<p class="qsub" style="text-align:left">' +
-      cloudLine() +
-      "</p>" +
-      '<div class="row" style="justify-content:flex-start">' +
-      '<button class="btn ghost" id="bkexp">📋 Kopiera spelets kod</button>' +
-      '<button class="btn ghost" id="bkimp">📥 Återställ från kod</button></div>' +
-      '<p class="qsub" id="bkmsg" role="status" style="text-align:left;min-height:18px;margin-top:8px">&nbsp;</p></div>';
-    if (S.admin) html += '<button class="btn wide adminbtn" id="toadmin">🛠️ Admin</button>';
-    app.innerHTML = html;
-    function on(id, fn) {
-      var e = document.getElementById(id);
-      if (e) e.onclick = fn;
-      return e;
-    }
-    on("toschool", function () {
-      go(schoolImport, true);
-    });
-    on("toadmin", function () {
-      go(adminScreen, true);
-    });
-    on("bkexp", function () {
-      var code = exportCode(),
-        msg = document.getElementById("bkmsg");
-      var d = overlay(
-        '<div class="oc"><p class="kicker">📋 Din kod</p>' +
-          '<p class="qsub">Markera och kopiera. Spara den i ett mejl till dig själv.</p>' +
-          '<textarea id="bkarea" readonly style="width:100%;height:110px;font-size:11px;border-radius:14px;border:3px solid var(--line);padding:8px;background:var(--bg);color:var(--ink)"></textarea>' +
-          '<button class="btn big wide" id="bkclose" style="margin-top:10px">Klar</button></div>',
-      );
-      var ta = d.querySelector("#bkarea");
-      ta.value = code;
-      try {
-        ta.focus();
-        ta.select();
-        if (navigator.clipboard && navigator.clipboard.writeText)
-          navigator.clipboard.writeText(code).then(
-            function () {
-              msg.textContent = "Koden är kopierad.";
-            },
-            function () {},
-          );
-      } catch (e) {}
-      d.querySelector("#bkclose").onclick = function () {
-        d.remove();
-      };
-    });
-    on("bkimp", function () {
-      var d = overlay(
-        '<div class="oc" style="border-color:var(--berry)"><p class="kicker">📥 Återställ</p>' +
-          '<p class="qsub">Klistra in koden. Den nuvarande profilen skrivs över.</p>' +
-          '<textarea id="imarea" style="width:100%;height:110px;font-size:11px;border-radius:14px;border:3px solid var(--line);padding:8px;background:var(--bg);color:var(--ink)"></textarea>' +
-          '<p class="qsub" id="immsg" style="min-height:18px">&nbsp;</p>' +
-          '<button class="btn big wide" id="imok">Återställ</button>' +
-          '<button class="btn ghost wide" id="imno" style="margin-top:8px">Avbryt</button></div>',
-      );
-      d.querySelector("#imno").onclick = function () {
-        d.remove();
-      };
-      d.querySelector("#imok").onclick = function () {
-        if (importCode(d.querySelector("#imarea").value)) {
-          d.remove();
-          location.reload();
-        } else {
-          d.querySelector("#immsg").textContent = "Koden känns inte igen.";
-          sndNo();
-        }
-      };
-    });
-    var bs = app.querySelectorAll("[data-say]"),
-      k;
-    for (k = 0; k < bs.length; k++) {
-      (function (el) {
-        el.onclick = function () {
-          speak(el.getAttribute("data-say"));
-        };
-      })(bs[k]);
-    }
-  }
-
   /* ---------- ADMIN: dolt felsökningsläge ---------- */
   var ADMIN_CODE = "lyckholm";
   var APPVER = "2.0",
@@ -4902,54 +4622,6 @@
       d.remove();
     };
   }
-  /* vuxenfrågan framför allt som är för de vuxna: en multiplikation som en 7–10-åring sällan
-     klarar i farten. Ingen säkerhet mot en bestämd tonåring – bara mot att trycka fel av misstag.
-     Gäller i tio minuter, så den vuxna slipper svara igen varje gång. */
-  var adultUntil = 0;
-  function adultGate(cb) {
-    if (Date.now() < adultUntil) {
-      cb();
-      return;
-    }
-    var a = 6 + ((Math.random() * 4) | 0),
-      b = 6 + ((Math.random() * 4) | 0);
-    var d = overlay(
-      '<div class="oc"><h3>För vuxna</h3>' +
-        '<p class="qsub">Svara på frågan för att fortsätta.</p>' +
-        '<label class="adultq" for="adultans">Vad är ' +
-        a +
-        " × " +
-        b +
-        "?</label>" +
-        '<input class="type" id="adultans" type="text" inputmode="numeric" pattern="[0-9]*" autocomplete="off">' +
-        '<p class="qsub" id="adultmsg" role="status" style="min-height:18px">&nbsp;</p>' +
-        '<button class="btn big wide" id="adultok">Fortsätt</button>' +
-        '<button class="btn ghost wide" id="adultno" style="margin-top:8px">Avbryt</button></div>',
-    );
-    var inp = d.querySelector("#adultans");
-    function check() {
-      if (parseInt(inp.value, 10) === a * b) {
-        adultUntil = Date.now() + 10 * 60 * 1000;
-        d.remove();
-        cb();
-      } else {
-        d.querySelector("#adultmsg").textContent = "Inte riktigt. Det här är för de vuxna.";
-        inp.value = "";
-      }
-    }
-    d.querySelector("#adultok").onclick = check;
-    d.querySelector("#adultno").onclick = function () {
-      d.remove();
-    };
-    inp.onkeydown = function (e) {
-      if (e.key === "Enter") check();
-    };
-    setTimeout(function () {
-      try {
-        inp.focus();
-      } catch (e) {}
-    }, 80);
-  }
   function askAdmin() {
     var d = overlay(
       '<div class="oc" style="border-color:var(--berry)"><p class="kicker">🛠️ Låst läge</p>' +
@@ -5052,6 +4724,8 @@
   function setupScreen(first) {
     screen = "setup";
     setNav(first ? "" : "me");
+    /* första gången finns ingen spelare än: inga poäng, märken eller stjärnor att visa */
+    showTop(!first);
     btnBack.hidden = !!first ? true : false;
     var html =
       '<div class="card" style="text-align:center">' +
@@ -5133,6 +4807,9 @@
       (first ? "Nu kör vi! 🎈" : "Spara") +
       "</button>" +
       (first ? '<button class="btn ghost wide" id="skip" style="margin-top:8px">Hoppa över</button>' : "") +
+      (first && cloudOn()
+        ? '<p class="qsub" style="margin-top:10px">Utan konto sparas spelet bara på den här enheten.</p>'
+        : "") +
       "</div>";
     app.innerHTML = html;
     var avs = app.querySelectorAll("[data-av]"),
@@ -12522,10 +12199,7 @@
     else if (openScreen === "words") go(listScreen, true);
     else if (openScreen === "school") go(schoolLessonStart, true);
     else if (openScreen === "edit") setupScreen(false);
-    else if (openScreen === "parent")
-      adultGate(function () {
-        go(parentScreen, true);
-      });
+    else if (openScreen === "schoolimport") go(schoolImport, true);
     else if (openScreen === "admin") askAdmin();
     else homeScreen();
   }

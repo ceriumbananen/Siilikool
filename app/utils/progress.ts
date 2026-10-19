@@ -12,11 +12,12 @@ export function summarizeProgress(data: Record<string, any> | null | undefined):
   const entries = Object.entries(mem).filter(([, m]) => m && typeof m === "object");
 
   const strong = entries.filter(([, m]) => num(m.s) >= 2).length;
-  const hard = entries
+  const hardEntries = entries
     .filter(([, m]) => num(m.w) > 1.6)
     .sort(([, a], [, b]) => num(b.w) - num(a.w))
-    .slice(0, 8)
-    .map(([k, m]) => ({ et: wordOf(k), misses: num(m.m) }));
+    .slice(0, 12);
+  const hardKeys = hardEntries.map(([k]) => k);
+  const hard = hardEntries.map(([k, m]) => ({ et: wordOf(k), misses: num(m.m) }));
 
   let school: ChildProgress["school"] = null;
   if (s.school && Array.isArray(s.school.words) && s.school.words.length) {
@@ -31,14 +32,41 @@ export function summarizeProgress(data: Record<string, any> | null | undefined):
     };
   }
 
+  /* samma ord som barnet möter i spelet: hur många som inte övats än, och tema för tema */
+  const words = allWords(s);
+  const unseen = words.filter(w => !mem[mkey(w.et, w.sv)]).length;
+  const themes = (THEMES as { id: string; sv: string; em: string; words: WordItem[] }[]).map(t => {
+    const strongIn = t.words.filter(w => num(mem[mkey(w.et, w.sv)]?.s) >= 2).length;
+    const p = t.words.length ? strongIn / t.words.length : 0;
+    return {
+      id: t.id,
+      sv: t.sv,
+      em: t.em,
+      strong: strongIn,
+      total: t.words.length,
+      pct: Math.round(p * 100),
+      medal: (p >= 0.95 ? "gold" : p >= 0.7 ? "silver" : p >= 0.4 ? "bronze" : "") as "" | "gold" | "silver" | "bronze",
+    };
+  });
+  /* de svåra orden med svenska och bild, när ordet finns i spelet */
+  const byKey = new Map(words.map(w => [mkey(w.et, w.sv), w]));
+  const hardWords = hard.map((h, i) => {
+    const w = byKey.get(hardKeys[i]!);
+    return { ...h, sv: w?.sv ?? "", em: w?.em ?? "" };
+  });
+
   return {
     stars: num(s.stars),
     xp: num(s.xp),
     correct: num(s.correct),
     lessons: num(s.lessons),
     badges: Array.isArray(s.badges) ? s.badges.length : 0,
-    words: { practiced: entries.length, strong, shaky: entries.length - strong },
-    hard,
+    flames: num(s.flames),
+    spoken: num(s.spoken),
+    typed: num(s.typed),
+    words: { practiced: entries.length, strong, shaky: entries.length - strong, unseen },
+    hard: hardWords,
+    themes,
     school,
     doneLists: Array.isArray(s.schoolDoneSets) ? s.schoolDoneSets.length : 0,
   };

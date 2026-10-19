@@ -1,20 +1,19 @@
-/* Synk mellan enheten och familjekontot (Supabase), se docs/plan-familj.md.
+/* Synk mellan enheten och familjekontot (Supabase), se docs/plan-familj.md och plan-konton-v2.md.
 
-   Varje lokal profilplats (0–2) kan kopplas till en medlem i familjen:
-   - en vuxen: inloggad med e-post, kopplar sitt eget spel på sin enhet
+   Varje spelare på enheten (app/stores/profile.ts) som är en medlem i familjen har nyckeln
+   "m:<medlemmens id>" och en koppling här:
+   - en vuxen: inloggad med e-post - spelet hämtas automatiskt när hen loggar in
    - ett barn: enheten loggas in anonymt, familjekoden skrivs in och barnet väljs ("Vem spelar?").
-     En enhet kan ha flera barn – de hamnar på var sin profilplats.
+     En enhet kan ha hur många barn som helst - var och en är en egen spelare.
    En vuxen kan låsa enhetens inloggning; då fungerar den som en barnenhet tills vuxen-PIN låser upp.
-   Kopplingarna sparas lokalt (siiri-eesti-cloud). localStorage är fortfarande det som spelet läser
+   Kopplingarna sparas lokalt (siiri-links, nyckel = spelaren). localStorage är det som spelet läser
    och skriver – det här lagret skickar upp ändringar och hämtar ner andras, så appen fungerar
    precis som förut utan nät och utan konto. */
 
-const LINKS_KEY = "siiri-eesti-cloud";
 const FAMILY_KEY = "siiri-eesti-family"; /* barnenhet: familjekoden, så att fler barn kan läggas till */
-const PENDING_KEY = "siiri-eesti-pending-link"; /* ny profilplats som ska kopplas när den laddats */
+const PENDING_KEY = "siiri-pending-link"; /* ny spelare som ska kopplas när den laddats */
 const CHOSEN_KEY = "siiri-eesti-chosen"; /* "Vem spelar?" är besvarad i den här fliken (sessionStorage) */
 const PUSH_DELAY = 2000;
-const SLOTS = 3; /* den gamla appens profilplatser */
 
 function readJson<T>(key: string, empty: T): T {
   try {
@@ -32,7 +31,7 @@ function writeJson(key: string, value: unknown) {
   }
 }
 
-/* kopplingar från den tidigare modellen (engångskod per enhet) saknar kind – de släpps; spelen finns kvar lokalt */
+/* kopplingar utan kind (från den allra första modellen) släpps; spelen finns kvar lokalt */
 function readLinks(): Record<string, CloudLink> {
   const all = readJson<Record<string, CloudLink>>(LINKS_KEY, {});
   for (const k of Object.keys(all)) if (!all[k]?.kind) delete all[k];
@@ -75,7 +74,7 @@ export const useCloudStore = defineStore("cloud", () => {
   const isFamilyDevice = computed(() => !!session.value && (isAnonymous.value || isLocked.value));
   /* familjens namn: sparat på barnenheten, eller hämtat för en låst enhet */
   const familyName = ref(family.value?.name || "");
-  const link = computed<CloudLink | null>(() => links[String(profile.slot)] || null);
+  const link = computed<CloudLink | null>(() => links[profile.current] || null);
   /* kopplad, men inloggningen är borta – synken står still tills man loggar in eller väljer barnet igen */
   const needsLogin = computed(() => !!link.value && !session.value);
 
@@ -128,9 +127,11 @@ export const useCloudStore = defineStore("cloud", () => {
     const { data, error } = await sb!.from("members").select(MEMBER_COLS).eq("id", l.id).maybeSingle();
     if (error) return fail(error);
     if (!data) {
-      /* medlemmen är borttagen, eller enheten är bortkopplad av en vuxen – spelet finns kvar lokalt */
-      delete links[String(profile.slot)];
+      /* medlemmen är borttagen, eller enheten är bortkopplad av en vuxen – spelet finns kvar lokalt,
+         som en lokal spelare */
+      delete links[profile.current];
       persist();
+      profile.rekey(profile.current, newLocalKey());
       status.value = "klar";
       return;
     }
@@ -139,7 +140,7 @@ export const useCloudStore = defineStore("cloud", () => {
       apply(l.dirty ? mergeSaves(l.base ? JSON.parse(l.base) : null, toRaw(profile.state), remote) : remote);
       l.base = JSON.stringify(remote);
     }
-    /* de vuxna har bytt barnets namn eller figur i föräldraläget → följer med in i spelet
+    /* de vuxna har bytt barnets namn eller figur i Familjen → följer med in i spelet
        (barnets egna ändringar i spelet ligger kvar tills de vuxna ändrar igen) */
     if (l.kind === "child") {
       const s = profile.state;
@@ -221,7 +222,7 @@ export const useCloudStore = defineStore("cloud", () => {
       const data = JSON.parse(JSON.stringify(toRaw(profile.state)));
       const { data: rows, error } = await sb!
         .from("members")
-        /* bara spelet – namn och figur på medlemmen sätts av de vuxna i föräldraläget */
+        /* bara spelet – namn och figur på medlemmen sätts av de vuxna i Familjen */
         .update({ data, ver: l.ver + 1 })
         .eq("id", l.id)
         .eq("ver", l.ver)
@@ -262,11 +263,12 @@ export const useCloudStore = defineStore("cloud", () => {
     }, PUSH_DELAY);
   }
 
-  /* ---------- koppla profilplatser ---------- */
+  /* ---------- koppla spelare till medlemmar ---------- */
 
-  /* Kopplar profilplatsen som spelas nu till en medlem. Har både enheten och kontot ett spel måste man
-     välja (choice) – annars returneras "needs-choice". En reservkopia tas alltid först. */
-  async function linkSlot(memberId: string, choice?: LinkChoice): Promise<"ok" | "needs-choice"> {
+  /* Gör spelaren som spelar nu till en medlems spelare ("m:<id>") och kopplar den. Har både enheten och
+     kontot ett spel måste man välja (choice) – annars returneras "needs-choice". En reservkopia tas
+     alltid först. */
+  async function linkCurrent(memberId: string, choice?: LinkChoice): Promise<"ok" | "needs-choice"> {
     if (!sb) throw new Error("Konton är inte påslagna");
     const { data, error } = await sb.from("members").select(MEMBER_COLS).eq("id", memberId).single();
     if (error) throw error;
@@ -276,8 +278,10 @@ export const useCloudStore = defineStore("cloud", () => {
     if (remoteHas && localHas && !choice) return "needs-choice";
 
     profile.autoBackup("före koppling");
-    const slot = String(profile.slot);
-    links[slot] = {
+    const key = memberKey(memberId);
+    if (links[profile.current] && profile.current !== key) delete links[profile.current];
+    profile.rekey(profile.current, key);
+    links[key] = {
       id: data.id,
       kind: data.kind,
       name: data.name,
@@ -290,8 +294,14 @@ export const useCloudStore = defineStore("cloud", () => {
     if (remoteHas && (!localHas || choice === "remote")) apply(remote!);
     else if (remoteHas && choice === "merge") {
       apply(mergeSaves(null, toRaw(profile.state), remote!));
-      links[slot]!.dirty = true;
-    } else links[slot]!.dirty = true; /* enhetens spel laddas upp */
+      links[key]!.dirty = true;
+    } else links[key]!.dirty = true; /* enhetens spel laddas upp */
+    /* en ny, tom spelare för en vuxen: hen heter som i familjen och slipper välja namn igen */
+    if (data.kind === "adult" && !profile.state.name && data.name) {
+      profile.state.name = data.name;
+      profile.state.setupdone = 1;
+      profile.save();
+    }
     /* barnet heter och ser ut i spelet som de vuxna har bestämt i familjen */
     if (data.kind === "child" && (profile.state.name !== data.name || profile.state.avatar !== data.avatar)) {
       profile.state.name = data.name;
@@ -299,19 +309,16 @@ export const useCloudStore = defineStore("cloud", () => {
       profile.save();
     }
     persist();
-    if (links[slot]!.dirty) await push();
+    if (links[key]!.dirty) await push();
     if (data.kind === "child") await pullWordLists(data.id);
     return "ok";
   }
 
-  /* första lediga profilplatsen (inte kopplad och utan spel), eller null om alla är upptagna */
-  function freeSlot(): number | null {
-    for (let i = 0; i < SLOTS; i++) {
-      if (links[String(i)]) continue;
-      const info = profile.slotInfo(i);
-      if (!info || (!info.xp && !info.stars && !info.name)) return i;
-    }
-    return null;
+  /* en ny spelare för en medlem: byt till den, kopplingen görs när den laddats (init) */
+  function startMemberPlayer(memberId: string, to = "/") {
+    const key = memberKey(memberId);
+    writeJson(PENDING_KEY, { key, member: memberId });
+    profile.switchPlayer(key, to);
   }
 
   /* ---------- barnens enheter: familjekod → vem spelar? ---------- */
@@ -359,51 +366,44 @@ export const useCloudStore = defineStore("cloud", () => {
     return r.ok ? { ok: true } : { ok: false, error: r.error || "fel", until: r.until };
   }
 
-  /* väljer ett barn på enheten (med PIN om barnet har en) och kopplar det till en profilplats:
-     den som spelas nu om den är ledig, annars en ny. Finns barnet redan på enheten byts det till
-     barnets plats. Byter man plats laddas spelet om. */
+  /* Väljer ett barn på enheten (med PIN om barnet har en). Finns barnet redan på enheten byts det
+     till; annars blir spelaren som spelas nu barnets om den är lokal och tom eller redan barnets eget
+     spel (samma namn), och i övriga fall får barnet en egen, ny spelare. Någon annans spel ska aldrig
+     bli barnets. Byter man spelare laddas spelet om. */
   async function addPlayer(
     member: { id: string; name: string },
     pin: string | null,
     choice?: LinkChoice,
-  ): Promise<{ ok: true; slot: number } | { ok: false; error: string; until?: string } | "needs-choice"> {
+  ): Promise<{ ok: true; key: string } | { ok: false; error: string; until?: string } | "needs-choice"> {
     if (!sb) throw new Error("Konton är inte påslagna");
-    const memberId = member.id;
-    const existing = Object.entries(links).find(([, l]) => l.id === memberId);
-    if (existing && Number(existing[0]) === profile.slot) {
+    const key = memberKey(member.id);
+    if (profile.current === key) {
       markChosen();
-      return { ok: true, slot: profile.slot };
+      return { ok: true, key };
     }
     if (!choice) {
-      const r = await chooseMember(memberId, pin);
+      const r = await chooseMember(member.id, pin);
       if (!r.ok) return r;
       await refreshSession();
     }
     markChosen();
-    if (existing) {
-      profile.switchSlot(Number(existing[0]), "/");
-      return { ok: true, slot: Number(existing[0]) };
+    if (profile.players.includes(key)) {
+      profile.switchPlayer(key, "/");
+      return { ok: true, key };
     }
-    /* Profilplatsen som spelas nu används bara om den är okopplad och tom, eller redan är barnets eget
-       spel (samma namn). Annars får barnet en ledig plats – någon annans spel ska aldrig bli barnets. */
     const sameName = (profile.state.name || "").trim().toLowerCase() === member.name.trim().toLowerCase();
-    const current = !link.value && (!hasProgress(profile.state) || sameName);
-    const target = current ? profile.slot : freeSlot();
-    if (target === null) return { ok: false, error: "full" };
-    if (target !== profile.slot) {
-      /* ny plats: till spelet med den platsen vald; kopplingen görs när den laddats (init) */
-      writeJson(PENDING_KEY, { slot: target, member: memberId });
-      profile.switchSlot(target, "/");
-      return { ok: true, slot: target };
+    if (!link.value && (!hasProgress(profile.state) || sameName)) {
+      const r = await linkCurrent(member.id, choice);
+      if (r === "needs-choice") return r;
+      return { ok: true, key };
     }
-    const r = await linkSlot(memberId, choice);
-    if (r === "needs-choice") return r;
-    return { ok: true, slot: target };
+    startMemberPlayer(member.id);
+    return { ok: true, key };
   }
 
   /* ---------- "Vem spelar?" på enheter där barnen spelar ---------- */
 
-  const picker = reactive({ open: false, mandatory: false, pinSlot: null as number | null });
+  const picker = reactive({ open: false, mandatory: false, pinKey: null as string | null });
 
   function markChosen() {
     try {
@@ -420,21 +420,22 @@ export const useCloudStore = defineStore("cloud", () => {
     }
   }
 
-  /* spelarna på enheten: profilplatser som används. Den vuxnas eget spel visas inte när enheten är låst. */
+  /* spelarna på enheten. Den vuxnas eget spel visas inte när enheten är låst, och tomma lokala
+     spelare (påbörjade men aldrig spelade) visas inte. */
   function devicePlayers(): DevicePlayer[] {
     const out: DevicePlayer[] = [];
-    for (let i = 0; i < SLOTS; i++) {
-      const l = links[String(i)];
+    for (const key of profile.players) {
+      const l = links[key];
       if (l?.kind === "adult" && isLocked.value) continue;
-      const info = profile.slotInfo(i);
-      if (!l && (!info || (!info.xp && !info.stars && !info.name))) continue;
+      if (!l && !profile.playerUsed(key)) continue;
+      const info = key === profile.current ? profile.state : profile.playerInfo(key);
       out.push({
-        slot: i,
+        key,
         name: info?.name || l?.name || "",
         avatar: info?.avatar || l?.avatar || "🦔",
         kind: l?.kind || "",
         pin: !!(l?.kind === "child" && l.pin),
-        current: i === profile.slot,
+        current: key === profile.current,
       });
     }
     return out;
@@ -457,22 +458,22 @@ export const useCloudStore = defineStore("cloud", () => {
     }
   }
 
-  function openPicker(opts: { mandatory?: boolean; pinSlot?: number } = {}) {
+  function openPicker(opts: { mandatory?: boolean; pinKey?: string } = {}) {
     picker.mandatory = !!opts.mandatory;
-    picker.pinSlot = opts.pinSlot ?? null;
+    picker.pinKey = opts.pinKey ?? null;
     picker.open = true;
     refreshPlayers();
   }
   function closePicker() {
     if (picker.mandatory) return;
     picker.open = false;
-    picker.pinSlot = null;
+    picker.pinKey = null;
     markChosen();
   }
 
-  /* byter till spelaren på en profilplats. Barn med PIN-kod kräver den (kontrolleras av databasen). */
-  async function switchPlayer(slot: number, pin: string | null): Promise<PlayerResult> {
-    const l = links[String(slot)];
+  /* byter till en spelare. Barn med PIN-kod kräver den (kontrolleras av databasen). */
+  async function switchPlayer(key: string, pin: string | null): Promise<PlayerResult> {
+    const l = links[key];
     if (l?.kind === "adult" && isLocked.value) return { ok: false, error: "locked_adult" };
     if (l?.kind === "child" && l.pin) {
       const r = await chooseMember(l.id, pin);
@@ -481,19 +482,19 @@ export const useCloudStore = defineStore("cloud", () => {
     markChosen();
     picker.open = false;
     picker.mandatory = false;
-    picker.pinSlot = null;
-    if (slot !== profile.slot) profile.switchSlot(slot, "/");
+    picker.pinKey = null;
+    if (key !== profile.current) profile.switchPlayer(key, "/");
     return { ok: true };
   }
 
-  /* profilväxlaren i spelet: på en familjeenhet går byten till barn med PIN via "Vem spelar?" */
-  function requestSlot(slot: number) {
-    if (slot === profile.slot) return;
-    const l = links[String(slot)];
+  /* spelarlistan i profilen: på en familjeenhet går byten till barn med PIN via "Vem spelar?" */
+  function requestPlayer(key: string) {
+    if (key === profile.current) return;
+    const l = links[key];
     if (isFamilyDevice.value && ((l?.kind === "child" && l.pin) || (l?.kind === "adult" && isLocked.value)))
-      return openPicker({ pinSlot: l.kind === "child" ? slot : undefined });
+      return openPicker({ pinKey: l.kind === "child" ? key : undefined });
     markChosen();
-    profile.switchSlot(slot);
+    profile.switchPlayer(key);
   }
 
   /* när spelet startar: välj spelare om flera spelar på enheten. På en låst enhet får den vuxnas
@@ -505,12 +506,14 @@ export const useCloudStore = defineStore("cloud", () => {
     if (!chosenThisVisit() && devicePlayers().length >= 2) openPicker();
   }
 
-  /* tar bort spelaren från enheten. Spelet finns kvar lokalt; är det sista barnet loggas enheten ut. */
-  async function removePlayer(slot = profile.slot) {
-    const l = links[String(slot)];
+  /* kopplar bort spelaren från familjen. Spelet finns kvar på enheten som en lokal spelare; är det
+     sista barnet loggas enheten ut. */
+  async function removePlayer(key = profile.current) {
+    const l = links[key];
     if (!l) return;
-    delete links[String(slot)];
+    delete links[key];
     persist(); /* lokalt först – det ska gälla även utan nät */
+    profile.rekey(key, newLocalKey());
     if (!sb || !session.value || l.kind !== "child") return;
     try {
       const sid = sessionIdOf(session.value);
@@ -529,7 +532,7 @@ export const useCloudStore = defineStore("cloud", () => {
 
   /* barnenhet → vuxen: alla barn släpps från enheten (spelen finns kvar lokalt) och den anonyma inloggningen avslutas */
   async function leaveFamilyDevice() {
-    for (const [slot, l] of Object.entries(links)) if (l.kind === "child") await removePlayer(Number(slot));
+    for (const [key, l] of Object.entries(links)) if (l.kind === "child") await removePlayer(key);
     if (sb && isAnonymous.value) await sb.auth.signOut();
     family.value = null;
     familyName.value = "";
@@ -539,21 +542,71 @@ export const useCloudStore = defineStore("cloud", () => {
 
   /* ---------- vuxna ---------- */
 
-  /* kopplar den vuxnas eget spel till profilplatsen som spelas nu */
-  async function linkMyGame(choice?: LinkChoice): Promise<"ok" | "needs-choice"> {
-    if (!sb || !session.value) throw new Error("Logga in först");
-    const { data, error } = await sb
+  /* Efter inloggning: den vuxna spelar sitt eget spel, så att ett konto aldrig "försvinner" när
+     webbläsarens data töms (docs/plan-konton-v2.md). Finns den vuxnas spelare redan på enheten byts
+     det till den. Annars blir spelaren som spelas nu den vuxnas om den är lokal och tom eller samma
+     person (samma namn) - finns spel på båda ställena slås de ihop, inget skrivs över. I övriga fall
+     får den vuxna en egen spelare; det lokala spelet ligger kvar i "Vem spelar?".
+     "linked" = spelet som spelas nu är kopplat (redan inläst), "switched" = sidan laddas om med den
+     vuxnas spelare, false = inget att göra.
+     onLogin = false (när sidan bara laddas): byt aldrig bort en spelare som man själv har valt -
+     bara en tom, lokal spelare kopplas om den vuxnas spelare inte finns på enheten. */
+  let autoLinking: Promise<"linked" | "switched" | false> | null = null;
+  function autoLinkOwnGame(onLogin = true): Promise<"linked" | "switched" | false> {
+    /* kan startas både av inloggningen och av sidan - körs bara en gång åt gången */
+    if (!autoLinking) autoLinking = doAutoLink(onLogin).finally(() => (autoLinking = null));
+    return autoLinking;
+  }
+  async function doAutoLink(onLogin: boolean): Promise<"linked" | "switched" | false> {
+    if (!sb || !session.value || isAnonymous.value || !me.value?.adult || me.value.locked) return false;
+    const { data } = await sb
       .from("members")
-      .select("id")
+      .select("id, name")
       .eq("user_id", session.value.user.id)
       .eq("kind", "adult")
-      .single();
-    if (error) throw error;
-    return linkSlot(data.id, choice);
+      .maybeSingle();
+    if (!data) return false;
+    const key = memberKey(data.id);
+    if (profile.current === key) return false;
+    if (profile.players.includes(key)) {
+      if (!onLogin) return false;
+      profile.switchPlayer(key);
+      return "switched";
+    }
+    const sameName = !!data.name && (profile.state.name || "").trim().toLowerCase() === data.name.trim().toLowerCase();
+    if (!link.value && (!hasProgress(profile.state) || sameName)) {
+      await linkCurrent(data.id, "merge");
+      return "linked";
+    }
+    if (!onLogin) return false;
+    startMemberPlayer(data.id, location.pathname + location.search);
+    return "switched";
   }
 
+  /* "Spela som" i Familjen: en olåst vuxen byter enheten till en medlems spel – barn utan deras PIN,
+     eller sitt eget. Barnet registreras på enheten, så att spelet synkar även när enheten lämnas över.
+     Allt som spelas räknas på medlemmen. Sidan laddas om med spelaren. */
+  async function playAs(member: { id: string; kind: "adult" | "child" }) {
+    if (!sb || !isAdult.value) throw new Error("Logga in som vuxen först");
+    if (member.kind === "child") {
+      const r = await chooseMember(member.id, null);
+      if (!r.ok) throw new Error("Det gick inte att välja barnet på enheten.");
+    }
+    markChosen();
+    const key = memberKey(member.id);
+    if (profile.players.includes(key)) profile.switchPlayer(key, "/");
+    else startMemberPlayer(member.id, "/");
+  }
+
+  /* "Lämna över till barnen": låser enhetens inloggning. Barnen som spelar här registreras på den nya
+     inloggningen först – annars når en låst enhet inte deras spel. */
   async function lock() {
     if (!sb) return;
+    for (const l of Object.values(links))
+      if (l.kind === "child")
+        await chooseMember(l.id, null).catch(() => {
+          /* barnet kan vara borttaget - det märks vid nästa hämtning */
+        });
     const { error } = await sb.rpc("lock_session");
     if (error) throw error;
     try {
@@ -590,7 +643,16 @@ export const useCloudStore = defineStore("cloud", () => {
       sb.auth.onAuthStateChange((_event, s) => {
         const changed = s?.user.id !== session.value?.user.id;
         session.value = s;
-        if (changed) refreshSession();
+        /* nyss inloggad vuxen: hämta hens spel direkt (efter den här händelsen - Supabase vill inte
+           att man anropar databasen inifrån sin egen lyssnare) */
+        if (changed)
+          setTimeout(
+            () =>
+              refreshSession()
+                .then(() => autoLinkOwnGame())
+                .catch(fail),
+            0,
+          );
       });
       /* allt som skriver spelet: save (den gamla koden), och import/nollställning som sparar inifrån */
       const writes = new Set(["save", "replace", "importCode", "wipe"]);
@@ -611,11 +673,19 @@ export const useCloudStore = defineStore("cloud", () => {
         }
       });
       await refreshSession().catch(fail);
-      /* "Lägg till spelare" bytte profilplats – koppla den nya platsen nu */
-      const pending = readJson<{ slot: number; member: string } | null>(PENDING_KEY, null);
-      if (pending && pending.slot === profile.slot && session.value) {
+      /* inloggad vuxen vars spel inte finns på enheten (t.ex. efter tömd webbläsare): hämta det.
+         Hann spelet starta med det lokala innan svaret kom laddas det om med kontots spel. */
+      /* en ny spelare för en medlem (barn som lades till, eller den vuxnas eget spel) – koppla den nu */
+      const pending = readJson<{ key: string; member: string } | null>(PENDING_KEY, null);
+      if (pending && pending.key === profile.current && session.value) {
         writeJson(PENDING_KEY, null);
-        await linkSlot(pending.member, "remote").catch(fail);
+        await linkCurrent(pending.member, "remote").catch(fail);
+      }
+      const auto = await autoLinkOwnGame(false).catch(() => false as const);
+      if (auto === "switched") return; /* sidan laddas om */
+      if (auto === "linked") {
+        if (document.querySelector('script[src="/legacy/app.js"]')) location.reload();
+        return;
       }
       if (link.value && session.value) await pull().catch(fail);
       /* diplom m.m. som en tidigare sammanslagning tappade – sparas och skickas upp som vanligt */
@@ -652,8 +722,7 @@ export const useCloudStore = defineStore("cloud", () => {
     refreshSession,
     pull,
     push,
-    linkSlot,
-    freeSlot,
+    linkCurrent,
     lookupFamily,
     familyChildren,
     addPlayer,
@@ -661,10 +730,11 @@ export const useCloudStore = defineStore("cloud", () => {
     openPicker,
     closePicker,
     switchPlayer,
-    requestSlot,
+    requestPlayer,
     removePlayer,
     leaveFamilyDevice,
-    linkMyGame,
+    autoLinkOwnGame,
+    playAs,
     lock,
     unlock,
     signOut,

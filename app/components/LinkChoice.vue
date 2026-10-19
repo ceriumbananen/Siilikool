@@ -16,9 +16,14 @@ const emit = defineEmits<{ choose: [choice: LinkChoice] }>();
       🤝 Slå ihop (rekommenderas)
     </button>
     <p class="qsub">Stjärnor, köp, märken, diplom, resan och ord från båda behålls.</p>
-    <button class="btn ghost wide" :disabled="busy" @click="emit('choose', 'local')">📱 Behåll enhetens spel</button>
-    <button class="btn ghost wide" :disabled="busy" @click="emit('choose', 'remote')">
-      ☁️ Använd spelet från kontot
+    <!-- de två andra valen kastar det ena spelet - det ska synas på knappen, inte bara i en reservkopia -->
+    <button class="btn ghost wide" :disabled="busy" @click="emit('choose', 'local')">
+      📱 Behåll bara enhetens spel
     </button>
+    <p class="qsub">Spelet i kontot ersätts av det på den här enheten.</p>
+    <button class="btn ghost wide" :disabled="busy" @click="emit('choose', 'remote')">
+      ☁️ Använd bara spelet från kontot
+    </button>
+    <p class="qsub">Spelet på den här enheten ersätts av det i kontot.</p>
   </div>
 </template>
