@@ -5020,12 +5020,25 @@
      den sparade S.avatar-emojin (eller en annan AVATARS-emoji i väljarrutnätet); bilden är
      bara en kosmetisk uppgradering, S.avatar förblir emojin. Precis som rivalIcon() går
      ikonen alltid att klicka/trycka Enter på för figur-kortet (openCharCard() nedan). */
-  function avatarIcon(em, px) {
+  /* peek=false ger bara bilden utan charpeek-kortet - den fångande klicklyssnaren för
+     [data-char] (se längre ner) gör stopPropagation(), så en charpeek-ikon kan aldrig
+     samtidigt vara hela ytan på en egen klickbar knapp (figurväljaren i setupScreen():
+     knappen ÄR ikonen, inget annat att klicka på för att faktiskt välja figuren). */
+  function avatarIcon(em, px, peek) {
     var info = AVATAR_INFO[em],
       size = info ? Math.round(px * 1.5) : px,
       inner = info
         ? '<img src="' + info.img + '" alt="" style="height:' + size + 'px;width:auto;vertical-align:middle">'
         : '<span style="font-size:' + size + 'px;line-height:1">' + em + "</span>";
+    if (peek === false) {
+      return (
+        '<span style="display:inline-flex;justify-content:center;align-items:center;width:' +
+        size +
+        'px">' +
+        inner +
+        "</span>"
+      );
+    }
     return (
       '<span class="charpeek" data-char="avatar:' +
       em +
@@ -5065,7 +5078,7 @@
         '" data-av="' +
         AVATARS[i] +
         '">' +
-        avatarIcon(AVATARS[i], 30) +
+        avatarIcon(AVATARS[i], 30, false) +
         "</button>";
     }
     if (!first)
@@ -7286,14 +7299,18 @@
     s +=
       '<path d="' +
       d +
-      '" fill="none" stroke="#7A5C42" stroke-width="2" stroke-dasharray="4 5" opacity=".5"/>' +
+      '" fill="none" stroke="#7A5C42" stroke-width="1.1" stroke-dasharray="3 4.5" opacity=".4"/>' +
       '<path d="' +
       d2 +
-      '" fill="none" stroke="#C8305A" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/>';
+      '" fill="none" stroke="#C8305A" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" opacity=".75"/>';
     for (i = 0; i < TRIP.length; i++) {
       var t = TRIP[i],
         open = i < n,
-        here = i === n - 1;
+        here = i === n - 1,
+        /* bara "här är du nu" ska sticka ut - redan besökta orter får en liten, lugn
+           prick i samma stil som sido-stoppen (MAPTOWNS), annars tävlar 20 lika tjocka
+           cirklar om uppmärksamheten på en gång */
+        passed = open && !here;
       s +=
         '<g class="mstop' +
         (open ? "" : " locked") +
@@ -7308,20 +7325,20 @@
         '" cy="' +
         t.y +
         '" r="' +
-        (here ? 11 : 8.5) +
+        (here ? 10 : passed ? 6 : 7.5) +
         '" fill="' +
         (open ? "#FFF7E8" : "#E6EBE2") +
         '" stroke="' +
-        (open ? "#C8305A" : "#93A78D") +
+        (here ? "#C8305A" : passed ? "#B7C4AF" : "#93A78D") +
         '" stroke-width="' +
-        (here ? 3 : 2) +
+        (here ? 2.2 : 1.2) +
         '"/>' +
         '<text x="' +
         t.x +
         '" y="' +
-        (t.y + (here ? 4.5 : 3.5)) +
+        (t.y + (here ? 4 : passed ? 2.5 : 3.2)) +
         '" text-anchor="middle" font-size="' +
-        (here ? 12 : 9.5) +
+        (here ? 11 : passed ? 7.5 : 8.5) +
         '">' +
         (open ? t.em : "🔒") +
         "</text>" +
