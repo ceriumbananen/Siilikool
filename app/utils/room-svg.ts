@@ -639,9 +639,16 @@ function roomSVGInner() {
     wall.body +
     fWallExtra(ctx.furnOf("wall")) +
     floor.body +
+    /* illustrerad bild istället för handritad ram+gardiner (public/images/room/window.webp) -
+       men själva glaset är en transparent urklippt ruta i bilden (målad magentafärgad och
+       bortnycklad i efterhand), så att utsikten (fView - dag/natt/snö/hav) fortfarande syns
+       levande bakom, bara omskalad (icke-enhetligt: fViews gamla 96×108-yta passar inte
+       exakt rutans 236×300px i källbilden) till rutans faktiska plats och form. */
     '<g id="roomwindow" style="cursor:pointer" tabindex="0" role="button" aria-label="Tryck på fönstret">' +
-    WINDOWSVG +
+    '<g transform="translate(37.5,49.4) scale(0.395,0.445)">' +
     fView(ctx.furnOf("view")) +
+    "</g>" +
+    '<image href="/images/room/window.webp" x="22" y="30" width="69" height="92"/>' +
     "</g>" +
     '<path d="M36 148 L128 148 L196 268 L60 268 Z" fill="url(#g-beam)" opacity=".45"/>' +
     (fArtExtra(ctx.furnOf("art")) || fArt(ctx.furnOf("art"))) +
