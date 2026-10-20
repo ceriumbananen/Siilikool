@@ -9638,15 +9638,104 @@
     prefetchAllThemes();
     app.innerHTML =
       '<div class="zone play"><span class="zem">🛶</span><span><b>Paadisõit</b><span>Barkbåten — styr och fånga rätt ord</span></span></div>' +
-      '<div class="card" style="text-align:center"><p class="qsub">Siiri åker barkbåt nerför floden. Styr båten upp och ner med musen eller piltangenterna, och åk på det ord Siiri ber om. Fel ord? Bara undvik dem — ingen stress.</p>' +
+      '<div class="card" style="text-align:center"><p class="qsub">Siiri åker barkbåt nerför floden. Flaskposter flyter förbi på vattnet. Styr båten upp och ner med musen eller piltangenterna, och åk på flaskan med ordet Siiri ber om. Tar du fel flaska? Ingen fara - floden fortsätter, bara testa nästa.</p>' +
       '<div class="center">' +
       siilSVG("small") +
       "</div>" +
       '<button class="btn green big wide" id="start">Sätt igång 🛶</button></div>';
     document.getElementById("start").onclick = boatStart;
   }
+  var BOAT_LANES = [10, 37, 64, 90];
+  /* vilket ord nästa flaska i en lucka ska bära - ibland målordet (annars skulle man kunna
+     vänta hur länge som helst utan att det dyker upp), annars en distraktor. Undviker ord som
+     redan flyter i en annan flaska just då (slotRef utesluter sig själv vid återfyllning). */
+  function boatWordFor(slotRef) {
+    var present = [],
+      k;
+    for (k = 0; k < BT.slots.length; k++) if (BT.slots[k] && BT.slots[k] !== slotRef) present.push(BT.slots[k].et);
+    if (Math.random() < 0.4 && present.indexOf(BT.target.et) === -1) return BT.target;
+    var all = optionPool(BT.target, allWords()),
+      tries = 0,
+      c;
+    do {
+      c = all[(Math.random() * all.length) | 0];
+      tries++;
+    } while (present.indexOf(c.et) !== -1 && tries < 30);
+    return c;
+  }
+  /* nästa ord att leta efter - floden stannar aldrig för det, bara prompten och uppläsningen
+     byts i farten (se boatCatch()) */
+  function boatNextTarget() {
+    BT.target = BT.pool[BT.poolIdx % BT.pool.length];
+    BT.poolIdx++;
+    var el = document.getElementById("boatprompt");
+    if (el) el.innerHTML = promptHtml(BT.target, BT.target.sv);
+    speak(BT.target.et);
+  }
+  function boatRespawn(s) {
+    s.state = "flowing";
+    var w = boatWordFor(s);
+    s.et = w.et;
+    /* vid reducerad rörelse snurrar tick() aldrig, så en flaska som återfylls utanför rutan
+       (det vanliga) skulle bli kvar osynlig för alltid - synlig, stillastående plats istället */
+    s.x = BT.reduceMotion ? 10 + s.lane * 20 : -15 - Math.random() * 12;
+    var el = document.getElementById(s.domId);
+    if (el) {
+      el.textContent = w.et;
+      el.classList.remove("hit", "miss");
+    }
+    if (BT.paint) BT.paint();
+  }
+  /* fångar en flaska oavsett om det var en riktig krock (båten körde över den) eller ett
+     direkt tryck - samma utfall, två sätt att träffa (styra dit, eller peka direkt som
+     reserv). Stoppar aldrig floden: bara den fångade flaskan fryser till en kort stund
+     (hit/miss-färgen) innan den återfylls med ett nytt ord - allt annat flyter vidare. */
+  function boatCatch(s) {
+    if (!BT || s.state !== "flowing") return;
+    s.state = "caught";
+    var ok = s.et === BT.target.et,
+      el = document.getElementById(s.domId);
+    if (el) el.classList.add(ok ? "hit" : "miss");
+    wmemHit(BT.target.et, ok, "choose", BT.target.sv);
+    praiseSay(ok ? BT.right + 1 : 0, ok, null);
+    if (ok) {
+      BT.right++;
+      S.correct++;
+      earnStars(2);
+      addXp(10);
+      sndOk();
+      buzz(18);
+      mood("cheer");
+      save();
+      refreshTop();
+      var scoreEl = document.getElementById("boatscore");
+      if (scoreEl) scoreEl.textContent = BT.right + " av " + BT.n + " rätt";
+      if (BT.right >= BT.n) {
+        setTimeout(boatEnd, 500);
+        return;
+      }
+      boatNextTarget();
+    } else {
+      BT.wrong++;
+      sndNo();
+      mood("oops");
+    }
+    setTimeout(function () {
+      if (BT) boatRespawn(s);
+    }, 420);
+  }
   function boatStart() {
-    BT = { i: 0, n: 10, right: 0, pool: pickWeighted(allWords(), 20), boatY: 50, keyHandler: null };
+    BT = {
+      right: 0,
+      wrong: 0,
+      n: 10,
+      pool: pickWeighted(allWords(), 20),
+      poolIdx: 1,
+      boatY: 50,
+      slots: [],
+      keyHandler: null,
+    };
+    BT.target = BT.pool[0];
     BT.keyHandler = function (e) {
       if (!BT || screen !== "boat") return;
       if (e.key === "ArrowUp") {
@@ -9659,125 +9748,76 @@
       if (BT.paint) BT.paint(); /* tick() må inte snurra (reduceMotion) - rita om direkt så pilarna syns */
     };
     document.addEventListener("keydown", BT.keyHandler);
-    boatRound();
+    boatRender();
   }
-  /* fångar ordet oavsett om det var en riktig krock (båten körde över det) eller ett
-     direkt tryck på brickan - samma utfall, två sätt att träffa rätt (mus/tangentbord
-     att styra med, eller peka direkt - bra reserv för den som inte vill/kan styra). */
-  function boatResolve(word, target) {
-    if (!BT || BT.lock) return;
-    BT.lock = true;
-    if (BT.raf) cancelAnimationFrame(BT.raf);
-    var ok = word.et === target.et;
-    var el = document.getElementById(word.domId);
-    if (el) el.classList.add(ok ? "hit" : "miss");
-    wmemHit(target.et, ok, "choose", target.sv);
-    praiseSay(ok ? BT.right + 1 : 0, ok, document.getElementById("fb"));
-    if (ok) {
-      BT.right++;
-      S.correct++;
-      earnStars(2);
-      addXp(10);
-      sndOk();
-      buzz(18);
-      mood("cheer");
-      save();
-      refreshTop();
-    } else {
-      sndNo();
-      mood("oops");
-    }
-    BT.i++;
-    setTimeout(function () {
-      if (BT) boatRound();
-    }, 800);
-  }
-  function boatRound() {
-    if (!BT) return;
-    if (BT.i >= BT.n) {
-      boatEnd();
-      return;
-    }
-    BT.lock = false;
-    var target = BT.pool[BT.i % BT.pool.length],
-      all = optionPool(target, allWords()),
-      opts = [target],
+  /* ritar skalet en enda gång (till skillnad från förut, då hela skärmen byggdes om per ord) -
+     det är precis det som gjorde att floden "bromsade in" mellan varje ord. Nu lever samma DOM
+     kvar hela resan; bara prompten (boatNextTarget()) och flaskornas ord (boatRespawn()) byts. */
+  function boatRender() {
+    var reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches,
       i,
-      tries = 0;
-    while (opts.length < 4 && tries < 80) {
-      var c = all[(Math.random() * all.length) | 0];
-      tries++;
-      var dup = false;
-      for (i = 0; i < opts.length; i++) if (opts[i].et === c.et || opts[i].sv === c.sv) dup = true;
-      if (!dup) opts.push(c);
+      html =
+        '<div class="zone play"><span class="zem">🛶</span><span><b>Paadisõit</b>' +
+        '<span id="boatscore">' +
+        BT.right +
+        " av " +
+        BT.n +
+        " rätt</span></span></div>" +
+        '<div class="card"><p class="q">Hitta ordet för</p>' +
+        '<div id="boatprompt">' +
+        promptHtml(BT.target, BT.target.sv) +
+        "</div>" +
+        '<div class="center"><button class="speakbtn sm" id="say" aria-label="Hör ordet">🔊</button></div>' +
+        '<div class="riverbox" id="riverbox">' +
+        boatIcon();
+    for (i = 0; i < BOAT_LANES.length; i++) {
+      html += '<button class="riverword" id="rw' + i + '" style="top:' + BOAT_LANES[i] + '%"></button>';
     }
-    opts = shuffle(opts);
-    /* fyra skilda höjder (ban), blandade så målordet inte alltid dyker upp på samma plats -
-       x startar utanför rutan åt vänster, förskjutet per bricka så de inte kommer samtidigt.
-       Vid reducerad rörelse snurrar tick() aldrig, så brickorna får istället en synlig,
-       stillastående startposition direkt - annars skulle de bli kvar osynliga utanför rutan. */
-    var reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    var lanes = shuffle([10, 37, 64, 90]);
-    BT.words = opts.map(function (o, idx) {
-      return { et: o.et, y: lanes[idx], x: reduceMotion ? 10 + idx * 18 : -15 - idx * 22, domId: "rw" + idx };
-    });
-    var html =
-      '<div class="zone play"><span class="zem">🛶</span><span><b>Paadisõit</b>' +
-      "<span>ord " +
-      (BT.i + 1) +
-      " av " +
-      BT.n +
-      " · " +
-      BT.right +
-      " rätt</span></span></div>" +
-      '<div class="card"><p class="q">Hitta ordet för</p>' +
-      promptHtml(target, target.sv) +
-      '<div class="center"><button class="speakbtn sm" id="say" aria-label="Hör ordet">🔊</button></div>' +
-      '<div class="riverbox" id="riverbox">' +
-      boatIcon();
-    for (i = 0; i < BT.words.length; i++) {
-      html +=
-        '<button class="riverword" id="' +
-        BT.words[i].domId +
-        '" style="left:' +
-        BT.words[i].x +
-        "%;top:" +
-        BT.words[i].y +
-        '%">' +
-        esc(BT.words[i].et) +
-        "</button>";
-    }
-    html += '</div><div class="feedback" id="fb"></div></div><div class="center">' + siilSVG("small") + "</div>";
+    html += '</div></div><div class="center">' + siilSVG("small") + "</div>";
     app.innerHTML = html;
-    speak(target.et);
+    speak(BT.target.et);
     document.getElementById("say").onclick = function () {
-      speak(target.et);
+      speak(BT.target.et);
     };
-    /* direkt tryck på en bricka fångar den på fläcken - se boatResolve() */
-    for (i = 0; i < BT.words.length; i++) {
-      (function (w) {
-        var el = document.getElementById(w.domId);
-        if (el)
+    BT.reduceMotion = reduceMotion;
+    BT.slots = [];
+    for (i = 0; i < BOAT_LANES.length; i++) {
+      var w = boatWordFor(null);
+      BT.slots.push({
+        domId: "rw" + i,
+        lane: i,
+        y: BOAT_LANES[i],
+        x: reduceMotion ? 10 + i * 20 : -15 - i * 22,
+        state: "flowing",
+        et: w.et,
+      });
+    }
+    for (i = 0; i < BT.slots.length; i++) {
+      (function (s) {
+        var el = document.getElementById(s.domId);
+        if (el) {
+          el.textContent = s.et;
           el.onclick = function () {
-            boatResolve(w, target);
+            boatCatch(s);
           };
-      })(BT.words[i]);
+        }
+      })(BT.slots[i]);
     }
     var box = document.getElementById("riverbox"),
       boatEl = box.querySelector(".riverboat");
     function paint() {
       if (boatEl) boatEl.style.top = BT.boatY + "%";
-      for (var j = 0; j < BT.words.length; j++) {
-        var w = BT.words[j],
-          e2 = document.getElementById(w.domId);
+      for (var j = 0; j < BT.slots.length; j++) {
+        var s = BT.slots[j],
+          e2 = document.getElementById(s.domId);
         if (e2) {
-          e2.style.left = w.x + "%";
-          e2.style.top = w.y + "%";
+          e2.style.left = s.x + "%";
+          e2.style.top = s.y + "%";
         }
       }
     }
-    BT.paint = paint; /* så det långlivade piltangent-lyssnaren i boatStart() kan rita om efter ett tryck,
-      annars syns inget när hjulet (tick()) inte snurrar - se reduceMotion nedan */
+    BT.paint = paint;
+    paint();
     function steerTo(clientY) {
       if (!BT || !box) return;
       var r = box.getBoundingClientRect();
@@ -9795,26 +9835,25 @@
       { passive: true },
     );
     if (reduceMotion) {
-      /* ingen självgående rörelse - brickorna står stilla, tryck på dem funkar ändå,
+      /* ingen självgående rörelse - flaskorna står stilla, tryck på dem funkar ändå,
          och steerTo() ovan ritar om båten direkt så den ändå följer musen/fingret */
       return;
     }
     function tick(ts) {
       if (!BT || screen !== "boat") return; /* skärmen är lämnad - sluta tyst, inget mer att göra */
-      if (BT.lock) return; /* löst via klick eller krock - boatResolve() har redan tagit över */
       var dt = ts - (BT.lastTs || ts);
       BT.lastTs = ts;
       var speed = dt * 0.022; /* % av rutans bredd per ms, tillräckligt lugnt för ett barn att hinna styra */
-      for (var j = 0; j < BT.words.length; j++) {
-        var w = BT.words[j];
-        w.x += speed;
-        if (w.x > 110) w.x = -15;
-        /* fångstzon: nära båtens fasta x-position (82%), inom räckhåll i höjd från båten */
-        if (w.x >= 76 && w.x <= 88 && Math.abs(w.y - BT.boatY) < 16) {
-          paint();
-          boatResolve(w, target);
-          return;
+      for (var j = 0; j < BT.slots.length; j++) {
+        var s = BT.slots[j];
+        if (s.state !== "flowing") continue; /* just fångad - väntar på boatRespawn() */
+        s.x += speed;
+        if (s.x > 110) {
+          boatRespawn(s);
+          continue;
         }
+        /* fångstzon: nära båtens fasta x-position (82%), inom räckhåll i höjd från båten */
+        if (s.x >= 76 && s.x <= 88 && Math.abs(s.y - BT.boatY) < 16) boatCatch(s);
       }
       paint();
       BT.raf = requestAnimationFrame(tick);
@@ -9823,7 +9862,8 @@
   }
   function boatEnd() {
     var r = BT.right,
-      n = BT.n;
+      n = BT.n,
+      w = BT.wrong;
     if (BT.raf) cancelAnimationFrame(BT.raf);
     if (BT.keyHandler) document.removeEventListener("keydown", BT.keyHandler);
     save();
@@ -9831,7 +9871,7 @@
     fanfare(2);
     tripBump("hear", r);
     tripBump("mix", 1);
-    var st = r >= n ? 3 : r >= n * 0.7 ? 2 : r >= n * 0.4 ? 1 : 0;
+    var st = w === 0 ? 3 : w <= 3 ? 2 : w <= 7 ? 1 : 0;
     app.innerHTML =
       '<div class="card" style="text-align:center"><div class="bigstars">' +
       starStr(st) +
@@ -9841,6 +9881,13 @@
       " / " +
       n +
       '</div><p class="q">Bra fångat!</p>' +
+      (w
+        ? '<p class="qsub">' +
+          w +
+          " fel " +
+          (w === 1 ? "flaska" : "flaskor") +
+          " på vägen - ingen fara, du kom hela vägen!</p>"
+        : "") +
       '<div class="center">' +
       siilSVG("small") +
       "</div>" +
