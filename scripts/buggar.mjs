@@ -36,17 +36,24 @@ const args = process.argv.slice(2);
 const markDone = args.includes("--klar") ? args[args.indexOf("--klar") + 1] : null;
 
 if (markDone) {
-  const { data, error } = await sb
-    .from("bug_reports")
-    .update({ status: "done" })
-    .ilike("id", markDone + "%")
-    .select("id")
-    .single();
+  /* id är uuid, inte text - ilike/prefixmatchning går inte direkt mot kolumnen, så vi hämtar
+     alla och matchar prefixet själva (få rapporter i taget, inget behov av att göra det i SQL) */
+  const { data: all, error: listErr } = await sb.from("bug_reports").select("id");
+  if (listErr) {
+    console.error("Kunde inte hämta rapporter:", listErr.message);
+    process.exit(1);
+  }
+  const hit = all.find(r => r.id.startsWith(markDone.toLowerCase()));
+  if (!hit) {
+    console.error("Hittade ingen rapport som börjar på", markDone);
+    process.exit(1);
+  }
+  const { error } = await sb.from("bug_reports").update({ status: "done" }).eq("id", hit.id);
   if (error) {
     console.error("Kunde inte markera som klar:", error.message);
     process.exit(1);
   }
-  console.log("Markerad som klar:", data.id);
+  console.log("Markerad som klar:", hit.id);
   process.exit(0);
 }
 

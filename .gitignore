@@ -29,3 +29,6 @@ tools/audio_coverage_report.txt
 
 # bygget som tests/e2e kör mot (yarn test:e2e)
 tests/.site/
+
+# Supabase CLI:s egen cache (npx supabase ...), inte källkod
+supabase/.temp/
