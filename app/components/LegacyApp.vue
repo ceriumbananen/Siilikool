@@ -39,6 +39,7 @@ onMounted(async () => {
         <span class="spacer"></span>
         <button class="iconbtn" id="sound" aria-label="Ljud på eller av" hidden>🔊</button>
         <button class="iconbtn" id="theme" aria-label="Byt mellan ljust och mörkt" hidden>🌙</button>
+        <button class="iconbtn iconbtn-bug" id="bugreport" aria-label="Rapportera något konstigt" hidden>🐛</button>
       </div>
       <div class="meter">
         <div class="meter-top"><span id="lvltext">Nivå 1</span><span id="xptext">0 / 100</span></div>

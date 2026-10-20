@@ -277,6 +277,22 @@ button.chip {
   box-shadow: var(--sh-3);
 }
 
+/* medvetet diskret - en bugg-rapportknapp, inte en lekfunktion, ska inte dra blicken */
+.iconbtn-bug {
+  width: 36px;
+  height: 36px;
+  font-size: 15px;
+  background: transparent;
+  border-color: transparent;
+  box-shadow: none;
+  opacity: 0.45;
+}
+
+.iconbtn-bug:hover,
+.iconbtn-bug:focus-visible {
+  opacity: 1;
+}
+
 .spacer {
   flex: 1;
 }
@@ -4835,6 +4851,60 @@ body {
   font-size: var(--fs-md);
   font-weight: 600;
   color: var(--berry);
+}
+
+/* buggrapport-kortet (openBugReport() i app.js) - mer innehåll (fem kategorier + textfält) än
+   .oc:s vanliga kort, så till skillnad från dem (som alltid ryms) behöver den här egen scroll
+   istället för att låta .overlay:s centrering skjuta toppen utanför skärmen. */
+.bugcard {
+  max-height: calc(100vh - 52px);
+  overflow-y: auto;
+}
+
+.bugcats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--sp-2);
+  margin: 10px 0;
+}
+
+.bugcat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  background: var(--bg);
+  border: var(--bd) solid var(--line);
+  border-radius: var(--r-md);
+  padding: 10px 4px;
+  font-size: 22px;
+  font-weight: 600;
+  cursor: pointer;
+  min-height: 64px;
+}
+
+.bugcat span {
+  font-size: var(--fs-xs);
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.bugcat.on {
+  border-color: var(--moss);
+  background: color-mix(in srgb, var(--moss) 18%, var(--card));
+}
+
+.bugnote {
+  width: 100%;
+  min-height: 70px;
+  border: var(--bd) solid var(--line);
+  border-radius: var(--r-md);
+  background: var(--card);
+  color: var(--ink);
+  font: inherit;
+  padding: 10px;
+  margin-bottom: 10px;
+  resize: vertical;
 }
 
 .quest {

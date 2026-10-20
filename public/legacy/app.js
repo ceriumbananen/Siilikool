@@ -985,6 +985,7 @@
   var btnBack = document.getElementById("back");
   var btnSound = document.getElementById("sound");
   var btnTheme = document.getElementById("theme");
+  var btnBug = document.getElementById("bugreport");
   /* räknare som tickar upp i stället för att hoppa */
   function tickNumber(el, from, to, dur) {
     if (!el) return;
@@ -1031,6 +1032,10 @@
     if (e) e.textContent = S.sound ? "🔊" : "🔇";
     var nav = document.getElementById("nav");
     if (nav) nav.hidden = !S.setupdone;
+    /* ljud/mörkt-läge/bugg hör ihop med resten av kromet - samma villkor som nav ovan, annars
+       förblir de osynliga hela spelet igenom (deras hidden-attribut i LegacyApp.vue:s statiska
+       markup togs annars aldrig bort) */
+    if (btnSound) btnSound.hidden = btnTheme.hidden = btnBug.hidden = !S.setupdone;
   }
 
   var blobCache = {},
@@ -1679,6 +1684,7 @@
   /* sagan läses av en egen svensk berättarröst – Siiri talar bara estniska */
   function stopStory() {}
   function speak(text, slow) {
+    lastSpokenText = text;
     if (!S.sound) return;
     var part = partFor(text);
     if (part) {
@@ -3795,6 +3801,18 @@
 
   /* ============ SKÄRMAR ============ */
   var screen = "home";
+  var lastSpokenText = "";
+  /* läses av buggrapporten (useBugReport.ts, via window.SiiriDebug) som teknisk kontext -
+     vilken skärm och vilket ord som senast spelades upp - utan att den som rapporterar
+     behöver beskriva det själv. */
+  window.SiiriDebug = {
+    screen: function () {
+      return screen;
+    },
+    lastSpoken: function () {
+      return lastSpokenText;
+    },
+  };
   /* toppfältet (profil, märke, stjärnor) och nivåmätaren */
   function showTop(on) {
     var t = document.querySelector(".topbar"),
@@ -12274,6 +12292,68 @@
     save();
     btnTheme.textContent = next === "dark" ? "☀️" : "🌙";
   };
+  /* buggrapport: en kategori (frivilligt med egen text också) - all teknisk kontext (skärm,
+     senast uppspelade ord, konsol-fel, enhet) fylls i av window.SiiriBugReport
+     (app/plugins/bug-report.client.ts), som också gör själva sparningen i Supabase. */
+  var BUG_CATS = [
+    { cat: "confused", em: "😕", lbl: "Konstigt" },
+    { cat: "sound", em: "🔇", lbl: "Ljudet" },
+    { cat: "image", em: "🖼️", lbl: "Bilden" },
+    { cat: "stuck", em: "🐌", lbl: "Fastnade" },
+    { cat: "other", em: "✏️", lbl: "Annat" },
+  ];
+  function openBugReport() {
+    var chosen = null,
+      i,
+      html = '<div class="oc bugcard"><p class="kicker">🐛 Något som inte stämmer?</p><div class="bugcats">';
+    for (i = 0; i < BUG_CATS.length; i++) {
+      html +=
+        '<button class="bugcat" data-cat="' +
+        BUG_CATS[i].cat +
+        '">' +
+        BUG_CATS[i].em +
+        "<span>" +
+        BUG_CATS[i].lbl +
+        "</span></button>";
+    }
+    html +=
+      '</div><textarea class="bugnote" id="bugnote" maxlength="2000" placeholder="Skriv gärna lite mer, om du vill"></textarea>' +
+      '<button class="btn green wide" id="bugsend">Skicka</button>' +
+      '<button class="btn ghost wide" id="bugcancel" style="margin-top:8px">Avbryt</button></div>';
+    var d = overlay(html),
+      cats = d.querySelectorAll(".bugcat");
+    for (i = 0; i < cats.length; i++) {
+      (function (btn) {
+        btn.onclick = function () {
+          chosen = btn.getAttribute("data-cat");
+          for (var j = 0; j < cats.length; j++) cats[j].classList.remove("on");
+          btn.classList.add("on");
+        };
+      })(cats[i]);
+    }
+    d.querySelector("#bugcancel").onclick = function () {
+      d.remove();
+    };
+    d.querySelector("#bugsend").onclick = function () {
+      var note = d.querySelector("#bugnote").value || "";
+      var sendBtn = d.querySelector("#bugsend");
+      sendBtn.disabled = true;
+      sendBtn.textContent = "Skickar …";
+      var bridge = window.SiiriBugReport;
+      (bridge && bridge.enabled ? bridge.send(chosen || "other", note) : Promise.resolve(false)).then(function (ok) {
+        d.innerHTML =
+          '<div class="oc bugcard" style="text-align:center"><p class="kicker">🐛 ' +
+          (ok ? "Tack!" : "Hoppsan") +
+          "</p><p>" +
+          (ok ? "Nu vet vi om det." : "Det gick inte att skicka just nu. Testa igen senare.") +
+          '</p><button class="btn ghost wide" id="bugok">Okej</button></div>';
+        d.querySelector("#bugok").onclick = function () {
+          d.remove();
+        };
+      });
+    };
+  }
+  btnBug.onclick = openBugReport;
 
   var rankPress = null,
     rankLong = false;
