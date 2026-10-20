@@ -270,7 +270,7 @@ function backFromQuiz() {
 </script>
 
 <template>
-  <UiAppShell active="room">
+  <UiAppShell active="room" wide>
     <main class="room-page">
       <RoomDiplomaQuiz v-if="quizTheme" :key="quizTheme.id" :theme="quizTheme" @room="backFromQuiz" />
 

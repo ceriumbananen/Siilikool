@@ -6,11 +6,15 @@
  * samt flikarna "Laat", "Tuba" och "Profiil" länkar till riktiga Nuxt-sidor (/profile, /trophy, /shop, /room). "Sõnastik"-fliken går
  * via markLegacyScreen() (app/utils/legacy-nav.ts) rakt in i ordlistan istället för att bara
  * landa på hemskärmen. */
-const { active = null } = defineProps<{
+const { active = null, wide = false } = defineProps<{
   /** Vilken av de sex flikarna som ska visas som vald. Ingen flik representerar den här
    * sidan specifikt förrän spelet har en riktig router för sina skärmar, så standard är
    * att ingen är vald. */
   active?: "home" | "trip" | "words" | "shop" | "room" | "me" | null;
+  /** Bredare innehållskolumn än standard (content-width) - för sidor där huvudinnehållet
+   * (t.ex. Siiris rum) tjänar på mer plats på bredare skärmar. Mobilbredden (96vw) ändras
+   * knappt, det är desktop-taket som höjs. */
+  wide?: boolean;
 }>();
 
 const profile = useProfileStore();
@@ -49,7 +53,7 @@ function tapStars() {
 
 <template>
   <div class="app-shell">
-    <div class="app-shell__content">
+    <div class="app-shell__content" :class="{ 'app-shell__content--wide': wide }">
       <div class="app-shell__topbar">
         <a class="app-shell__iconbtn" href="/" aria-label="Till startskärmen">←</a>
         <a class="app-shell__chip app-shell__chip--me" href="/profile" aria-label="Öppna din profil">
@@ -150,6 +154,28 @@ function tapStars() {
 .app-shell {
   &__content {
     @include content-width;
+
+    /* bredare kolumn för sidor vars huvudinnehåll tjänar på mer plats (t.ex. Siiris rum) -
+       samma stegvisa skala som content-width, bara ett snäpp bredare i varje steg. Mobilbredden
+       (98 mot 96vw) ändras knappt, det är desktop-taken som höjs. */
+    &--wide {
+      max-width: min(98vw, 56.25rem); // 900px
+
+      @media (min-width: 62.5rem) {
+        // 1000px
+        max-width: 68.75rem; // 1100px
+      }
+
+      @media (min-width: 87.5rem) {
+        // 1400px
+        max-width: 82.5rem; // 1320px
+      }
+
+      @media (min-width: 112.5rem) {
+        // 1800px
+        max-width: 90rem; // 1440px
+      }
+    }
   }
 
   &__topbar {
