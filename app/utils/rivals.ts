@@ -23,6 +23,9 @@ export type Rival = {
    * estniska folktrofigurerna (Vanapagan här, Kalevipoeg/Suur Tõll i LORE) har redan sin
    * egen, riktiga historia i desc/fact och behöver ingen. */
   story?: string;
+  /** Samma historia på enkel, barnanpassad estniska - visas som förval i figur-kortet, med
+   * en knapp för att växla till story (svenska) för den som inte hänger med. */
+  storyEt?: string;
 };
 
 export const RIVALS: Rival[] = [
@@ -37,6 +40,8 @@ export const RIVALS: Rival[] = [
     desc: "Snabb men slarvig. Bra att börja med.",
     story:
       "En gång gömde sig Hiir i Siiris ryggsäck hela vägen till skolan, bara för äventyrets skull. Hon kom hem med halva läxan borttappad på vägen, men hade upptäckt tre nya gömställen ingen annan mus känt till. Numera utmanar hon alla hon möter, mest för att hon inte kan sitta still.",
+    storyEt:
+      "Hiir on väike ja kiire. Ta armastab seiklusi ja uusi kohti. Hiir ei oska kaua paigal istuda, seepärast kutsub ta kõiki endaga võistlema.",
   },
   {
     id: "rebane",
@@ -49,6 +54,8 @@ export const RIVALS: Rival[] = [
     desc: "Kaxig och kvick. Spärrar vägen mot Tartu.",
     story:
       "Rebane bor i en lya vid vägkanten strax utanför Tartu, och ingen kommer förbi utan att först svara på hennes frågor. Hon lärde sig alla sina ord på en enda vinter, av ren envishet, och har inte förlorat en enda duell sedan dess — än.",
+    storyEt:
+      "Rebane on tark ja kaval. Ta elab metsas Tartu lähedal ega lase kedagi mööda enne, kui nad vastavad tema küsimustele. Rebane õppis kõik sõnad ühe ainsa talvega.",
   },
   {
     id: "karu",
@@ -61,6 +68,8 @@ export const RIVALS: Rival[] = [
     desc: "Långsam att svara, men sällan fel.",
     story:
       "Karu läser en sida i taget i byns lilla bibliotek och skyndar sig aldrig för någon. Han svarar hellre sent och rätt än snabbt och fel, och säger ofta att den som väntar lugnt till slut alltid hittar rätt ord.",
+    storyEt:
+      "Karu on suur ja rahulik. Ta loeb raamatukogus aeglaselt, lehekülg korraga, ega kiirusta kunagi. Parem hilja ja õigesti kui kiiresti ja valesti, ütleb ta sageli.",
   },
   {
     id: "draakon",
@@ -73,6 +82,8 @@ export const RIVALS: Rival[] = [
     desc: "Kan nästan varje ord. Nästan.",
     story:
       "Draakon är den minsta draken i hela skogen och lite blyg för sin storlek, men hans minne är desto större. Han har läst nästan hela ordboken från pärm till pärm — nästan, för sidan med sitt eget namn rev han av sig och åt upp av misstag.",
+    storyEt:
+      "Draakon on metsa kõige väiksem lohe, aga tema mälu on seda suurem. Ta on lugenud peaaegu kogu sõnaraamatu läbi. Ainult lehekülje oma nimega sõi ta kogemata ära.",
   },
   {
     id: "vanapagan",

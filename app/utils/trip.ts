@@ -660,12 +660,16 @@ export const LORE = {
     sv: "Kalevipoeg",
     img: "/images/lore/kalevipoeg.webp",
     fact: "Jätten Kalevipoeg är hjälten i Estlands nationalepos, nedtecknat på 1800-talet efter gamla folksägner. Enligt sägnerna formade han själv landets berg och sjöar och vaktade Estlands gränser mot fiender. Flera av orterna Siiri besöker på sin resa - Tartu, Põlva, Otepää och Peipsi sjö - har egna sägner om honom.",
+    factEt:
+      "Kalevipoeg on suur kangelane eesti muinasjuttudes. Vanad lood räägivad, et tema kujundas mäed ja järved. Ta kaitses Eestimaad vaenlaste eest. Tartus, Põlvas, Otepääl ja Peipsi ääres räägitakse temast omi lugusid.",
   },
   toll: {
     et: "Suur Tõll",
     sv: "Suur Tõll",
     img: "/images/lore/suur-toll.webp",
     fact: "Suur Tõll var en jätte på Saaremaa, så stark att han kunde slunga enorma stenblock mot fiender som kom över havet. Enligt sägnerna var han ärkefiende till Vanapagan och gift med Piret. Han avbildas nästan alltid med sin pipa i munnen.",
+    factEt:
+      "Suur Tõll oli hiiglane Saaremaal. Ta oli nii tugev, et viskas suuri kive vaenlaste pihta, kes tulid üle mere. Tema naine oli Piret ja tema vaenlane oli Vanapagan. Pildil on Suur Tõllul alati piip suus.",
   },
 };
 

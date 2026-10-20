@@ -527,12 +527,20 @@
             name: RIVALS[i].et,
             sub: RIVALS[i].sv,
             fact: RIVALS[i].story || RIVALS[i].desc,
+            factEt: RIVALS[i].storyEt,
           };
         }
       }
     }
     if (kind === "lore" && LORE[id]) {
-      return { img: LORE[id].img, em: "📖", name: LORE[id].et, sub: LORE[id].sv, fact: LORE[id].fact };
+      return {
+        img: LORE[id].img,
+        em: "📖",
+        name: LORE[id].et,
+        sub: LORE[id].sv,
+        fact: LORE[id].fact,
+        factEt: LORE[id].factEt,
+      };
     }
     if (kind === "avatar" && AVATAR_INFO[id]) {
       return {
@@ -541,13 +549,18 @@
         name: AVATAR_INFO[id].et,
         sub: AVATAR_INFO[id].sv,
         fact: AVATAR_INFO[id].story,
+        factEt: AVATAR_INFO[id].storyEt,
       };
     }
     return null;
   }
+  /* historietexten börjar på estniska när den finns (factEt) - knappen växlar till svenska
+     (fact) för den som inte hänger med än. Vanapagan (och andra utan factEt) visar bara fact,
+     ingen knapp behövs då. */
   function openCharCard(key) {
     var c = charLookup(key);
     if (!c) return;
+    var showEt = !!c.factEt;
     var d = overlay(
       '<div class="oc charcard">' +
         (c.img
@@ -557,11 +570,21 @@
         esc(c.name) +
         "</h3>" +
         (c.sub && c.sub !== c.name ? '<p class="kicker" style="margin-top:-4px">' + esc(c.sub) + "</p>" : "") +
-        "<p>" +
-        esc(c.fact) +
+        '<p id="charcardfact">' +
+        esc(showEt ? c.factEt : c.fact) +
         "</p>" +
-        '<button class="btn ghost wide" id="charcardclose" style="margin-top:8px">Stäng</button></div>',
+        (c.factEt
+          ? '<button class="btn ghost sm" id="charcardlang" style="margin-bottom:8px">🇸🇪 På svenska</button>'
+          : "") +
+        '<button class="btn ghost wide" id="charcardclose">Stäng</button></div>',
     );
+    if (c.factEt) {
+      d.querySelector("#charcardlang").onclick = function () {
+        showEt = !showEt;
+        d.querySelector("#charcardfact").textContent = showEt ? c.factEt : c.fact;
+        d.querySelector("#charcardlang").textContent = showEt ? "🇸🇪 På svenska" : "🇪🇪 Eesti keeles";
+      };
+    }
     d.querySelector("#charcardclose").onclick = function () {
       d.remove();
     };
