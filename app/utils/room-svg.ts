@@ -204,13 +204,11 @@ function fLeft(id: string | null) {
     );
   }
   if (id === "l-rock") {
+    /* illustrerad bild istället för handritad SVG (public/images/room/rocking-chair.webp),
+       samma mönster som sängen/husdjuren - skuggan är kvar som vektor. */
     return (
       '<g transform="translate(20,150)"><ellipse cx="40" cy="78" rx="44" ry="8" fill="#2A1B0C" opacity=".22"/>' +
-      '<path d="M6 30 q0 -26 30 -26 q30 0 30 26 v28 H6 z" fill="#9A6B8C"/>' +
-      '<path d="M6 30 q0 -26 30 -26 q10 0 16 5 q-22 5 -26 24 z" fill="#fff" opacity=".16"/>' +
-      '<rect x="0" y="52" width="72" height="16" rx="7" fill="#7E5472"/>' +
-      '<path d="M-2 76 q38 -14 76 0" stroke="#6E4A28" stroke-width="5" fill="none" stroke-linecap="round"/>' +
-      '<rect x="8" y="66" width="7" height="10" fill="#6E4A28"/><rect x="57" y="66" width="7" height="10" fill="#6E4A28"/></g>'
+      '<image href="/images/room/rocking-chair.webp" x="-14" y="2" width="108" height="59.5"/></g>'
     );
   }
   return (
