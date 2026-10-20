@@ -3877,10 +3877,11 @@ body {
 
 .riverboat {
   position: absolute;
-  right: 10px;
-  bottom: 6px;
+  left: 82%;
+  top: 50%;
   width: 86px;
   height: 68px;
+  transform: translate(-50%, -50%);
   pointer-events: none;
 }
 
@@ -3903,7 +3904,7 @@ body {
 
 .riverword {
   position: absolute;
-  left: -140px;
+  transform: translate(-50%, -50%);
   background: var(--card);
   border: var(--bd) solid var(--line);
   border-radius: var(--r-pill);
@@ -3917,17 +3918,6 @@ body {
   font-size: var(--fs-md);
   cursor: pointer;
   box-shadow: var(--sh-2);
-  animation: float-river linear infinite;
-}
-
-@keyframes float-river {
-  from {
-    transform: translateX(0);
-  }
-
-  to {
-    transform: translateX(480px);
-  }
 }
 
 .riverword.hit {
@@ -3938,22 +3928,6 @@ body {
 .riverword.miss {
   border-color: var(--berry);
   background: color-mix(in srgb, var(--berry) 18%, var(--card));
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .riverword {
-    animation: none;
-    position: static;
-    margin: 6px;
-  }
-
-  .riverbox {
-    height: auto;
-  }
-
-  .riverboat {
-    display: none;
-  }
 }
 
 /* ---------- garderob ---------- */

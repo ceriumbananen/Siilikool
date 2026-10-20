@@ -9596,8 +9596,8 @@
     screen = "boat";
     prefetchAllThemes();
     app.innerHTML =
-      '<div class="zone play"><span class="zem">🛶</span><span><b>Paadisõit</b><span>Barkbåten — fånga rätt ord</span></span></div>' +
-      '<div class="card" style="text-align:center"><p class="qsub">Siiri åker barkbåt nerför floden. Orden flyter förbi på vattnet. Tryck på det ord Siiri ber om. Missar du dyker det upp igen — ingen stress.</p>' +
+      '<div class="zone play"><span class="zem">🛶</span><span><b>Paadisõit</b><span>Barkbåten — styr och fånga rätt ord</span></span></div>' +
+      '<div class="card" style="text-align:center"><p class="qsub">Siiri åker barkbåt nerför floden. Styr båten upp och ner med musen eller piltangenterna, och åk på det ord Siiri ber om. Fel ord? Bara undvik dem — ingen stress.</p>' +
       '<div class="center">' +
       siilSVG("small") +
       "</div>" +
@@ -9605,8 +9605,51 @@
     document.getElementById("start").onclick = boatStart;
   }
   function boatStart() {
-    BT = { i: 0, n: 10, right: 0, pool: pickWeighted(allWords(), 20) };
+    BT = { i: 0, n: 10, right: 0, pool: pickWeighted(allWords(), 20), boatY: 50, keyHandler: null };
+    BT.keyHandler = function (e) {
+      if (!BT || screen !== "boat") return;
+      if (e.key === "ArrowUp") {
+        e.preventDefault();
+        BT.boatY = Math.max(6, BT.boatY - 8);
+      } else if (e.key === "ArrowDown") {
+        e.preventDefault();
+        BT.boatY = Math.min(94, BT.boatY + 8);
+      } else return;
+      if (BT.paint) BT.paint(); /* tick() må inte snurra (reduceMotion) - rita om direkt så pilarna syns */
+    };
+    document.addEventListener("keydown", BT.keyHandler);
     boatRound();
+  }
+  /* fångar ordet oavsett om det var en riktig krock (båten körde över det) eller ett
+     direkt tryck på brickan - samma utfall, två sätt att träffa rätt (mus/tangentbord
+     att styra med, eller peka direkt - bra reserv för den som inte vill/kan styra). */
+  function boatResolve(word, target) {
+    if (!BT || BT.lock) return;
+    BT.lock = true;
+    if (BT.raf) cancelAnimationFrame(BT.raf);
+    var ok = word.et === target.et;
+    var el = document.getElementById(word.domId);
+    if (el) el.classList.add(ok ? "hit" : "miss");
+    wmemHit(target.et, ok, "choose", target.sv);
+    praiseSay(ok ? BT.right + 1 : 0, ok, document.getElementById("fb"));
+    if (ok) {
+      BT.right++;
+      S.correct++;
+      earnStars(2);
+      addXp(10);
+      sndOk();
+      buzz(18);
+      mood("cheer");
+      save();
+      refreshTop();
+    } else {
+      sndNo();
+      mood("oops");
+    }
+    BT.i++;
+    setTimeout(function () {
+      if (BT) boatRound();
+    }, 800);
   }
   function boatRound() {
     if (!BT) return;
@@ -9628,6 +9671,15 @@
       if (!dup) opts.push(c);
     }
     opts = shuffle(opts);
+    /* fyra skilda höjder (ban), blandade så målordet inte alltid dyker upp på samma plats -
+       x startar utanför rutan åt vänster, förskjutet per bricka så de inte kommer samtidigt.
+       Vid reducerad rörelse snurrar tick() aldrig, så brickorna får istället en synlig,
+       stillastående startposition direkt - annars skulle de bli kvar osynliga utanför rutan. */
+    var reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    var lanes = shuffle([10, 37, 64, 90]);
+    BT.words = opts.map(function (o, idx) {
+      return { et: o.et, y: lanes[idx], x: reduceMotion ? 10 + idx * 18 : -15 - idx * 22, domId: "rw" + idx };
+    });
     var html =
       '<div class="zone play"><span class="zem">🛶</span><span><b>Paadisõit</b>' +
       "<span>ord " +
@@ -9640,20 +9692,18 @@
       '<div class="card"><p class="q">Hitta ordet för</p>' +
       promptHtml(target, target.sv) +
       '<div class="center"><button class="speakbtn sm" id="say" aria-label="Hör ordet">🔊</button></div>' +
-      '<div class="riverbox">' +
+      '<div class="riverbox" id="riverbox">' +
       boatIcon();
-    for (i = 0; i < opts.length; i++) {
+    for (i = 0; i < BT.words.length; i++) {
       html +=
-        '<button class="riverword" data-et="' +
-        esc(opts[i].et) +
-        '" style="top:' +
-        (8 + i * 22) +
-        "%;animation-duration:" +
-        (7 + i * 1.3) +
-        "s;animation-delay:" +
-        i * 0.7 +
-        's">' +
-        esc(opts[i].et) +
+        '<button class="riverword" id="' +
+        BT.words[i].domId +
+        '" style="left:' +
+        BT.words[i].x +
+        "%;top:" +
+        BT.words[i].y +
+        '%">' +
+        esc(BT.words[i].et) +
         "</button>";
     }
     html += '</div><div class="feedback" id="fb"></div></div><div class="center">' + siilSVG("small") + "</div>";
@@ -9662,45 +9712,79 @@
     document.getElementById("say").onclick = function () {
       speak(target.et);
     };
-    var ds = app.querySelectorAll("[data-et]");
-    for (i = 0; i < ds.length; i++) {
-      (function (el) {
-        el.onclick = function () {
-          if (!BT || BT.lock) return;
-          BT.lock = true;
-          for (var j = 0; j < ds.length; j++) {
-            ds[j].disabled = true;
-            ds[j].style.animationPlayState = "paused";
-          }
-          var ok = el.getAttribute("data-et") === target.et;
-          el.classList.add(ok ? "hit" : "miss");
-          wmemHit(target.et, ok, "choose", target.sv);
-          praiseSay(ok ? BT.right + 1 : 0, ok, document.getElementById("fb"));
-          if (ok) {
-            BT.right++;
-            S.correct++;
-            earnStars(2);
-            addXp(10);
-            sndOk();
-            buzz(18);
-            mood("cheer");
-            save();
-            refreshTop();
-          } else {
-            sndNo();
-            mood("oops");
-          }
-          BT.i++;
-          setTimeout(function () {
-            if (BT) boatRound();
-          }, 800);
-        };
-      })(ds[i]);
+    /* direkt tryck på en bricka fångar den på fläcken - se boatResolve() */
+    for (i = 0; i < BT.words.length; i++) {
+      (function (w) {
+        var el = document.getElementById(w.domId);
+        if (el)
+          el.onclick = function () {
+            boatResolve(w, target);
+          };
+      })(BT.words[i]);
     }
+    var box = document.getElementById("riverbox"),
+      boatEl = box.querySelector(".riverboat");
+    function paint() {
+      if (boatEl) boatEl.style.top = BT.boatY + "%";
+      for (var j = 0; j < BT.words.length; j++) {
+        var w = BT.words[j],
+          e2 = document.getElementById(w.domId);
+        if (e2) {
+          e2.style.left = w.x + "%";
+          e2.style.top = w.y + "%";
+        }
+      }
+    }
+    BT.paint = paint; /* så det långlivade piltangent-lyssnaren i boatStart() kan rita om efter ett tryck,
+      annars syns inget när hjulet (tick()) inte snurrar - se reduceMotion nedan */
+    function steerTo(clientY) {
+      if (!BT || !box) return;
+      var r = box.getBoundingClientRect();
+      BT.boatY = Math.max(6, Math.min(94, ((clientY - r.top) / r.height) * 100));
+      paint();
+    }
+    box.addEventListener("mousemove", function (e) {
+      steerTo(e.clientY);
+    });
+    box.addEventListener(
+      "touchmove",
+      function (e) {
+        if (e.touches && e.touches[0]) steerTo(e.touches[0].clientY);
+      },
+      { passive: true },
+    );
+    if (reduceMotion) {
+      /* ingen självgående rörelse - brickorna står stilla, tryck på dem funkar ändå,
+         och steerTo() ovan ritar om båten direkt så den ändå följer musen/fingret */
+      return;
+    }
+    function tick(ts) {
+      if (!BT || screen !== "boat") return; /* skärmen är lämnad - sluta tyst, inget mer att göra */
+      if (BT.lock) return; /* löst via klick eller krock - boatResolve() har redan tagit över */
+      var dt = ts - (BT.lastTs || ts);
+      BT.lastTs = ts;
+      var speed = dt * 0.022; /* % av rutans bredd per ms, tillräckligt lugnt för ett barn att hinna styra */
+      for (var j = 0; j < BT.words.length; j++) {
+        var w = BT.words[j];
+        w.x += speed;
+        if (w.x > 110) w.x = -15;
+        /* fångstzon: nära båtens fasta x-position (82%), inom räckhåll i höjd från båten */
+        if (w.x >= 76 && w.x <= 88 && Math.abs(w.y - BT.boatY) < 16) {
+          paint();
+          boatResolve(w, target);
+          return;
+        }
+      }
+      paint();
+      BT.raf = requestAnimationFrame(tick);
+    }
+    BT.raf = requestAnimationFrame(tick);
   }
   function boatEnd() {
     var r = BT.right,
       n = BT.n;
+    if (BT.raf) cancelAnimationFrame(BT.raf);
+    if (BT.keyHandler) document.removeEventListener("keydown", BT.keyHandler);
     save();
     burst(150);
     fanfare(2);
