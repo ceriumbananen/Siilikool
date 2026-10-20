@@ -618,7 +618,9 @@ function roomSVGInner() {
   var wall = fWall(ctx.furnOf("wall")),
     floor = fFloor(ctx.furnOf("floor"));
   var fire =
-    '<g id="roomfire" style="cursor:pointer" tabindex="0" role="button" aria-label="Tryck på elden" transform="translate(270,92)">' +
+    /* nerskalad (0.5x) och omplacerad så härden fortfarande vilar på golvet - brasan tog
+       tidigare upp 54% av rummets höjd, omotiverat stort jämfört med allt annat. */
+    '<g id="roomfire" style="cursor:pointer" tabindex="0" role="button" aria-label="Tryck på elden" transform="translate(294.5,141) scale(0.5)">' +
     FIRESVG +
     "</g>";
   return (
