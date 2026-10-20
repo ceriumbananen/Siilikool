@@ -641,7 +641,7 @@ function tapSettingsTitle() {
     font-weight: 600;
     text-decoration: none;
     background: var(--blue);
-    color: #fff;
+    color: var(--on-accent);
     box-shadow: 0 0.3125rem 0 var(--blue-ink); // 5px
     @include focus-visible;
 

@@ -380,28 +380,31 @@ function toRoom() {
     margin: $spacing-2 0 $spacing-1;
   }
 
+  /* platta rader, inte kort-i-kort (varje rad hade förut egen bakgrund+ram som upprepade
+     sektionskortets runtom - nu bara en delare mellan raderna, status syns som tonad
+     bakgrund istället för en till inramning) */
   &__furn {
     display: flex;
     gap: 0.75rem;
     align-items: center;
-    background: var(--card);
-    border: $border-width solid var(--line);
-    border-radius: $radius-md;
-    padding: $spacing-2 0.75rem;
-    margin-bottom: 0.5rem;
+    border-bottom: $border-width solid var(--line);
+    padding: $spacing-2 0.25rem;
     cursor: pointer;
+
+    &:last-of-type {
+      border-bottom: none;
+    }
 
     &:active {
       transform: translateY(0.125rem);
     }
 
     &--owned {
-      border-color: var(--moss);
+      background: color-mix(in srgb, var(--moss) 8%, transparent);
     }
 
     &--on {
-      border-color: var(--moss);
-      background: color-mix(in srgb, var(--moss) 14%, var(--card));
+      background: color-mix(in srgb, var(--moss) 16%, transparent);
     }
 
     /* som plaggrutorna (ShopCell): grått och "inte nu" - 🔊 går fortfarande att trycka på */

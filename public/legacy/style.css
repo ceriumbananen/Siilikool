@@ -39,6 +39,10 @@
   --honey: #f6b93b;
   --honey-deep: #d98e12;
   --bark: #8a5a3b;
+  /* text ovanpå --moss/--blue-knappar (.btn): vit funkar i ljust läge (mörka accentfärger),
+     men i mörkt läge görs samma accentfärger ljusare för att synas mot den mörka bakgrunden -
+     då räcker vit text inte längre (2.3:1, kravet är 4.5:1). Se de mörka blocken nedan. */
+  --on-accent: #fff;
   /* sidrubrikers gradient-bakgrund (UiPageHero) */
   --hero-gold-a: #d8a32a;
   --hero-gold-b: #8a6008;
@@ -69,6 +73,7 @@
     --honey: #ffcb55;
     --honey-deep: #ffb01f;
     --bark: #c08b65;
+    --on-accent: #10231a;
     --hero-gold-a: #e8b94a;
     --hero-gold-b: #a8780f;
     --hero-violet-a: #9b82e8;
@@ -97,6 +102,7 @@
   --honey: #ffcb55;
   --honey-deep: #ffb01f;
   --bark: #c08b65;
+  --on-accent: #10231a;
   --hero-gold-a: #e8b94a;
   --hero-gold-b: #a8780f;
   --hero-violet-a: #9b82e8;
@@ -5489,7 +5495,7 @@ h2.sec {
   justify-content: center;
   gap: 8px;
   background: var(--blue);
-  color: #fff;
+  color: var(--on-accent);
   border: none;
   border-radius: var(--r-md);
   padding: 12px 18px;

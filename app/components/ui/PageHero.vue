@@ -43,16 +43,24 @@ const {
   color: #fff;
   box-shadow: $shadow-3;
 
+  /* en mörk ton lagd över färgtonen (inte bara färgen själv) - annars klarar vit text inte
+     kontrastkravet mot den ljusa änden av gradienten (så lågt som 1.8:1, kravet är 4.5:1) */
   &--gold {
-    background: linear-gradient(140deg, var(--hero-gold-a), var(--hero-gold-b));
+    background:
+      linear-gradient(140deg, rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.12)),
+      linear-gradient(140deg, var(--hero-gold-a), var(--hero-gold-b));
   }
 
   &--violet {
-    background: linear-gradient(140deg, var(--hero-violet-a), var(--hero-violet-b));
+    background:
+      linear-gradient(140deg, rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.12)),
+      linear-gradient(140deg, var(--hero-violet-a), var(--hero-violet-b));
   }
 
   &--amber {
-    background: linear-gradient(140deg, var(--hero-amber-a), var(--hero-amber-b));
+    background:
+      linear-gradient(140deg, rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.12)),
+      linear-gradient(140deg, var(--hero-amber-a), var(--hero-amber-b));
   }
 
   h1 {
@@ -63,7 +71,6 @@ const {
 
   p {
     font-size: $font-size-sm;
-    opacity: 0.9;
     font-weight: 500;
     margin: 0;
   }

@@ -352,7 +352,7 @@ function setMode(m: "login" | "create") {
 
     &--on {
       background: var(--moss);
-      color: #fff;
+      color: var(--on-accent);
     }
   }
 
@@ -416,7 +416,7 @@ function setMode(m: "login" | "create") {
     margin-top: $spacing-4;
     border: none;
     background: var(--moss);
-    color: #fff;
+    color: var(--on-accent);
     box-shadow: $shadow-2;
   }
 

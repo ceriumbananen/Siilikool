@@ -42,7 +42,7 @@ const {
   cursor: pointer;
   transition: transform 0.1s;
   background: var(--blue);
-  color: #fff;
+  color: var(--on-accent);
   box-shadow: 0 0.3125rem 0 var(--blue-ink); // 5px
   @include focus-visible;
 

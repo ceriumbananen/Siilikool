@@ -948,7 +948,7 @@ function backFromQuiz() {
     padding: 0.75rem $spacing-4;
     border-radius: $radius-md;
     background: var(--moss);
-    color: #fff;
+    color: var(--on-accent);
     font-weight: 700;
     text-decoration: none;
 
