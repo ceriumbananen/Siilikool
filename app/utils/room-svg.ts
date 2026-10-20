@@ -186,14 +186,11 @@ function fRug(id: string | null) {
 }
 function fLeft(id: string | null) {
   if (id === "l-bed") {
+    /* illustrerad bild istället för handritad SVG (public/images/room/bed.webp), samma
+       mönster som husdjuren (katten/fågeln/igelkottvalpen) - skuggan är kvar som vektor. */
     return (
       '<g transform="translate(14,146)"><ellipse cx="46" cy="80" rx="52" ry="9" fill="#2A1B0C" opacity=".22"/>' +
-      '<rect x="0" y="18" width="12" height="58" rx="4" fill="#8A5E30"/><rect x="80" y="30" width="12" height="46" rx="4" fill="#8A5E30"/>' +
-      '<rect x="0" y="4" width="12" height="20" rx="5" fill="#A8713C"/>' +
-      '<rect x="4" y="34" width="86" height="18" rx="6" fill="#F3EADA"/>' +
-      '<rect x="4" y="40" width="86" height="14" rx="6" fill="#7FA9C9"/>' +
-      '<rect x="10" y="28" width="30" height="14" rx="6" fill="#FFFDF6"/>' +
-      '<rect x="4" y="52" width="86" height="8" rx="4" fill="#5E87A8"/></g>'
+      '<image href="/images/room/bed.webp" x="-6" y="2" width="104" height="54.7"/></g>'
     );
   }
   if (id === "l-desk") {
