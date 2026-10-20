@@ -420,7 +420,16 @@ function fView(id: string | null) {
       '<path d="M54 84 l8 -16 l8 16 z" fill="#F7EEDC"/><rect x="60" y="68" width="2" height="16" fill="#8A5E30"/>'
     );
   }
-  return "";
+  /* förvalet (u-day, def:1) - tidigare bara "" eftersom den gamla handritade WINDOWSVG redan
+     hade en egen statisk himmel bakom, borttagen nu när fönstret blev en bild (window.webp). */
+  return (
+    '<rect x="28" y="34" width="84" height="90" fill="#AFD8EF"/>' +
+    '<ellipse cx="50" cy="52" rx="16" ry="8" fill="#fff" opacity=".85"/>' +
+    '<ellipse cx="85" cy="60" rx="12" ry="6" fill="#fff" opacity=".7"/>' +
+    '<circle cx="100" cy="46" r="9" fill="#FFE58A"/>' +
+    '<path d="M28 100 q18 -10 34 -2 q16 8 34 -2 v26 H28 z" fill="#79A36A" opacity=".85"/>' +
+    '<path d="M28 112 q20 -6 40 0 q20 6 40 -4 v16 H28 z" fill="#5E8A54" opacity=".9"/>'
+  );
 }
 function fRugExtra(id: string | null) {
   if (id !== "r-star") return null;
@@ -641,11 +650,11 @@ function roomSVGInner() {
     floor.body +
     /* illustrerad bild istället för handritad ram+gardiner (public/images/room/window.webp) -
        men själva glaset är en transparent urklippt ruta i bilden (målad magentafärgad och
-       bortnycklad i efterhand), så att utsikten (fView - dag/natt/snö/hav) fortfarande syns
-       levande bakom, bara omskalad (icke-enhetligt: fViews gamla 96×108-yta passar inte
-       exakt rutans 236×300px i källbilden) till rutans faktiska plats och form. */
+       bortnycklad i efterhand), så att utsikten (fView - natt/snö/hav, alla tre ritade inom
+       samma (28,34)-(112,124)-yta) fortfarande syns levande bakom, bara omskalad
+       (icke-enhetligt) till rutans faktiska plats och form i den nya bilden. */
     '<g id="roomwindow" style="cursor:pointer" tabindex="0" role="button" aria-label="Tryck på fönstret">' +
-    '<g transform="translate(37.5,49.4) scale(0.395,0.445)">' +
+    '<g transform="translate(24.94,31.23) scale(0.451,0.5343)">' +
     fView(ctx.furnOf("view")) +
     "</g>" +
     '<image href="/images/room/window.webp" x="22" y="30" width="69" height="92"/>' +
