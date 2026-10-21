@@ -285,8 +285,10 @@ function fArt(id: string | null) {
     );
   }
   /* illustrerad bild istället för handritad ram+flagga (public/images/room/flag.webp),
-     samma mönster som sängen/gungstolen - bilden innehåller själva upphängningssnöret. */
-  return '<g transform="translate(150,20)"><image href="/images/room/flag.webp" x="-12" y="-1" width="72" height="67"/></g>';
+     samma mönster som sängen/gungstolen - bilden innehåller själva upphängningssnöret.
+     centrerad ovanför eldstaden (se #roomfire/fire nedan - Siiri sitter mitt i rummet
+     (x~140-260,y~127-246) så eldstaden/flaggan/hyllan måste stå till höger om henne). */
+  return '<g transform="translate(302,20)"><image href="/images/room/flag.webp" x="-12" y="-1" width="72" height="67"/></g>';
 }
 function fLamp(id: string | null) {
   if (id === "p-floor") {
@@ -554,29 +556,32 @@ function fDiplomas() {
     k;
   for (k in ctx.diplomas) if (ctx.diplomas[k]) ids.push({ id: k, s: ctx.diplomas[k]! });
   if (!ids.length) return "";
-  var s = '<g transform="translate(266,6)">',
+  /* en kompakt 2-kolumnsruta i den lilla lediga fickan mellan vänstra fönstret (slutar x91)
+     och Siiri (som alltid sitter mitt i rummet, böjar på x~140) - mindre märken än förr
+     eftersom hörnet till höger nu är upptaget av flaggan/hyllan/eldstaden (se fArt/fShelf). */
+  var s = '<g transform="translate(94,10)">',
     i,
     max = Math.min(8, ids.length);
   for (i = 0; i < max; i++) {
     var col = ids[i]!.s >= 3 ? "#D9A52B" : ids[i]!.s >= 2 ? "#A8A8A8" : "#C08A54";
-    var x = (i % 4) * 31,
-      y = Math.floor(i / 4) * 33;
+    var x = (i % 2) * 19,
+      y = Math.floor(i / 2) * 24;
     s +=
       '<g transform="translate(' +
       x +
       "," +
       y +
       ')">' +
-      '<rect x="1" y="1" width="26" height="29" rx="2" fill="#2A1B0C" opacity=".18"/>' +
-      '<rect width="26" height="29" rx="2" fill="#F7F1E2" stroke="' +
+      '<rect x="1" y="1" width="16" height="18" rx="2" fill="#2A1B0C" opacity=".18"/>' +
+      '<rect width="16" height="18" rx="2" fill="#F7F1E2" stroke="' +
       col +
-      '" stroke-width="1.8"/>' +
-      '<path d="M5 9 h16 M5 13.5 h16 M5 18 h11" stroke="#B7A98E" stroke-width="1.2"/>' +
-      '<circle cx="19" cy="23" r="3.4" fill="' +
+      '" stroke-width="1.3"/>' +
+      '<path d="M3.5 6 h9 M3.5 9 h9 M3.5 12 h6" stroke="#B7A98E" stroke-width="1"/>' +
+      '<circle cx="12" cy="14.5" r="2.2" fill="' +
       col +
       '"/></g>';
   }
-  if (ids.length > 8) s += '<text x="0" y="78" font-size="7" fill="#6E5F4E">+' + (ids.length - 8) + " till</text>";
+  if (ids.length > 8) s += '<text x="0" y="100" font-size="6" fill="#6E5F4E">+' + (ids.length - 8) + "</text>";
   return s + "</g>";
 }
 /* souvenirhyllan: visar resans minnen */
@@ -595,7 +600,7 @@ function fShelf() {
   /* illustrerad bild istället för handritad hylla (public/images/room/shelf.webp) - bilden
      har två hyllplan rakt framifrån, så troféerna (emoji/platshållarprickar) läggs ovanpå
      på samma sätt som innan, bara omräknat till de nya hyllplanens faktiska höjd i bilden. */
-  var s = '<g transform="translate(150,94)"><image href="/images/room/shelf.webp" x="0" y="0" width="98" height="34"/>';
+  var s = '<g transform="translate(277,94)"><image href="/images/room/shelf.webp" x="0" y="0" width="98" height="34"/>';
   var k, row, col, x, y;
   for (k = 0; k < got.length && k < 20; k++) {
     row = k < 10 ? 0 : 1;
@@ -615,11 +620,15 @@ function roomSVGInner() {
        öppningen (eldstadens valv) är urklippt till transparens i bilden (målad magentafärgad och
        bortnycklad i efterhand), så att den levande elden (FIRESVG - glöd, vedträn, flammor) fortfarande
        syns bakom, omskalad (icke-enhetligt) till valvets faktiska plats och form i den nya bilden. */
+    /* storlek ökad och flyttad till höger om Siiri (hon sitter alltid mitt i rummet,
+       x~140-260,y~127-246 - se roomSVGInner) - ändras x/y/width/height här måste
+       MANTELSVG (scenes.ts) och flamtransformen nedan räknas om på samma sätt,
+       annars hamnar dockorna/dalahästen och elden fel. */
     '<g id="roomfire" style="cursor:pointer" tabindex="0" role="button" aria-label="Tryck på elden">' +
-    '<g transform="translate(298.9,139.5) scale(0.473,0.483)">' +
+    '<g transform="translate(304,133.9) scale(0.517,0.527)">' +
     FIRESVG +
     "</g>" +
-    '<image href="/images/room/fireplace.webp" x="262.3" y="134" width="113.4" height="66"/>' +
+    '<image href="/images/room/fireplace.webp" x="264" y="128" width="124" height="72"/>' +
     "</g>";
   return (
     '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 270" class="roomsvg" preserveAspectRatio="xMidYMid slice">' +
@@ -647,6 +656,17 @@ function roomSVGInner() {
     fView(ctx.furnOf("view")) +
     "</g>" +
     '<image href="/images/room/window.webp" x="22" y="30" width="69" height="92"/>' +
+    "</g>" +
+    /* andra fönstret - centrerat ovanför Siiri (hon börjar först på y~127, fönstret slutar
+       på y122, så ingen krock trots att hon alltid sitter mitt i rummet). Flaggan/hyllan/
+       eldstaden fick flyttas till höger om henne istället (se fArt/fShelf/fire ovan), så
+       det här fönstret fyller ut tomrummet i mitten. Rent dekorativt (inget eget
+       #roomwindow2 i ROOM_SPOTS ännu, se room.vue). */
+    '<g aria-hidden="true">' +
+    '<g transform="translate(168.44,31.23) scale(0.451,0.5343)">' +
+    fView(ctx.furnOf("view")) +
+    "</g>" +
+    '<image href="/images/room/window.webp" x="165.5" y="30" width="69" height="92"/>' +
     "</g>" +
     '<path d="M36 148 L128 148 L196 268 L60 268 Z" fill="url(#g-beam)" opacity=".45"/>' +
     (fArtExtra(ctx.furnOf("art")) || fArt(ctx.furnOf("art"))) +
@@ -716,10 +736,10 @@ export function dipSVG(th: { et: string; sv: string }, seals: number, name: stri
 export const HIDE_SPOTS = [
   { id: "kardin", sv: "bakom gardinen", x: 7, y: 24 },
   { id: "vaip", sv: "under mattan", x: 46, y: 92 },
-  { id: "riiul", sv: "på hyllan", x: 56, y: 47 },
-  { id: "kamin", sv: "vid brasan", x: 78, y: 44 },
-  { id: "lipp", sv: "bakom tavlan", x: 36, y: 11 },
+  { id: "riiul", sv: "på hyllan", x: 82, y: 41 },
+  { id: "kamin", sv: "vid brasan", x: 82, y: 61 },
+  { id: "lipp", sv: "bakom tavlan", x: 82, y: 19 },
   { id: "aken", sv: "på fönsterbrädan", x: 16, y: 53 },
-  { id: "tool", sv: "i fåtöljen", x: 12, y: 71 },
+  { id: "tool", sv: "vid möbeln", x: 12, y: 71 },
   { id: "puud", sv: "i vedtraven", x: 93, y: 86 },
 ];
