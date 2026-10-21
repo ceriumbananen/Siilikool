@@ -627,10 +627,15 @@ function roomSVGInner() {
   var wall = fWall(ctx.furnOf("wall")),
     floor = fFloor(ctx.furnOf("floor"));
   var fire =
-    /* nerskalad (0.5x) och omplacerad så härden fortfarande vilar på golvet - brasan tog
-       tidigare upp 54% av rummets höjd, omotiverat stort jämfört med allt annat. */
-    '<g id="roomfire" style="cursor:pointer" tabindex="0" role="button" aria-label="Tryck på elden" transform="translate(294.5,141) scale(0.5)">' +
+    /* illustrerad bild istället för handritad stenomfattning+hylla (public/images/room/fireplace.webp) -
+       öppningen (eldstadens valv) är urklippt till transparens i bilden (målad magentafärgad och
+       bortnycklad i efterhand), så att den levande elden (FIRESVG - glöd, vedträn, flammor) fortfarande
+       syns bakom, omskalad (icke-enhetligt) till valvets faktiska plats och form i den nya bilden. */
+    '<g id="roomfire" style="cursor:pointer" tabindex="0" role="button" aria-label="Tryck på elden">' +
+    '<g transform="translate(298.9,139.5) scale(0.473,0.483)">' +
     FIRESVG +
+    "</g>" +
+    '<image href="/images/room/fireplace.webp" x="262.3" y="134" width="113.4" height="66"/>' +
     "</g>";
   return (
     '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 270" class="roomsvg" preserveAspectRatio="xMidYMid slice">' +
