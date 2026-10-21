@@ -247,10 +247,11 @@ function fRight(id: string | null) {
     );
   }
   /* illustrerad bild istället för handritad vedtrave (public/images/room/wood-basket.webp) -
-     en vedkorg istället för en lös hög, samma mönster som möblerna, skuggan är kvar som vektor. */
+     mindre och flyttad intill eldstadens högra sida (#roomfire slutar på x=388,y=200 - se
+     fire-variabeln i roomSVGInner) istället för det generella "höger"-hörnet. */
   return (
-    '<g transform="translate(348,214)"><ellipse cx="24" cy="30" rx="30" ry="6" fill="#2A1B0C" opacity=".26"/>' +
-    '<image href="/images/room/wood-basket.webp" x="-6" y="-18.8" width="60" height="48.8"/></g>'
+    '<g transform="translate(380,200)"><ellipse cx="0" cy="0" rx="21" ry="4.2" fill="#2A1B0C" opacity=".26"/>' +
+    '<image href="/images/room/wood-basket.webp" x="-21" y="-34" width="42" height="34"/></g>'
   );
 }
 function fArt(id: string | null) {
@@ -285,7 +286,7 @@ function fArt(id: string | null) {
      samma mönster som sängen/gungstolen - bilden innehåller själva upphängningssnöret.
      centrerad ovanför eldstaden (se #roomfire/fire nedan - Siiri sitter mitt i rummet
      (x~140-260,y~127-246) så eldstaden/flaggan/hyllan måste stå till höger om henne). */
-  return '<g transform="translate(302,20)"><image href="/images/room/flag.webp" x="-12" y="-1" width="72" height="67"/></g>';
+  return '<g transform="translate(306,20)"><image href="/images/room/flag.webp" x="-10" y="-0.8" width="60" height="55.8"/></g>';
 }
 function fLamp(id: string | null) {
   if (id === "p-floor") {
@@ -738,5 +739,5 @@ export const HIDE_SPOTS = [
   { id: "lipp", sv: "bakom tavlan", x: 82, y: 19 },
   { id: "aken", sv: "på fönsterbrädan", x: 16, y: 53 },
   { id: "tool", sv: "vid möbeln", x: 12, y: 71 },
-  { id: "puud", sv: "i vedkorgen", x: 93, y: 86 },
+  { id: "puud", sv: "i vedkorgen", x: 95, y: 68 },
 ];
