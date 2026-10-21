@@ -592,24 +592,19 @@ function fShelf() {
       et: TRIP[i]!.et,
     });
   }
-  var s =
-    '<g transform="translate(150,98)"><rect x="0" y="22" width="98" height="7" rx="2.5" fill="#B07C48"/>' +
-    '<rect x="0" y="22" width="98" height="2" fill="#E0BC8E" opacity=".8"/>' +
-    '<path d="M0 29 h98 l-4 4 h-90 z" fill="#2A1B0C" opacity=".2"/>' +
-    '<path d="M8 29 h10 l-3 6 h-4 z M80 29 h10 l-3 6 h-4 z" fill="#7A5230"/>';
+  /* illustrerad bild istället för handritad hylla (public/images/room/shelf.webp) - bilden
+     har två hyllplan rakt framifrån, så troféerna (emoji/platshållarprickar) läggs ovanpå
+     på samma sätt som innan, bara omräknat till de nya hyllplanens faktiska höjd i bilden. */
+  var s = '<g transform="translate(150,94)"><image href="/images/room/shelf.webp" x="0" y="0" width="98" height="34"/>';
   var k, row, col, x, y;
   for (k = 0; k < got.length && k < 20; k++) {
     row = k < 10 ? 0 : 1;
     col = k % 10;
     x = 6 + col * 9.6;
-    y = row === 0 ? -6 : 20;
+    y = row === 0 ? 7 : 23.7;
     if (got[k]!.have) s += '<text x="' + x + '" y="' + y + '" font-size="9">' + got[k]!.em + "</text>";
     else s += '<circle cx="' + (x + 3.4) + '" cy="' + (y - 3.4) + '" r="2.8" fill="#000" opacity=".10"/>';
   }
-  /* en liten extra hylla för den övre raden */
-  s +=
-    '<rect x="0" y="-4" width="98" height="5" rx="2" fill="#B07C48"/>' +
-    '<rect x="0" y="-4" width="98" height="1.6" fill="#E0BC8E" opacity=".8"/>';
   return s + "</g>";
 }
 function roomSVGInner() {
