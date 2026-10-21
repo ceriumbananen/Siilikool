@@ -246,14 +246,11 @@ function fRight(id: string | null) {
       '<rect x="14" y="42" width="7" height="16" fill="#8A5E30"/><rect x="46" y="42" width="7" height="16" fill="#8A5E30"/></g>'
     );
   }
+  /* illustrerad bild istället för handritad vedtrave (public/images/room/wood-basket.webp) -
+     en vedkorg istället för en lös hög, samma mönster som möblerna, skuggan är kvar som vektor. */
   return (
     '<g transform="translate(348,214)"><ellipse cx="24" cy="30" rx="30" ry="6" fill="#2A1B0C" opacity=".26"/>' +
-    '<g><g transform="translate(4,18)"><ellipse rx="8.5" ry="7" fill="#6E4524"/><ellipse rx="6.4" ry="5.2" fill="#C89A62"/></g>' +
-    '<g transform="translate(23,18)"><ellipse rx="8.5" ry="7" fill="#5E3A1E"/><ellipse rx="6.4" ry="5.2" fill="#B98A54"/></g>' +
-    '<g transform="translate(42,18)"><ellipse rx="8.5" ry="7" fill="#6E4524"/><ellipse rx="6.4" ry="5.2" fill="#C89A62"/></g>' +
-    '<g transform="translate(13,7)"><ellipse rx="8.5" ry="7" fill="#5E3A1E"/><ellipse rx="6.4" ry="5.2" fill="#BE8F58"/></g>' +
-    '<g transform="translate(33,7)"><ellipse rx="8.5" ry="7" fill="#6E4524"/><ellipse rx="6.4" ry="5.2" fill="#C89A62"/></g>' +
-    '<g transform="translate(23,-4)"><ellipse rx="8.5" ry="7" fill="#5E3A1E"/><ellipse rx="6.4" ry="5.2" fill="#C29562"/></g></g></g>'
+    '<image href="/images/room/wood-basket.webp" x="-6" y="-18.8" width="60" height="48.8"/></g>'
   );
 }
 function fArt(id: string | null) {
@@ -741,5 +738,5 @@ export const HIDE_SPOTS = [
   { id: "lipp", sv: "bakom tavlan", x: 82, y: 19 },
   { id: "aken", sv: "på fönsterbrädan", x: 16, y: 53 },
   { id: "tool", sv: "vid möbeln", x: 12, y: 71 },
-  { id: "puud", sv: "i vedtraven", x: 93, y: 86 },
+  { id: "puud", sv: "i vedkorgen", x: 93, y: 86 },
 ];

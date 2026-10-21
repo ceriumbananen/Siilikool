@@ -70,7 +70,7 @@ export const FURN = [
   { id: "l-bed", slot: "left", sv: "Liten säng", et: "Voodi", price: 520 },
   { id: "l-desk", slot: "left", sv: "Skrivbord", et: "Kirjutuslaud", price: 430 },
   { id: "l-rock", slot: "left", sv: "Gungstol", et: "Kiiktool", price: 600 },
-  { id: "g-wood", slot: "right", sv: "Vedtrave", et: "Puuriit", price: 0, def: 1 },
+  { id: "g-wood", slot: "right", sv: "Vedkorg", et: "Puukorv", price: 0, def: 1 },
   { id: "g-shelf", slot: "right", sv: "Bokhylla", et: "Raamaturiiul", price: 480 },
   { id: "g-toys", slot: "right", sv: "Leksakskorg", et: "Mänguasjad", price: 300 },
   { id: "g-kannel", slot: "right", sv: "Kannel på stativ", et: "Kannel", price: 820 },
