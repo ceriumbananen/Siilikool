@@ -211,16 +211,9 @@ function fLeft(id: string | null) {
       '<image href="/images/room/rocking-chair.webp" x="-14" y="2" width="108" height="59.5"/></g>'
     );
   }
-  return (
-    '<g transform="translate(24,150)"><ellipse cx="34" cy="76" rx="38" ry="9" fill="#2A1B0C" opacity=".22"/>' +
-    '<path d="M6 30 q0 -22 28 -22 q28 0 28 22 v34 H6 z" fill="#6A9A7A"/>' +
-    '<path d="M6 30 q0 -22 28 -22 q10 0 16 5 q-22 4 -26 22 z" fill="#fff" opacity=".14"/>' +
-    '<rect x="0" y="52" width="68" height="18" rx="7" fill="#5E8A6B"/>' +
-    '<rect x="-2" y="44" width="12" height="26" rx="5" fill="#446B52"/><rect x="58" y="44" width="12" height="26" rx="5" fill="#446B52"/>' +
-    '<rect x="8" y="68" width="7" height="9" rx="2" fill="#6E4A28"/><rect x="53" y="68" width="7" height="9" rx="2" fill="#6E4A28"/>' +
-    '<g transform="translate(14,34) rotate(-8)"><rect x="0" y="0" width="26" height="20" rx="5" fill="#E2C46A"/>' +
-    '<rect x="0" y="0" width="26" height="6" rx="3" fill="#F2DC9C" opacity=".8"/></g></g>'
-  );
+  /* ingen möbel vald (l-none, def) - tomt golvutrymme, samma mönster som lampa/växt/husdjur
+     utan val, så att det finns synligt plats kvar att fylla med köpta möbler. */
+  return "";
 }
 function fRight(id: string | null) {
   if (id === "g-shelf") {

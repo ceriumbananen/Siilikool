@@ -66,7 +66,7 @@ export const FURN = [
   { id: "r-stripe", slot: "rug", sv: "Randig matta", et: "Triibuline vaip", price: 220 },
   { id: "r-folk", slot: "rug", sv: "Folkmönstrad matta", et: "Rahvavaip", price: 460 },
   { id: "r-bear", slot: "rug", sv: "Björnfäll", et: "Karunahk", price: 700 },
-  { id: "l-chair", slot: "left", sv: "Grön fåtölj", et: "Tugitool", price: 0, def: 1 },
+  { id: "l-none", slot: "left", sv: "Ingen möbel", et: "Ilma", price: 0, def: 1 },
   { id: "l-bed", slot: "left", sv: "Liten säng", et: "Voodi", price: 520 },
   { id: "l-desk", slot: "left", sv: "Skrivbord", et: "Kirjutuslaud", price: 430 },
   { id: "l-rock", slot: "left", sv: "Gungstol", et: "Kiiktool", price: 600 },
