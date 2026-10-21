@@ -79,15 +79,17 @@ export const OSCENES = [
   },
 ];
 
-/* positionerna här (translate/scale på var och en) är beroende av var brasans spiselkrans
-   faktiskt hamnar (#roomfire i room-svg.ts) - ändras brasans storlek/placering måste de här
-   tre räknas om på samma sätt, annars svävar dockorna/dalahästen i luften ovanför hyllan. */
+/* positionerna här (x/y på varje <image>) är beroende av var brasans spiselkrans faktiskt
+   hamnar (#roomfire i room-svg.ts) - ändras brasans storlek/placering måste de här räknas
+   om på samma sätt, annars svävar dockorna/dalahästen i luften ovanför hyllan. */
 export const MANTELSVG =
   /* illustrerad bild istället för handritade dockor (public/images/room/folk-dolls.webp) -
      samma mönster som möblerna, skuggan är kvar som vektor. */
   ' <ellipse cx="300" cy="146.2" rx="6.5" ry="1.6" fill="#2A1B0C" opacity=".22"/>' +
   '<image href="/images/room/folk-dolls.webp" x="295.1" y="134.5" width="9.8" height="11"/>' +
-  ' <!-- dalahäst --> <g transform="translate(339.5,145.5) scale(0.31)"> <ellipse cx="0" cy="2" rx="17" ry="3.2" fill="#2A1B0C" opacity=".26"/> <g fill="#A8241C"> <rect x="-12" y="-9" width="4.4" height="9" rx="1.8"/> <rect x="-6.5" y="-9" width="4.4" height="9" rx="1.8"/> <rect x="2" y="-9" width="4.4" height="9" rx="1.8"/> <rect x="7.5" y="-9" width="4.4" height="9" rx="1.8"/> </g> <path d="M-14 -14 q-5 -1.5 -6 -6.5 q5 0.5 7.5 4.5 z" fill="#A8241C"/> <path d="M-13.5 -9 v-9 q0 -3.5 4 -3.5 h10 q4 0 5 4 l2.5 -9.5 q1 -4 5 -4 h3.5 q1.5 2.5 1 5 l-1 5 q-0.5 2.5 -3 3.5 l-4.5 1.5 q-3 1 -4 4 v3.5 z" fill="#C8302F"/> <path d="M12.5 -32.5 l9 2 q2 0.6 1.6 2.6 l-0.6 3 q-0.4 2 -2.5 1.6 l-9 -1.6 z" fill="#C8302F"/> <path d="M20.5 -25.5 q2.6 0.4 2.8 2.2 q-2 1 -3.8 -0.4 z" fill="#8E1F18"/> <circle cx="17.5" cy="-28.5" r="1.1" fill="#2A1B0C"/> <path d="M12.8 -33 l0.4 -4 l3 3.2 z" fill="#C8302F"/> <path d="M16.6 -32.2 l2.6 -3.2 l0.6 3.8 z" fill="#C8302F"/> <path d="M7.5 -22 q2.4 -5.4 5.2 -9.4" stroke="#8E1F18" stroke-width="1.8" fill="none" opacity=".55" stroke-linecap="round"/> <g stroke="#F4D93C" stroke-width="1.3" fill="none" stroke-linecap="round"> <path d="M-10 -14 q5 -3 10 -0.5"/><path d="M-8 -10.5 q4.5 -2.5 9 -0.5"/></g> <g stroke="#2B7A4A" stroke-width="1.1" fill="none" stroke-linecap="round"> <path d="M-11 -17.5 q4 -2 8 -0.5"/><path d="M-3 -19.5 q3 -1.5 6 0.5"/></g> <g fill="#F7EEDC"> <circle cx="-6" cy="-17.5" r="1.5"/><circle cx="-1" cy="-16.5" r="1.3"/><circle cx="-9" cy="-12" r="1.2"/></g> <path d="M-6 -7.5 q4.5 -1.5 9 0" stroke="#2B4CA8" stroke-width="1.2" fill="none"/> </g> ';
+  /* illustrerad bild istället för handritad dalahäst (public/images/room/dala-horse.webp). */
+  ' <ellipse cx="339.5" cy="146.2" rx="7" ry="1.6" fill="#2A1B0C" opacity=".26"/>' +
+  '<image href="/images/room/dala-horse.webp" x="333.3" y="134.5" width="12.35" height="11"/>';
 
 /* bara den levande elden kvar (öppning, glöd, vedträn, flammor, glöd) - stenomfattning,
    hylla och härdgolv kommer nu från den illustrerade bilden (public/images/room/fireplace.webp),
