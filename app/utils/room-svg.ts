@@ -291,13 +291,9 @@ function fArt(id: string | null) {
       '<path d="M26 20 q8 -8 16 0" stroke="#8A6238" stroke-width="2" fill="none"/></g>'
     );
   }
-  return (
-    '<g transform="translate(150,20)"><rect x="3" y="5" width="96" height="66" rx="3" fill="#2A1B0C" opacity=".22"/>' +
-    '<rect width="96" height="66" rx="3" fill="#8A6238"/><rect x="5" y="5" width="86" height="56" fill="#F7F7F7"/>' +
-    '<rect x="5" y="5" width="86" height="18.7" fill="#0072CE"/><rect x="5" y="23.7" width="86" height="18.7" fill="#141414"/>' +
-    '<rect x="5" y="42.4" width="86" height="18.6" fill="#FAFAFA"/>' +
-    '<rect x="5" y="5" width="86" height="56" fill="none" stroke="#6E4E2A" stroke-width="1.2"/></g>'
-  );
+  /* illustrerad bild istället för handritad ram+flagga (public/images/room/flag.webp),
+     samma mönster som sängen/gungstolen - bilden innehåller själva upphängningssnöret. */
+  return '<g transform="translate(150,20)"><image href="/images/room/flag.webp" x="-12" y="-1" width="72" height="67"/></g>';
 }
 function fLamp(id: string | null) {
   if (id === "p-floor") {
