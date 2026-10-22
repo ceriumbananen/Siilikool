@@ -38,7 +38,7 @@ function flip() {
 }
 /* saker i rummet man kan trycka på: katten spinner, brasan, lampan, fönstret och katten
    säger var sitt ord (samma pop-bubbla-mönster, så de känns som en familj av reaktioner) */
-type RoomSpotId = "roomfire" | "roomlamp" | "roomwindow" | "roompet";
+type RoomSpotId = "roomfire" | "roomlamp" | "roomwindow" | "roomwindow2" | "roompet";
 type RoomSpot = { x: number; y: number; dir: "up" | "left" | "down"; words: { et: string; sv: string }[] };
 const ROOM_SPOTS: Record<RoomSpotId, RoomSpot> = {
   roomfire: { x: 61, y: 42, dir: "left", words: [{ et: "soe", sv: "varmt" }] },
@@ -52,7 +52,27 @@ const ROOM_SPOTS: Record<RoomSpotId, RoomSpot> = {
       { et: "päike", sv: "sol" },
     ],
   },
+  roomwindow2: {
+    x: 50,
+    y: 47,
+    dir: "down",
+    words: [
+      { et: "vihm", sv: "regn" },
+      { et: "päike", sv: "sol" },
+    ],
+  },
   roompet: { x: 21, y: 72, dir: "up", words: [{ et: "kass", sv: "katt" }] },
+};
+/* möblerna (vänster/höger/matta/växt/tavla) säger inte ett fast ord som ovan, utan precis
+   det man själv valt i Laat (FURN i shop.ts har redan et/sv per sak) - annars hade t.ex.
+   "möbeln" alltid behövt säga samma ord oavsett om det är en säng eller en gungstol. */
+type FurnSpotId = "roomleft" | "roomright" | "roomrug" | "roomplant" | "roomart";
+const FURN_SPOTS: Record<FurnSpotId, { slot: string; x: number; y: number; dir: "up" | "left" | "down" }> = {
+  roomleft: { slot: "left", x: 14, y: 65, dir: "up" },
+  roomright: { slot: "right", x: 88, y: 62, dir: "up" },
+  roomrug: { slot: "rug", x: 50, y: 85, dir: "up" },
+  roomplant: { slot: "plant", x: 92, y: 65, dir: "up" },
+  roomart: { slot: "art", x: 80, y: 17, dir: "up" },
 };
 const roomTurn: Partial<Record<RoomSpotId, number>> = {};
 const roomSaid = ref<{ et: string; sv: string; x: number; y: number; dir: "up" | "left" | "down" } | null>(null);
@@ -71,6 +91,14 @@ function onStageClick(e: MouseEvent) {
       return;
     }
   }
+  for (const id of Object.keys(FURN_SPOTS) as FurnSpotId[]) {
+    const el = target?.closest?.(`#${id}`);
+    if (el) {
+      touchFurnSpot(id, el);
+      (el as SVGElement).blur?.();
+      return;
+    }
+  }
 }
 /* rummets saker (eld/lampa/fönster/katt) är <g>-element i rå SVG (v-html, se roomSVG() i
    app/utils/room-svg.ts) - tabindex/role/aria-label sätts där, men tangentbordet ger bara
@@ -83,6 +111,13 @@ function onStageKeydown(e: KeyboardEvent) {
     if (target?.id === id) {
       e.preventDefault();
       touchRoomSpot(id, target);
+      return;
+    }
+  }
+  for (const id of Object.keys(FURN_SPOTS) as FurnSpotId[]) {
+    if (target?.id === id) {
+      e.preventDefault();
+      touchFurnSpot(id, target);
       return;
     }
   }
@@ -104,6 +139,31 @@ function touchRoomSpot(id: RoomSpotId, el: Element) {
   voice.sayWord(word.et);
   const sv = id === "roompet" && petName.value ? petName.value : `${word.sv[0]!.toUpperCase()}${word.sv.slice(1)}!`;
   roomSaid.value = { et: word.et, sv, x: spot.x, y: spot.y, dir: spot.dir };
+  clearTimeout(roomSaidTimer);
+  roomSaidTimer = setTimeout(() => {
+    roomSaid.value = null;
+  }, 1800);
+}
+/* samma pop-bubbla, men ordet kommer från den möbel man faktiskt valt i Laat, inte en fast lista. */
+function touchFurnSpot(id: FurnSpotId, el: Element) {
+  const spot = FURN_SPOTS[id];
+  const furnId = furnOf(spot.slot, room.value, furnOwnedIds.value);
+  const item = furnId && furnById(furnId);
+  if (!item) return;
+  const litClass = `${id}--lit`;
+  el.classList.remove(litClass);
+  void (el as HTMLElement).offsetWidth;
+  el.classList.add(litClass);
+  tone(260, 0.08, 0);
+  tone(160, 0.16, 0.05);
+  voice.sayWord(item.et);
+  roomSaid.value = {
+    et: item.et,
+    sv: `${item.sv[0]!.toUpperCase()}${item.sv.slice(1)}!`,
+    x: spot.x,
+    y: spot.y,
+    dir: spot.dir,
+  };
   clearTimeout(roomSaidTimer);
   roomSaidTimer = setTimeout(() => {
     roomSaid.value = null;
@@ -521,7 +581,13 @@ function backFromQuiz() {
   &__room :deep(#roomfire:focus-visible),
   &__room :deep(#roomlamp:focus-visible),
   &__room :deep(#roomwindow:focus-visible),
-  &__room :deep(#roompet:focus-visible) {
+  &__room :deep(#roomwindow2:focus-visible),
+  &__room :deep(#roompet:focus-visible),
+  &__room :deep(#roomleft:focus-visible),
+  &__room :deep(#roomright:focus-visible),
+  &__room :deep(#roomrug:focus-visible),
+  &__room :deep(#roomplant:focus-visible),
+  &__room :deep(#roomart:focus-visible) {
     outline: $border-width solid var(--blue);
     outline-offset: $border-width;
   }

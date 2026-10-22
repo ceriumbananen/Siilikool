@@ -2487,7 +2487,13 @@ body {
   }
 }
 
-.roomsvg #roomwindow.roomwindow--lit {
+.roomsvg #roomwindow.roomwindow--lit,
+.roomsvg #roomwindow2.roomwindow2--lit,
+.roomsvg #roomleft.roomleft--lit,
+.roomsvg #roomright.roomright--lit,
+.roomsvg #roomrug.roomrug--lit,
+.roomsvg #roomplant.roomplant--lit,
+.roomsvg #roomart.roomart--lit {
   animation: roomwindowflare 0.6s ease-out;
 }
 
@@ -2508,7 +2514,13 @@ body {
   .roomsvg .pettail,
   .roomsvg #roomfire.roomfire--lit .flames,
   .roomsvg #roomlamp.roomlamp--lit .lampglow,
-  .roomsvg #roomwindow.roomwindow--lit {
+  .roomsvg #roomwindow.roomwindow--lit,
+  .roomsvg #roomwindow2.roomwindow2--lit,
+  .roomsvg #roomleft.roomleft--lit,
+  .roomsvg #roomright.roomright--lit,
+  .roomsvg #roomrug.roomrug--lit,
+  .roomsvg #roomplant.roomplant--lit,
+  .roomsvg #roomart.roomart--lit {
     animation: none;
   }
 }

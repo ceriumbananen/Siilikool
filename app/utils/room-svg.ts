@@ -614,6 +614,14 @@ function fShelf() {
   }
   return s + "</g>";
 }
+/** Gör en möbel tryckbar (samma mönster som #roomfire/#roomlamp/#roomwindow/#roompet) - bara
+    om det faktiskt finns något att trycka på (t.ex. "ingen möbel"/"ingen växt" ger tomt
+    inner, och då ska det inte gå att trycka på osynlig yta). Ordet som sägs slås upp
+    dynamiskt från vald möbel i room.vue (FURN_SPOTS), inte hårdkodat här. */
+function wrapTap(id: string, label: string, inner: string): string {
+  if (!inner) return "";
+  return '<g id="' + id + '" style="cursor:pointer" tabindex="0" role="button" aria-label="' + label + '">' + inner + "</g>";
+}
 function roomSVGInner() {
   var wall = fWall(ctx.furnOf("wall")),
     floor = fFloor(ctx.furnOf("floor"));
@@ -662,25 +670,25 @@ function roomSVGInner() {
     /* andra fönstret - centrerat ovanför Siiri (hon börjar först på y~127, fönstret slutar
        på y122, så ingen krock trots att hon alltid sitter mitt i rummet). Flaggan/hyllan/
        eldstaden fick flyttas till höger om henne istället (se fArt/fShelf/fire ovan), så
-       det här fönstret fyller ut tomrummet i mitten. Rent dekorativt (inget eget
-       #roomwindow2 i ROOM_SPOTS ännu, se room.vue). */
-    '<g aria-hidden="true">' +
+       det här fönstret fyller ut tomrummet i mitten. Tryckbart precis som det första
+       fönstret (samma ord, #roomwindow2 i ROOM_SPOTS, se room.vue). */
+    '<g id="roomwindow2" style="cursor:pointer" tabindex="0" role="button" aria-label="Tryck på det andra fönstret">' +
     '<g transform="translate(168.44,31.23) scale(0.451,0.5343)">' +
     fView(ctx.furnOf("view")) +
     "</g>" +
     '<image href="/images/room/window.webp" x="165.5" y="30" width="69" height="92"/>' +
     "</g>" +
     '<path d="M36 148 L128 148 L196 268 L60 268 Z" fill="url(#g-beam)" opacity=".45"/>' +
-    (fArtExtra(ctx.furnOf("art")) || fArt(ctx.furnOf("art"))) +
+    wrapTap("roomart", "Tryck på tavlan", fArtExtra(ctx.furnOf("art")) || fArt(ctx.furnOf("art"))) +
     fShelf() +
     fire +
     fDiplomas() +
     MANTELSVG +
-    (fRugExtra(ctx.furnOf("rug")) || fRug(ctx.furnOf("rug"))) +
-    (fLeftExtra(ctx.furnOf("left")) || fLeft(ctx.furnOf("left"))) +
-    (fRightExtra(ctx.furnOf("right")) || fRight(ctx.furnOf("right"))) +
+    wrapTap("roomrug", "Tryck på mattan", fRugExtra(ctx.furnOf("rug")) || fRug(ctx.furnOf("rug"))) +
+    wrapTap("roomleft", "Tryck på möbeln", fLeftExtra(ctx.furnOf("left")) || fLeft(ctx.furnOf("left"))) +
+    wrapTap("roomright", "Tryck på möbeln", fRightExtra(ctx.furnOf("right")) || fRight(ctx.furnOf("right"))) +
     (fLampExtra(ctx.furnOf("lamp")) || fLamp(ctx.furnOf("lamp"))) +
-    (fPlantExtra(ctx.furnOf("plant")) || fPlant(ctx.furnOf("plant"))) +
+    wrapTap("roomplant", "Tryck på växten", fPlantExtra(ctx.furnOf("plant")) || fPlant(ctx.furnOf("plant"))) +
     fPet(ctx.furnOf("pet")) +
     '<rect width="400" height="270" fill="url(#g-warm)" style="pointer-events:none"/><rect width="400" height="270" fill="url(#g-vign)" style="pointer-events:none"/>' +
     "</svg>"
