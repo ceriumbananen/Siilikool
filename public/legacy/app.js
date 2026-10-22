@@ -9862,7 +9862,6 @@
   }
   function boatEnd() {
     var r = BT.right,
-      n = BT.n,
       w = BT.wrong;
     if (BT.raf) cancelAnimationFrame(BT.raf);
     if (BT.keyHandler) document.removeEventListener("keydown", BT.keyHandler);
@@ -9876,10 +9875,15 @@
       '<div class="card" style="text-align:center"><div class="bigstars">' +
       starStr(st) +
       "</div>" +
+      /* r är alltid lika med BT.n (man MÅSTE fånga n rätt för att spelet ska ta slut, fel
+         flaskor kostar bara ett nytt försök, inte en runda) - att visa "r / n" här skulle
+         alltså alltid bli t.ex. "10 / 10" oavsett hur många fel man gjorde, vilket var
+         förvirrande ihop med felmeningen nedan. Visar istället rätt av alla försök (r+w),
+         samma typ av facit-kvot som de andra spelens bigscore (t.ex. sentEnd()). */
       '<div class="bigscore">' +
       r +
       " / " +
-      n +
+      (r + w) +
       '</div><p class="q">Bra fångat!</p>' +
       (w
         ? '<p class="qsub">' +
