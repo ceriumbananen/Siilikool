@@ -255,9 +255,12 @@ function fRight(id: string | null) {
   );
 }
 function fArt(id: string | null) {
+  /* alla fyra tavelvalen (+ a-clock i fArtExtra) delar samma centrerade plats ovanför
+     eldstaden som flaggan (translate 306,20 - se #roomfire/fire i roomSVGInner) - annars
+     hamnar de där det andra (mittersta) fönstret nu sitter. */
   if (id === "a-view") {
     return (
-      '<g transform="translate(150,20)"><rect x="3" y="5" width="96" height="66" rx="3" fill="#2A1B0C" opacity=".22"/>' +
+      '<g transform="translate(286,19.5) scale(0.833)"><rect x="3" y="5" width="96" height="66" rx="3" fill="#2A1B0C" opacity=".22"/>' +
       '<rect width="96" height="66" rx="3" fill="#8A6238"/><rect x="5" y="5" width="86" height="56" fill="#DCEEF6"/>' +
       '<path d="M5 40 q18 -16 34 -4 q14 10 24 -4 q10 -12 23 -2 v27 H5 z" fill="#8FBE7E"/>' +
       '<circle cx="70" cy="20" r="9" fill="#F6D24A"/><path d="M5 52 q22 -8 44 0 q22 8 42 -2 v11 H5 z" fill="#5E8A54"/></g>'
@@ -265,7 +268,7 @@ function fArt(id: string | null) {
   }
   if (id === "a-map") {
     return (
-      '<g transform="translate(150,20)"><rect x="3" y="5" width="96" height="66" rx="3" fill="#2A1B0C" opacity=".22"/>' +
+      '<g transform="translate(286,19.5) scale(0.833)"><rect x="3" y="5" width="96" height="66" rx="3" fill="#2A1B0C" opacity=".22"/>' +
       '<rect width="96" height="66" rx="3" fill="#6E4E2A"/><rect x="5" y="5" width="86" height="56" fill="#F2EAD6"/>' +
       '<path d="M14 40 q6 -14 22 -12 q10 -8 24 -2 q14 -2 18 8 q4 12 -8 16 q-16 6 -34 2 q-18 -2 -22 -12 z" fill="#9EC48E" stroke="#6E8A5E" stroke-width="1"/>' +
       '<circle cx="34" cy="30" r="2.2" fill="#C8305A"/><circle cx="56" cy="38" r="2" fill="#C8305A"/><circle cx="70" cy="34" r="2" fill="#C8305A"/>' +
@@ -274,7 +277,7 @@ function fArt(id: string | null) {
   }
   if (id === "a-photo") {
     return (
-      '<g transform="translate(150,20)"><rect x="3" y="5" width="96" height="66" rx="3" fill="#2A1B0C" opacity=".22"/>' +
+      '<g transform="translate(286,19.5) scale(0.833)"><rect x="3" y="5" width="96" height="66" rx="3" fill="#2A1B0C" opacity=".22"/>' +
       '<rect width="96" height="66" rx="3" fill="#C9A06A"/><rect x="6" y="6" width="84" height="54" fill="#FBF6EA"/>' +
       '<circle cx="34" cy="30" r="11" fill="#E8D2B4"/><circle cx="34" cy="30" r="8" fill="#C9A98A"/>' +
       '<circle cx="60" cy="33" r="9" fill="#E8D2B4"/><circle cx="60" cy="33" r="6.4" fill="#C9A98A"/>' +
@@ -477,8 +480,9 @@ function fRightExtra(id: string | null) {
 }
 function fArtExtra(id: string | null) {
   if (id !== "a-clock") return null;
+  /* samma centrerade plats ovanför eldstaden som de andra tavelvalen, se fArt() ovan. */
   return (
-    '<g transform="translate(182,24)"><circle cx="16" cy="18" r="21" fill="#8A6238"/>' +
+    '<g transform="translate(312.7,26.2) scale(0.833)"><circle cx="16" cy="18" r="21" fill="#8A6238"/>' +
     '<circle cx="16" cy="18" r="17" fill="#F7F2E6"/>' +
     '<g stroke="#6E5F55" stroke-width="1.4"><path d="M16 5 v3 M16 28 v3 M3 18 h3 M26 18 h3"/></g>' +
     '<path d="M16 18 v-9 M16 18 l7 5" stroke="#33312E" stroke-width="2" stroke-linecap="round"/>' +
