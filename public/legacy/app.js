@@ -5266,12 +5266,23 @@
       S.owned.push(it.id);
       S.wear[it.slot] = it.id;
       save();
-      gift = { em: it.em, big: esc(it.sv), sub: esc(it.et) + " · ett fynd från marknaden!" };
+      gift = {
+        em: it.em,
+        big: esc(it.sv),
+        sub: esc(it.et) + " · ett fynd från marknaden!",
+        note: "Inga stjärnor den här gången - imorgon kanske!",
+      };
     } else if (roll < 0.4) {
       var pool = allWords(),
         w = pool[(Math.random() * pool.length) | 0];
       speak(w.et);
-      gift = { em: w.em, big: esc(w.et), sub: esc(w.sv) + " · dagens ord från Siiri", word: w };
+      gift = {
+        em: w.em,
+        big: esc(w.et),
+        sub: esc(w.sv) + " · dagens ord från Siiri",
+        word: w,
+        note: "Inga stjärnor den här gången - imorgon kanske!",
+      };
     } else {
       var amount = [15, 20, 25, 30, 40, 50, 60][(Math.random() * 7) | 0];
       if (roll > 0.93) amount = 100;
@@ -5297,6 +5308,7 @@
         "</h3><p>" +
         gift.sub +
         "</p>" +
+        (gift.note ? '<p class="qsub">' + gift.note + "</p>" : "") +
         (gift.word ? '<button class="btn ghost" id="bagsay" style="margin-top:8px">🔊 Hör ordet igen</button>' : "") +
         '<button class="btn big wide" id="bagok" style="margin-top:8px">Aitäh, Siiri!</button>' +
         '<p class="qsub" style="margin-top:8px">En ny påse väntar imorgon.</p></div>',
