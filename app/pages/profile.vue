@@ -344,12 +344,13 @@ function tapSettingsTitle() {
               cloud.link
                 ? "Spelet hör till familjen, men enheten är utloggad. Skriv familjekoden igen så sparas det som vanligt."
                 : `Spela med familjen: spelet sparas i familjekontot och följer med till andra enheter, och glosorna kommer
-            från de vuxna. Framsteg, skolans glosor och säkerhetskopia finns under För vuxna.`
+            från de vuxna. Har du redan ett konto? Tryck på För vuxna för att logga in - där finns också
+            framsteg, skolans glosor och säkerhetskopia.`
             }}
           </p>
           <div class="profile-page__row">
             <a class="profile-page__btn profile-page__btn--green" href="/join">🔑 Jag har en familjekod</a>
-            <a class="profile-page__btn profile-page__btn--ghost" href="/familj">🔐 För vuxna</a>
+            <a class="profile-page__btn profile-page__btn--ghost" href="/familj">🔐 För vuxna · logga in</a>
           </div>
         </template>
       </UiAppCard>
