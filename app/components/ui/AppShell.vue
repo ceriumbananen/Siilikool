@@ -70,6 +70,7 @@ function tapStars() {
           ⭐ <b>{{ profile.state.stars.toLocaleString("sv-SE") }}</b>
         </a>
         <span class="app-shell__spacer" />
+        <UiBugReportButton />
       </div>
       <div class="app-shell__meter">
         <div class="app-shell__meter-top">
