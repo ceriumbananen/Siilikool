@@ -412,8 +412,13 @@ function fView(id: string | null) {
       '<path d="M54 84 l8 -16 l8 16 z" fill="#F7EEDC"/><rect x="60" y="68" width="2" height="16" fill="#8A5E30"/>'
     );
   }
-  /* förvalet (u-day, def:1) - tidigare bara "" eftersom den gamla handritade WINDOWSVG redan
-     hade en egen statisk himmel bakom, borttagen nu när fönstret blev en bild (window.webp). */
+  /* förvalet (u-day, def:1, gratis) - dynamiskt: visar kväll på kvällen/natten och snö på
+     vintern, genom att återanvända u-night/u-snow-ritningarna ovan istället för en tredje
+     statisk scen. Köpta vyer (u-night/u-snow/u-sea) ändras INTE av detta - de är ett
+     medvetet, betalt val som ska vara kvar som man valde det, året och dygnet runt. */
+  var hour = new Date().getHours();
+  if (hour < 6 || hour >= 21) return fView("u-night");
+  if (seasonId() === "vinter") return fView("u-snow");
   return (
     '<rect x="28" y="34" width="84" height="90" fill="#AFD8EF"/>' +
     '<ellipse cx="50" cy="52" rx="16" ry="8" fill="#fff" opacity=".85"/>' +
