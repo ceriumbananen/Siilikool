@@ -88,7 +88,7 @@ export const MANTELSVG =
      ett historiekort istället för en pratbubbla, se ROOM_LORE/touchLoreSpot i room.vue. */
   '<g id="roomdolls" style="cursor:pointer" tabindex="0" role="button" aria-label="Tryck på folkdockorna">' +
   ' <ellipse cx="305.2" cy="141.5" rx="6.5" ry="1.6" fill="#2A1B0C" opacity=".22"/>' +
-  '<image href="/images/room/folk-dolls.webp" x="300.3" y="129.8" width="9.8" height="11"/></g>' +
+  '<image href="/images/room/folk-dolls.webp" x="300" y="129.8" width="10.38" height="11"/></g>' +
   /* illustrerad bild istället för handritad dalahäst (public/images/room/dala-horse.webp) -
      tryckbar (#roomdala), samma mönster som dockorna ovan. */
   '<g id="roomdala" style="cursor:pointer" tabindex="0" role="button" aria-label="Tryck på dalahästen">' +
