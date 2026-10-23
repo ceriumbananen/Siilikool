@@ -77,8 +77,47 @@ const FURN_SPOTS: Record<FurnSpotId, { slot: string; x: number; y: number; dir: 
 const roomTurn: Partial<Record<RoomSpotId, number>> = {};
 const roomSaid = ref<{ et: string; sv: string; x: number; y: number; dir: "up" | "left" | "down" } | null>(null);
 let roomSaidTimer: ReturnType<typeof setTimeout> | undefined;
+
+/* vissa saker har en egen kulturell/historisk historia (ROOM_LORE i app/utils/room-lore.ts) och
+   öppnar ett kort istället för pratbubblan - samma mönster som openCharCard() i app.js
+   (rival-/avatarkorten). "roomart" är dynamisk: bara vald tavla (t.ex. a-flag) har lore, annat
+   val (karta, foto...) faller tillbaka till den vanliga pratbubblan via FURN_SPOTS nedan. */
+const LORE_SPOT_IDS = ["roomfire", "roomart", "roomdala", "roomdolls"] as const;
+function loreFor(id: string): RoomLore | null {
+  if (id === "roomfire") return ROOM_LORE.roomfire!;
+  if (id === "roomdala") return ROOM_LORE.dalahast!;
+  if (id === "roomdolls") return ROOM_LORE.folkdockor!;
+  if (id === "roomart") {
+    const furnId = furnOf("art", room.value, furnOwnedIds.value);
+    return (furnId && ROOM_LORE[furnId]) || null;
+  }
+  return null;
+}
+const lore = ref<RoomLore | null>(null);
+const loreShowEt = ref(true);
+function openLore(entry: RoomLore) {
+  lore.value = entry;
+  loreShowEt.value = true;
+  tone(260, 0.08, 0);
+  tone(160, 0.16, 0.05);
+  voice.sayWord(entry.factEt);
+}
+function toggleLoreLang() {
+  loreShowEt.value = !loreShowEt.value;
+  if (lore.value) voice.sayWord(loreShowEt.value ? lore.value.factEt : lore.value.fact);
+}
+
 function onStageClick(e: MouseEvent) {
   const target = e.target as Element | null;
+  for (const id of LORE_SPOT_IDS) {
+    const el = target?.closest?.(`#${id}`);
+    if (!el) continue;
+    const entry = loreFor(id);
+    if (!entry) break; /* t.ex. roomart utan lore för vald tavla - fall igenom till pratbubblan */
+    openLore(entry);
+    (el as SVGElement).blur?.();
+    return;
+  }
   for (const id of Object.keys(ROOM_SPOTS) as RoomSpotId[]) {
     const el = target?.closest?.(`#${id}`);
     if (el) {
@@ -107,6 +146,14 @@ function onStageClick(e: MouseEvent) {
 function onStageKeydown(e: KeyboardEvent) {
   if (e.key !== "Enter" && e.key !== " ") return;
   const target = e.target as Element | null;
+  for (const id of LORE_SPOT_IDS) {
+    if (target?.id !== id) continue;
+    const entry = loreFor(id);
+    if (!entry) break;
+    e.preventDefault();
+    openLore(entry);
+    return;
+  }
   for (const id of Object.keys(ROOM_SPOTS) as RoomSpotId[]) {
     if (target?.id === id) {
       e.preventDefault();
@@ -548,6 +595,24 @@ function backFromQuiz() {
         </div>
       </div>
     </div>
+
+    <!-- historiekort: dalahäst, folkdockor, flagga, eldstad - se ROOM_LORE/openLore -->
+    <div v-if="lore" class="room-page__found" role="dialog" aria-modal="true">
+      <div class="room-page__found-card">
+        <img :src="lore.img" alt="" class="room-page__lore-img" />
+        <h3 :lang="loreShowEt ? 'et' : 'sv'">{{ loreShowEt ? lore.name.et : lore.name.sv }}</h3>
+        <p :lang="loreShowEt ? 'et' : 'sv'">{{ loreShowEt ? lore.factEt : lore.fact }}</p>
+        <div class="room-page__found-row">
+          <UiAppButton variant="primary" @click="voice.sayWord(loreShowEt ? lore.factEt : lore.fact)"
+            >🔊 Hör</UiAppButton
+          >
+          <UiAppButton variant="ghost" @click="toggleLoreLang">{{
+            loreShowEt ? "🇸🇪 På svenska" : "🇪🇪 Eesti keeles"
+          }}</UiAppButton>
+        </div>
+        <UiAppButton variant="green" wide @click="lore = null">Stäng</UiAppButton>
+      </div>
+    </div>
   </UiAppShell>
 </template>
 
@@ -587,7 +652,9 @@ function backFromQuiz() {
   &__room :deep(#roomright:focus-visible),
   &__room :deep(#roomrug:focus-visible),
   &__room :deep(#roomplant:focus-visible),
-  &__room :deep(#roomart:focus-visible) {
+  &__room :deep(#roomart:focus-visible),
+  &__room :deep(#roomdala:focus-visible),
+  &__room :deep(#roomdolls:focus-visible) {
     outline: $border-width solid var(--blue);
     outline-offset: $border-width;
   }
@@ -1112,6 +1179,16 @@ function backFromQuiz() {
       width: 5rem;
       height: 5rem;
     }
+  }
+
+  &__lore-img {
+    display: block;
+    max-width: 8rem;
+    max-height: 8rem;
+    width: auto;
+    height: auto;
+    margin: 0 auto $spacing-2;
+    object-fit: contain;
   }
 
   &__found-row {

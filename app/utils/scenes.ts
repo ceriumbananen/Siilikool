@@ -84,12 +84,16 @@ export const OSCENES = [
    om på samma sätt, annars svävar dockorna/dalahästen i luften ovanför hyllan. */
 export const MANTELSVG =
   /* illustrerad bild istället för handritade dockor (public/images/room/folk-dolls.webp) -
-     samma mönster som möblerna, skuggan är kvar som vektor. */
+     samma mönster som möblerna, skuggan är kvar som vektor. Tryckbar (#roomdolls) - öppnar
+     ett historiekort istället för en pratbubbla, se ROOM_LORE/touchLoreSpot i room.vue. */
+  '<g id="roomdolls" style="cursor:pointer" tabindex="0" role="button" aria-label="Tryck på folkdockorna">' +
   ' <ellipse cx="305.2" cy="141.5" rx="6.5" ry="1.6" fill="#2A1B0C" opacity=".22"/>' +
-  '<image href="/images/room/folk-dolls.webp" x="300.3" y="129.8" width="9.8" height="11"/>' +
-  /* illustrerad bild istället för handritad dalahäst (public/images/room/dala-horse.webp). */
+  '<image href="/images/room/folk-dolls.webp" x="300.3" y="129.8" width="9.8" height="11"/></g>' +
+  /* illustrerad bild istället för handritad dalahäst (public/images/room/dala-horse.webp) -
+     tryckbar (#roomdala), samma mönster som dockorna ovan. */
+  '<g id="roomdala" style="cursor:pointer" tabindex="0" role="button" aria-label="Tryck på dalahästen">' +
   ' <ellipse cx="348.4" cy="141.5" rx="7" ry="1.6" fill="#2A1B0C" opacity=".26"/>' +
-  '<image href="/images/room/dala-horse.webp" x="342.3" y="129.8" width="12.35" height="11"/>';
+  '<image href="/images/room/dala-horse.webp" x="342.3" y="129.8" width="12.35" height="11"/></g>';
 
 /* bara den levande elden kvar (öppning, glöd, vedträn, flammor, glöd) - stenomfattning,
    hylla och härdgolv kommer nu från den illustrerade bilden (public/images/room/fireplace.webp),
