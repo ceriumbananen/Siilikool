@@ -14,8 +14,8 @@
      riigilipuks 1918.
    - Dalahäst: Nordiska museet / svensk hemslöjdstradition, 1700-talets Dalarna, världsutställningen
      i New York 1939.
-   - Rahvariietes nukud: Nordiska museet, dockor i folkdräkt visade på 1800-talets världsutställningar
-     (Paris 1867/1878, Artur Hazelius).
+   - Rahvariietes nukud: eesti rahvarõivad - triibulised seelikud ja omad värvid igas maakonnas/
+     kihelkonnas (alates 1700. sajandist), kantakse tänapäeval eriti laulupeol (rahvaroivad.ee).
    - Ahi/eldstaden: Eesti Vabaõhumuuseum - rehielamu rehetuba, suur ahi kütmiseks, vilja kuivatamiseks
      ja musta leiva küpsetamiseks. */
 export type RoomLore = {
@@ -54,8 +54,8 @@ export const ROOM_LORE: Record<string, RoomLore> = {
     img: "/images/room/folk-dolls.webp",
     name: { et: "Rahvariietes nukud", sv: "Folkdräktsdockorna" },
     factEt:
-      "Need väikesed nukud kannavad rootsi rahvariideid. 1800. aastatel näidati selliseid nukke suurtel maailmanäitustel, et tutvustada erinevate Rootsi maakondade rõivaid ja kombeid.",
+      "Need nukud kannavad Eesti rahvariideid. Igal maakonnal on oma triibuline seelik ja omad värvid - isegi naaberkihelkondades võisid need olla hoopis erinevad! Tänapäeval kantakse rahvariideid eriti laulupeol, kus tuhanded inimesed laulavad koos.",
     fact:
-      "De här små dockorna är klädda i svensk folkdräkt. På 1800-talet visades liknande dockor upp på stora världsutställningar, för att visa hur man klädde sig i olika svenska landskap.",
+      "De här dockorna bär estnisk folkdräkt. Varje landskap har sin egen randiga kjol och sina egna färger - i grannsocknarna kunde de se helt olika ut! Idag bär man folkdräkt särskilt på sångfesten, där tusentals människor sjunger tillsammans.",
   },
 };
