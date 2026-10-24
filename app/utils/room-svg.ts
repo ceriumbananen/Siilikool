@@ -255,12 +255,13 @@ function fRight(id: string | null) {
   );
 }
 function fArt(id: string | null) {
-  /* alla fyra tavelvalen (+ a-clock i fArtExtra) delar samma centrerade plats ovanför
-     eldstaden som flaggan (translate 306,20 - se #roomfire/fire i roomSVGInner) - annars
-     hamnar de där det andra (mittersta) fönstret nu sitter. */
+  /* alla tavelval (+ a-clock i fArtExtra) delar samma centrerade plats (ca 124.8,60) i
+     mellanrummet mellan de två fönstren (#roomwindow slutar x91, #roomwindow2 börjar x158.6 -
+     se roomSVGInner) - mindre än förut, så den får plats i mellanrummet. Diplomen (fDiplomas)
+     fick flytta för att göra plats, se kommentaren där. */
   if (id === "a-view") {
     return (
-      '<g transform="translate(286,19.5) scale(0.833)"><rect x="3" y="5" width="96" height="66" rx="3" fill="#2A1B0C" opacity=".22"/>' +
+      '<g transform="translate(96.8,40.75) scale(0.5833)"><rect x="3" y="5" width="96" height="66" rx="3" fill="#2A1B0C" opacity=".22"/>' +
       '<rect width="96" height="66" rx="3" fill="#8A6238"/><rect x="5" y="5" width="86" height="56" fill="#DCEEF6"/>' +
       '<path d="M5 40 q18 -16 34 -4 q14 10 24 -4 q10 -12 23 -2 v27 H5 z" fill="#8FBE7E"/>' +
       '<circle cx="70" cy="20" r="9" fill="#F6D24A"/><path d="M5 52 q22 -8 44 0 q22 8 42 -2 v11 H5 z" fill="#5E8A54"/></g>'
@@ -268,7 +269,7 @@ function fArt(id: string | null) {
   }
   if (id === "a-map") {
     return (
-      '<g transform="translate(286,19.5) scale(0.833)"><rect x="3" y="5" width="96" height="66" rx="3" fill="#2A1B0C" opacity=".22"/>' +
+      '<g transform="translate(96.8,40.75) scale(0.5833)"><rect x="3" y="5" width="96" height="66" rx="3" fill="#2A1B0C" opacity=".22"/>' +
       '<rect width="96" height="66" rx="3" fill="#6E4E2A"/><rect x="5" y="5" width="86" height="56" fill="#F2EAD6"/>' +
       '<path d="M14 40 q6 -14 22 -12 q10 -8 24 -2 q14 -2 18 8 q4 12 -8 16 q-16 6 -34 2 q-18 -2 -22 -12 z" fill="#9EC48E" stroke="#6E8A5E" stroke-width="1"/>' +
       '<circle cx="34" cy="30" r="2.2" fill="#C8305A"/><circle cx="56" cy="38" r="2" fill="#C8305A"/><circle cx="70" cy="34" r="2" fill="#C8305A"/>' +
@@ -277,7 +278,7 @@ function fArt(id: string | null) {
   }
   if (id === "a-photo") {
     return (
-      '<g transform="translate(286,19.5) scale(0.833)"><rect x="3" y="5" width="96" height="66" rx="3" fill="#2A1B0C" opacity=".22"/>' +
+      '<g transform="translate(96.8,40.75) scale(0.5833)"><rect x="3" y="5" width="96" height="66" rx="3" fill="#2A1B0C" opacity=".22"/>' +
       '<rect width="96" height="66" rx="3" fill="#C9A06A"/><rect x="6" y="6" width="84" height="54" fill="#FBF6EA"/>' +
       '<circle cx="34" cy="30" r="11" fill="#E8D2B4"/><circle cx="34" cy="30" r="8" fill="#C9A98A"/>' +
       '<circle cx="60" cy="33" r="9" fill="#E8D2B4"/><circle cx="60" cy="33" r="6.4" fill="#C9A98A"/>' +
@@ -287,15 +288,12 @@ function fArt(id: string | null) {
   }
   if (id === "a-koler") {
     /* illustrerad bild av Johann Kölers "Tütarlaps allikal" (public/images/room/koler-painting.webp) -
-       samma mönster som flaggan, bilden innehåller upphängningssnöret. Samma centrerade plats
-       ovanför eldstaden som de andra tavlorna (se kommentaren ovan). */
-    return '<g transform="translate(290.5,19.1)"><image href="/images/room/koler-painting.webp" x="0" y="0" width="71" height="55.8"/></g>';
+       samma mönster som flaggan, bilden innehåller upphängningssnöret. */
+    return '<g transform="translate(96.8,38)"><image href="/images/room/koler-painting.webp" x="0" y="0" width="56" height="44"/></g>';
   }
   /* illustrerad bild istället för handritad ram+flagga (public/images/room/flag.webp),
-     samma mönster som sängen/gungstolen - bilden innehåller själva upphängningssnöret.
-     centrerad ovanför eldstaden (se #roomfire/fire nedan - Siiri sitter mitt i rummet
-     (x~140-260,y~127-246) så eldstaden/flaggan/hyllan måste stå till höger om henne). */
-  return '<g transform="translate(306,20)"><image href="/images/room/flag.webp" x="-10" y="-0.8" width="60" height="55.8"/></g>';
+     samma mönster som sängen/gungstolen - bilden innehåller själva upphängningssnöret. */
+  return '<g transform="translate(106.13,34.6)"><image href="/images/room/flag.webp" x="-9.33" y="-0.75" width="56" height="52.3"/></g>';
 }
 function fLamp(id: string | null) {
   if (id === "p-floor") {
@@ -491,9 +489,9 @@ function fRightExtra(id: string | null) {
 }
 function fArtExtra(id: string | null) {
   if (id !== "a-clock") return null;
-  /* samma centrerade plats ovanför eldstaden som de andra tavelvalen, se fArt() ovan. */
+  /* samma centrerade plats som de andra tavelvalen (mellan fönstren), se fArt() ovan. */
   return (
-    '<g transform="translate(312.7,26.2) scale(0.833)"><circle cx="16" cy="18" r="21" fill="#8A6238"/>' +
+    '<g transform="translate(115.47,45.42) scale(0.5833)"><circle cx="16" cy="18" r="21" fill="#8A6238"/>' +
     '<circle cx="16" cy="18" r="17" fill="#F7F2E6"/>' +
     '<g stroke="#6E5F55" stroke-width="1.4"><path d="M16 5 v3 M16 28 v3 M3 18 h3 M26 18 h3"/></g>' +
     '<path d="M16 18 v-9 M16 18 l7 5" stroke="#33312E" stroke-width="2" stroke-linecap="round"/>' +
@@ -569,16 +567,17 @@ function fDiplomas() {
     k;
   for (k in ctx.diplomas) if (ctx.diplomas[k]) ids.push({ id: k, s: ctx.diplomas[k]! });
   if (!ids.length) return "";
-  /* en kompakt 2-kolumnsruta i den lilla lediga fickan mellan vänstra fönstret (slutar x91)
-     och Siiri (som alltid sitter mitt i rummet, böjar på x~140) - mindre märken än förr
-     eftersom hörnet till höger nu är upptaget av flaggan/hyllan/eldstaden (se fArt/fShelf). */
-  var s = '<g transform="translate(94,10)">',
+  /* en kompakt 2-kolumnsruta i den lediga fickan mellan andra fönstret (slutar x241.4) och
+     hyllan/eldstaden (börjar x277, se fShelf/fire) - tavlan (fArt) tog över mellanrummet
+     mellan fönstren, så diplomen fick flytta hit istället. Färre märken än innan eftersom
+     fickan är smalare. */
+  var s = '<g transform="translate(243,6)">',
     i,
-    max = Math.min(8, ids.length);
+    max = Math.min(6, ids.length);
   for (i = 0; i < max; i++) {
     var col = ids[i]!.s >= 3 ? "#D9A52B" : ids[i]!.s >= 2 ? "#A8A8A8" : "#C08A54";
-    var x = (i % 2) * 19,
-      y = Math.floor(i / 2) * 24;
+    var x = (i % 2) * 17,
+      y = Math.floor(i / 2) * 22;
     s +=
       '<g transform="translate(' +
       x +
@@ -594,7 +593,7 @@ function fDiplomas() {
       col +
       '"/></g>';
   }
-  if (ids.length > 8) s += '<text x="0" y="100" font-size="6" fill="#6E5F4E">+' + (ids.length - 8) + "</text>";
+  if (ids.length > 6) s += '<text x="0" y="90" font-size="6" fill="#6E5F4E">+' + (ids.length - 6) + "</text>";
   return s + "</g>";
 }
 /* souvenirhyllan: visar resans minnen */
@@ -612,16 +611,22 @@ function fShelf() {
   }
   /* illustrerad bild istället för handritad hylla (public/images/room/shelf.webp) - bilden
      har två hyllplan rakt framifrån, så troféerna (emoji/platshållarprickar) läggs ovanpå
-     på samma sätt som innan, bara omräknat till de nya hyllplanens faktiska höjd i bilden. */
+     på samma sätt som innan, bara omräknat till de nya hyllplanens faktiska höjd i bilden.
+
+     font-size sänkt 9->6: hyllplankorna är bara ca 7.4 resp. 5.9 enheter djupa i bilden (mätt
+     i bildens egna pixlar), smalare än en 9px-emojis egen höjd (~10.8 enheter) - för stor
+     emoji stack alltså ovanför plankan oavsett var baslinjen (y) sattes, oavsett hyllplan.
+     Baslinjerna (5.7/22.4) är omräknade så att emojins "fötter" (textens nedre kant, inte
+     mitten - se dess font-metrik) landar precis på plankans framkant istället för mitten. */
   var s = '<g transform="translate(277,94)"><image href="/images/room/shelf.webp" x="0" y="0" width="98" height="34"/>';
   var k, row, col, x, y;
   for (k = 0; k < got.length && k < 20; k++) {
     row = k < 10 ? 0 : 1;
     col = k % 10;
     x = 6 + col * 9.6;
-    y = row === 0 ? 7 : 23.7;
-    if (got[k]!.have) s += '<text x="' + x + '" y="' + y + '" font-size="9">' + got[k]!.em + "</text>";
-    else s += '<circle cx="' + (x + 3.4) + '" cy="' + (y - 3.4) + '" r="2.8" fill="#000" opacity=".10"/>';
+    y = row === 0 ? 5.7 : 22.4;
+    if (got[k]!.have) s += '<text x="' + x + '" y="' + y + '" font-size="6">' + got[k]!.em + "</text>";
+    else s += '<circle cx="' + (x + 2.3) + '" cy="' + (y - 2.3) + '" r="1.9" fill="#000" opacity=".10"/>';
   }
   return s + "</g>";
 }
@@ -765,7 +770,7 @@ export const HIDE_SPOTS = [
   { id: "vaip", sv: "under mattan", x: 46, y: 92 },
   { id: "riiul", sv: "på hyllan", x: 82, y: 41 },
   { id: "kamin", sv: "vid brasan", x: 82, y: 61 },
-  { id: "lipp", sv: "bakom tavlan", x: 82, y: 19 },
+  { id: "lipp", sv: "bakom tavlan", x: 31, y: 22 },
   { id: "aken", sv: "på fönsterbrädan", x: 16, y: 53 },
   { id: "tool", sv: "vid möbeln", x: 12, y: 71 },
   { id: "puud", sv: "i vedkorgen", x: 95, y: 68 },

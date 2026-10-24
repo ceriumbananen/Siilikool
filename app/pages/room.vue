@@ -72,7 +72,7 @@ const FURN_SPOTS: Record<FurnSpotId, { slot: string; x: number; y: number; dir: 
   roomright: { slot: "right", x: 88, y: 62, dir: "up" },
   roomrug: { slot: "rug", x: 50, y: 85, dir: "up" },
   roomplant: { slot: "plant", x: 92, y: 65, dir: "up" },
-  roomart: { slot: "art", x: 80, y: 17, dir: "up" },
+  roomart: { slot: "art", x: 31, y: 22, dir: "up" },
 };
 const roomTurn: Partial<Record<RoomSpotId, number>> = {};
 const roomSaid = ref<{ et: string; sv: string; x: number; y: number; dir: "up" | "left" | "down" } | null>(null);
