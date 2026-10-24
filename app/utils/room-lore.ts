@@ -5,8 +5,9 @@
    växlar till svenska (fact).
 
    Nycklarna: "roomfire" och "dalahast"/"folkdockor" är fasta (alltid samma sak på spiselkransen),
-   "a-flag" är nyckeln på FURN-saken (se shop.ts) - roomart slår alltså upp lore efter vald tavla,
-   och faller tillbaka till den vanliga pratbubblan om man valt något annat (karta, foto, klocka...).
+   "a-flag"/"a-koler" är nycklar på respektive FURN-sak (se shop.ts) - roomart slår alltså upp
+   lore efter vald tavla, och faller tillbaka till den vanliga pratbubblan om man valt något
+   annat (karta, foto, klocka...).
 
    Källor (kort, barnvänligt, men kontrollerat mot riktig historia - se gärna över själva
    estniskan, den är AI-skriven):
@@ -17,7 +18,9 @@
    - Rahvariietes nukud: eesti rahvarõivad - triibulised seelikud ja omad värvid igas maakonnas/
      kihelkonnas (alates 1700. sajandist), kantakse tänapäeval eriti laulupeol (rahvaroivad.ee).
    - Ahi/eldstaden: Eesti Vabaõhumuuseum - rehielamu rehetuba, suur ahi kütmiseks, vilja kuivatamiseks
-     ja musta leiva küpsetamiseks. */
+     ja musta leiva küpsetamiseks.
+   - Tütarlaps allikal: Johann Köler (1826-1899), 1859-1861, õli lõuendil, Eesti Kunstimuuseum
+     (digikogu.ekm.ee, oid-11821) - kontrollerad mot den digitaliserade originalmålningen. */
 export type RoomLore = {
   img: string;
   name: { et: string; sv: string };
@@ -41,6 +44,14 @@ export const ROOM_LORE: Record<string, RoomLore> = {
       "Sinine, must ja valge - Eesti lipu värvid valiti juba 1881. aastal Tartus. Sinine on taevas, must on muld ja minevik, valge on lootus ja tulevik. Lipp sai Eesti riigilipuks 1918. aastal.",
     fact:
       "Blått, svart och vitt - Estlands flaggfärger valdes redan 1881 i Tartu. Blått är himlen, svart är jorden och det förflutna, vitt är hoppet och framtiden. Flaggan blev Estlands officiella flagga 1918.",
+  },
+  "a-koler": {
+    img: "/images/room/koler-painting.webp",
+    name: { et: "Tütarlaps allikal", sv: "Flickan vid källan" },
+    factEt:
+      "Selle maali maalis Johann Köler aastatel 1859-1861. Ta oli üks esimesi tuntud eesti soost kunstnikke, kes õppis Peterburi Kunstiakadeemias. Maal on tänapäeval hoiul Eesti Kunstimuuseumis.",
+    fact:
+      "Den här tavlan målades av Johann Köler mellan 1859 och 1861. Han var en av de första kända konstnärerna med estnisk bakgrund och studerade vid Konstakademien i Sankt Petersburg. Tavlan finns idag på Estlands konstmuseum.",
   },
   dalahast: {
     img: "/images/room/dala-horse.webp",

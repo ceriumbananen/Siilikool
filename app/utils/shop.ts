@@ -100,6 +100,7 @@ export const FURN = [
   { id: "g-dress", slot: "right", sv: "Byrå", et: "Kummut", price: 560 },
   { id: "a-clock", slot: "art", sv: "Väggklocka", et: "Seinakell", price: 300 },
   { id: "p-ceil", slot: "lamp", sv: "Taklampa", et: "Laelamp", price: 420 },
+  { id: "a-koler", slot: "art", sv: "Tütarlaps allikal (tavla)", et: "Tütarlaps allikal", price: 380 },
 ];
 
 export type ShopItem = (typeof SHOP)[number];

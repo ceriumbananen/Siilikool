@@ -285,6 +285,12 @@ function fArt(id: string | null) {
       '<path d="M26 20 q8 -8 16 0" stroke="#8A6238" stroke-width="2" fill="none"/></g>'
     );
   }
+  if (id === "a-koler") {
+    /* illustrerad bild av Johann Kölers "Tütarlaps allikal" (public/images/room/koler-painting.webp) -
+       samma mönster som flaggan, bilden innehåller upphängningssnöret. Samma centrerade plats
+       ovanför eldstaden som de andra tavlorna (se kommentaren ovan). */
+    return '<g transform="translate(290.5,19.1)"><image href="/images/room/koler-painting.webp" x="0" y="0" width="71" height="55.8"/></g>';
+  }
   /* illustrerad bild istället för handritad ram+flagga (public/images/room/flag.webp),
      samma mönster som sängen/gungstolen - bilden innehåller själva upphängningssnöret.
      centrerad ovanför eldstaden (se #roomfire/fire nedan - Siiri sitter mitt i rummet
