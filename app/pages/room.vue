@@ -80,11 +80,14 @@ let roomSaidTimer: ReturnType<typeof setTimeout> | undefined;
 
 /* vissa saker har en egen kulturell/historisk historia (ROOM_LORE i app/utils/room-lore.ts) och
    öppnar ett kort istället för pratbubblan - samma mönster som openCharCard() i app.js
-   (rival-/avatarkorten). "roomart" är dynamisk: bara vald tavla (t.ex. a-flag) har lore, annat
-   val (karta, foto...) faller tillbaka till den vanliga pratbubblan via FURN_SPOTS nedan. */
-const LORE_SPOT_IDS = ["roomfire", "roomart", "roomdala", "roomdolls"] as const;
+   (rival-/avatarkorten). "roomart" är dynamisk: bara vald tavla (t.ex. a-koler) har lore, annat
+   val (karta, foto...) faller tillbaka till den vanliga pratbubblan via FURN_SPOTS nedan.
+   "roomflag" är fast (flaggan är inte längre ett tavelval, se fArt()/FLAGSVG i room-svg.ts -
+   så att flaggan och en vald tavla kan synas samtidigt, på var sin plats i rummet). */
+const LORE_SPOT_IDS = ["roomfire", "roomart", "roomflag", "roomdala", "roomdolls"] as const;
 function loreFor(id: string): RoomLore | null {
   if (id === "roomfire") return ROOM_LORE.roomfire!;
+  if (id === "roomflag") return ROOM_LORE["a-flag"]!;
   if (id === "roomdala") return ROOM_LORE.dalahast!;
   if (id === "roomdolls") return ROOM_LORE.folkdockor!;
   if (id === "roomart") {
@@ -653,6 +656,7 @@ function backFromQuiz() {
   &__room :deep(#roomrug:focus-visible),
   &__room :deep(#roomplant:focus-visible),
   &__room :deep(#roomart:focus-visible),
+  &__room :deep(#roomflag:focus-visible),
   &__room :deep(#roomdala:focus-visible),
   &__room :deep(#roomdolls:focus-visible) {
     outline: $border-width solid var(--blue);

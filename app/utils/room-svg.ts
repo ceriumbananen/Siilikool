@@ -291,10 +291,19 @@ function fArt(id: string | null) {
        samma mönster som flaggan, bilden innehåller upphängningssnöret. */
     return '<g transform="translate(96.8,38)"><image href="/images/room/koler-painting.webp" x="0" y="0" width="56" height="44"/></g>';
   }
-  /* illustrerad bild istället för handritad ram+flagga (public/images/room/flag.webp),
-     samma mönster som sängen/gungstolen - bilden innehåller själva upphängningssnöret. */
-  return '<g transform="translate(106.13,34.6)"><image href="/images/room/flag.webp" x="-9.33" y="-0.75" width="56" height="52.3"/></g>';
+  /* a-none (def, gratis) - flaggan är inte längre ett tavelval här, den hänger alltid ovanför
+     eldstaden som en egen, fast sak (se FLAGSVG/roomSVGInner) så att man kan ha flaggan OCH
+     en tavla i mellanrummet mellan fönstren samtidigt. */
+  return "";
 }
+/* Estlands flagga - fast, inte ett tavelval (se fArt() ovan) så den kan synas samtidigt som
+   en vald tavla mellan fönstren. Centrerad ovanför eldstaden (#roomfire/fire - samma plats
+   tavlorna hade innan de flyttade till mellanrummet mellan fönstren). Tryckbar (#roomflag),
+   öppnar ett historiekort (ROOM_LORE["a-flag"] i room-lore.ts), se touchLoreSpot i room.vue. */
+var FLAGSVG =
+  '<g id="roomflag" style="cursor:pointer" tabindex="0" role="button" aria-label="Tryck på flaggan">' +
+  '<g transform="translate(306,20)"><image href="/images/room/flag.webp" x="-10" y="-0.8" width="60" height="55.8"/></g>' +
+  "</g>";
 function fLamp(id: string | null) {
   if (id === "p-floor") {
     return (
@@ -706,6 +715,7 @@ function roomSVGInner() {
     fShelf() +
     fire +
     fDiplomas() +
+    FLAGSVG +
     MANTELSVG +
     wrapTap("roomrug", "Tryck på mattan", fRugExtra(ctx.furnOf("rug")) || fRug(ctx.furnOf("rug"))) +
     wrapTap("roomleft", "Tryck på möbeln", fLeftExtra(ctx.furnOf("left")) || fLeft(ctx.furnOf("left"))) +
@@ -771,7 +781,7 @@ export const HIDE_SPOTS = [
   { id: "vaip", sv: "under mattan", x: 46, y: 92 },
   { id: "riiul", sv: "på hyllan", x: 82, y: 41 },
   { id: "kamin", sv: "vid brasan", x: 82, y: 61 },
-  { id: "lipp", sv: "bakom tavlan", x: 31, y: 22 },
+  { id: "lipp", sv: "bakom flaggan", x: 82, y: 17 },
   { id: "aken", sv: "på fönsterbrädan", x: 16, y: 53 },
   { id: "tool", sv: "vid möbeln", x: 12, y: 71 },
   { id: "puud", sv: "i vedkorgen", x: 95, y: 68 },

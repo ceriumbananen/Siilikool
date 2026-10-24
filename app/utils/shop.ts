@@ -74,7 +74,7 @@ export const FURN = [
   { id: "g-shelf", slot: "right", sv: "Bokhylla", et: "Raamaturiiul", price: 480 },
   { id: "g-toys", slot: "right", sv: "Leksakskorg", et: "Mänguasjad", price: 300 },
   { id: "g-kannel", slot: "right", sv: "Kannel på stativ", et: "Kannel", price: 820 },
-  { id: "a-flag", slot: "art", sv: "Estniska flaggan", et: "Lipp", price: 0, def: 1 },
+  { id: "a-none", slot: "art", sv: "Ingen tavla", et: "Ilma", price: 0, def: 1 },
   { id: "a-view", slot: "art", sv: "Landskapstavla", et: "Maastik", price: 280 },
   { id: "a-map", slot: "art", sv: "Karta över Estland", et: "Kaart", price: 340 },
   { id: "a-photo", slot: "art", sv: "Familjefoto", et: "Pere pilt", price: 420 },
