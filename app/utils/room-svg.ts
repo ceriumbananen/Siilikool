@@ -194,13 +194,11 @@ function fLeft(id: string | null) {
     );
   }
   if (id === "l-desk") {
+    /* illustrerad bild istället för handritad SVG (public/images/room/desk.webp), samma
+       mönster som sängen/gungstolen - skuggan är kvar som vektor. */
     return (
-      '<g transform="translate(16,150)"><ellipse cx="46" cy="76" rx="48" ry="8" fill="#2A1B0C" opacity=".22"/>' +
-      '<rect x="0" y="22" width="92" height="9" rx="3" fill="#B07C48"/><rect x="0" y="22" width="92" height="3" fill="#E0BC8E" opacity=".8"/>' +
-      '<rect x="4" y="31" width="9" height="42" rx="3" fill="#8A5E30"/><rect x="79" y="31" width="9" height="42" rx="3" fill="#8A5E30"/>' +
-      '<rect x="46" y="31" width="38" height="26" rx="3" fill="#A8713C"/><circle cx="65" cy="44" r="2.4" fill="#E8D2A8"/>' +
-      '<rect x="12" y="12" width="26" height="10" rx="2" fill="#C85A6A"/><rect x="14" y="8" width="22" height="6" rx="2" fill="#4E8A8C"/>' +
-      '<path d="M66 22 v-10" stroke="#8A5E30" stroke-width="2"/><circle cx="66" cy="10" r="5" fill="#F6D24A"/></g>'
+      '<g transform="translate(20,150)"><ellipse cx="40" cy="78" rx="44" ry="8" fill="#2A1B0C" opacity=".22"/>' +
+      '<image href="/images/room/desk.webp" x="-10" y="2" width="101" height="59.5"/></g>'
     );
   }
   if (id === "l-rock") {
@@ -468,16 +466,11 @@ function fRugExtra(id: string | null) {
 }
 function fLeftExtra(id: string | null) {
   if (id !== "l-sofa") return null;
+  /* illustrerad bild istället för handritad SVG (public/images/room/sofa.webp), samma
+     mönster som sängen/gungstolen/skrivbordet - skuggan är kvar som vektor. */
   return (
-    '<g transform="translate(16,154)"><ellipse cx="46" cy="72" rx="52" ry="9" fill="#2A1B0C" opacity=".22"/>' +
-    '<path d="M4 26 q0 -18 20 -18 h44 q20 0 20 18 v22 H4 z" fill="#B85E72"/>' +
-    '<path d="M4 26 q0 -18 20 -18 h20 q-16 6 -18 22 z" fill="#fff" opacity=".14"/>' +
-    '<rect x="-2" y="40" width="96" height="22" rx="9" fill="#9C4A5E"/>' +
-    '<rect x="-4" y="30" width="16" height="32" rx="7" fill="#8A3F52"/>' +
-    '<rect x="80" y="30" width="16" height="32" rx="7" fill="#8A3F52"/>' +
-    '<rect x="10" y="60" width="8" height="10" rx="2" fill="#6E4A28"/>' +
-    '<rect x="74" y="60" width="8" height="10" rx="2" fill="#6E4A28"/>' +
-    '<rect x="26" y="20" width="22" height="18" rx="5" fill="#E2C46A" transform="rotate(-8 37 29)"/></g>'
+    '<g transform="translate(16,150)"><ellipse cx="46" cy="74" rx="50" ry="9" fill="#2A1B0C" opacity=".22"/>' +
+    '<image href="/images/room/sofa.webp" x="-9" y="2" width="98" height="59.5"/></g>'
   );
 }
 function fRightExtra(id: string | null) {
