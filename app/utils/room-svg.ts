@@ -624,7 +624,7 @@ function fShelf() {
   for (k = 0; k < got.length && k < 20; k++) {
     row = k < 10 ? 0 : 1;
     col = k % 10;
-    x = 6 + col * 9.6;
+    x = 3 + col * 9.6;
     y = row === 0 ? 5.7 : 22.4;
     if (got[k]!.have) s += '<text x="' + x + '" y="' + y + '" font-size="6">' + got[k]!.em + "</text>";
     else s += '<circle cx="' + (x + 2.3) + '" cy="' + (y - 2.3) + '" r="1.9" fill="#000" opacity=".10"/>';
