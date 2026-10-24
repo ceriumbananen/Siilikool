@@ -20,6 +20,25 @@ let unlockInstalled = false;
 const isIOS = () =>
   /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
 
+/* getVoices() ger ofta en tom lista första gången den anropas - rösterna laddas asynkront och
+   blir klara först när "voiceschanged" triggas (ett vanligt fall: sidan hinner anropa
+   getVoices() innan webbläsaren hunnit hämta dem, så en estnisk systemröst som faktiskt finns
+   missas och ljudet blir tyst i onödan). Väntar därför in händelsen en gång, med en kort
+   timeout som fallback om den aldrig triggas. */
+let voicesPromise: Promise<SpeechSynthesisVoice[]> | null = null;
+function getVoicesAsync(synth: SpeechSynthesis): Promise<SpeechSynthesisVoice[]> {
+  const existing = synth.getVoices();
+  if (existing.length) return Promise.resolve(existing);
+  if (!voicesPromise) {
+    voicesPromise = new Promise(resolve => {
+      const done = () => resolve(synth.getVoices());
+      synth.addEventListener("voiceschanged", done, { once: true });
+      setTimeout(done, 500);
+    });
+  }
+  return voicesPromise;
+}
+
 /* kopplar spelaren till en analysator en gång - bara när ljudmotorn är vaken, annars blir det tyst */
 function ensureGraph() {
   if (graphTried || !player || isIOS()) return;
@@ -169,8 +188,9 @@ export function useSiiriVoice() {
     const clip = await findWordClip(et, slow);
     if (clip) return say([clip.src], slow && !clip.isSlow ? 0.72 : 1);
     const synth = window.speechSynthesis;
-    const etVoice = synth?.getVoices().find(v => /^et\b|^et-/i.test(v.lang));
-    if (!synth || !etVoice) return;
+    if (!synth) return;
+    const etVoice = (await getVoicesAsync(synth)).find(v => /^et\b|^et-/i.test(v.lang));
+    if (!etVoice) return;
     hush();
     const u = new SpeechSynthesisUtterance(et);
     u.voice = etVoice;

@@ -1187,8 +1187,8 @@ function backFromQuiz() {
 
   &__lore-img {
     display: block;
-    max-width: 8rem;
-    max-height: 8rem;
+    max-width: 100%;
+    max-height: 14rem;
     width: auto;
     height: auto;
     margin: 0 auto $spacing-2;
