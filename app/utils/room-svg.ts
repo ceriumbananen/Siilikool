@@ -570,8 +570,9 @@ function fDiplomas() {
   /* en kompakt 2-kolumnsruta i den lediga fickan mellan andra fönstret (slutar x241.4) och
      hyllan/eldstaden (börjar x277, se fShelf/fire) - tavlan (fArt) tog över mellanrummet
      mellan fönstren, så diplomen fick flytta hit istället. Färre märken än innan eftersom
-     fickan är smalare. */
-  var s = '<g transform="translate(243,6)">',
+     fickan är smalare. y=30 (inte uppe vid taket) - centrerat ungefär i höjd med fönstren,
+     med marginal ner till hyllan som börjar på y94. */
+  var s = '<g transform="translate(243,30)">',
     i,
     max = Math.min(6, ids.length);
   for (i = 0; i < max; i++) {
