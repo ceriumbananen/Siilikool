@@ -30,6 +30,7 @@ export default defineNuxtPlugin(() => {
     STATIONS,
     STSKIP,
     SOUVENIR,
+    EPILOGUE,
     SHOP,
     FURN,
     /* rivals.ts, avatars.ts, quests.ts */

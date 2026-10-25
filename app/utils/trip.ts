@@ -696,3 +696,58 @@ export const SOUVENIR: Record<string, string> = {
   kuressaare: "kihnu",
   salme: "rahvas",
 };
+
+/* Efterspelet "Kalevipoja rajal" - en kort, frivillig epilog som låses upp när hela
+   Laulupidu-resan är klar (S.songDone, se stFinaleEnd() i public/legacy/app.js).
+   Kalevipoeg bjuder med Siiri till fyra redan besökta orter (TRIP ovan) som alla har
+   egna sägner om honom, ger ett nytt ord vid varje stopp, och avslutar med en exklusiv
+   souvenir som inte går att få på något annat sätt - se epilogueScreen() i
+   public/legacy/app.js. Stoppen pekar på towns i TRIP via id, så namn/emoji hämtas
+   därifrån istället för att dubbleras här. */
+export const EPILOGUE = {
+  stops: [
+    {
+      id: "salme",
+      img: "/images/room/salme-laev.webp",
+      legend:
+        'Kalevipoeg sätter sig bredvid Siiri i sanden vid Salme. "Här seglade jag själv en gång", säger han, "över havet till Finland för att hämta timmer åt mitt folk. Vinden var så hård att åran brast i mina händer - men jag rodde vidare ändå." Han pekar ut mot horisonten, dit vikingaskeppen en gång kom hem flytande.',
+      legendEt:
+        'Kalevipoeg istub Siiri kõrvale Salme liiva. "Siit purjetasin ma kord ise," ütleb ta, "üle mere Soome, et tuua palke oma rahvale. Tuul oli nii tugev, et aer murdus mu käes - aga ma aerutasin ikka edasi." Ta osutab silmapiiri poole, kust viikingilaevad kord koju ujusid.',
+      word: { et: "puri", sv: "segel", em: "⛵", hint: "PU-ri" },
+    },
+    {
+      id: "tartu",
+      legend:
+        'Kalevipoeg lutar sig mot en bokhylla i det gamla biblioteket på Toomemägi i Tartu. "Tre gånger på min resa fick jag goda råd av visa män", säger han lågt. "Två lyssnade jag på. Det tredje struntade jag i, för jag trodde mig redan vara den starkaste." Han tystnar en stund. "En hjälte som inte lyssnar är inte mycket till hjälte."',
+      legendEt:
+        'Kalevipoeg toetub vana raamatukogu riiulile Tartu Toomemäel. "Kolm korda andsid targad mehed mulle teekonnal head nõu," ütleb ta vaikselt. "Kahte kuulasin. Kolmandast ei hoolinud, sest arvasin end juba kõige tugevamaks." Ta jääb hetkeks vait. "Kangelane, kes ei kuula, pole suur kangelane."',
+      word: { et: "kangelane", sv: "hjälte", em: "🦸", hint: "KAN-ge-la-ne" },
+    },
+    {
+      id: "polva",
+      legend:
+        'Vid de höga sandstensklipporna i Taevaskoja, utanför Põlva, pekar Kalevipoeg på en djup håla i berget. "Här gömde jag mig en natt", säger han, "när jag var så trött att jag inte orkade gå ett steg till. Berget värmde mig som en filt, och floden sjöng mig till sömns." Han ler. "Ibland är den starkaste inte den som går längst - utan den som vågar vila."',
+      legendEt:
+        'Kõrgete Taevaskoja liivakivipankade juures Põlva lähistel osutab Kalevipoeg sügavale koopale kaljus. "Siin peitsin end kord ööseks," ütleb ta, "kui olin nii väsinud, et ei jaksanud enam sammugi astuda. Kalju soojendas mind nagu tekk ja jõgi laulis mu magama." Ta naeratab. "Vahel pole kõige tugevam see, kes kõige kaugemale jõuab - vaid see, kes julgeb puhata."',
+      word: { et: "koobas", sv: "grotta", em: "🕳️", hint: "KOO-bas" },
+    },
+    {
+      id: "tallinn",
+      legend:
+        'Uppe på Toompea i Tallinn lägger Kalevipoeg handen på den gamla kullen. "Här vilar min far Kalev", säger han tyst. "Min mor Linda bar sten efter sten i sitt förkläde för att bygga honom en grav värdig en kung. Hon grät så många tårar medan hon arbetade att de blev till en hel sjö - Ülemiste, som ligger kvar där än idag."',
+      legendEt:
+        'Tallinna Toompeal paneb Kalevipoeg käe vanale künkale. "Siin puhkab mu isa Kalev," ütleb ta vaikselt. "Mu ema Linda kandis põlles kivi kivi haaval, et ehitada talle kuningale väärt haud. Ta nuttis töötades nii palju pisaraid, et neist sai terve järv - Ülemiste, mis seisab seal tänini."',
+      word: { et: "pisarad", sv: "tårar", em: "💧", hint: "PI-sa-rad" },
+    },
+  ],
+  keepsake: {
+    id: "kalevipoja-kivi",
+    et: "Kalevipoja kivi",
+    sv: "Kalevipojas sten",
+    img: "/images/room/kalevipoja-kivi.webp",
+    legend:
+      'Kalevipoeg lägger en liten sten i Siiris hand. "Den här är till dig", säger han. "Kom ihåg att jag har lämnat stenar kvar över hela mitt land - kanske har du redan sett några på din resa, utan att veta vems de var." Han ler och försvinner in bland skuggorna på Toompea, precis som sägnerna alltid sagt att han skulle göra.',
+    legendEt:
+      'Kalevipoeg paneb väikese kivi Siiri kätte. "See on sulle," ütleb ta. "Pea meeles, et olen jätnud kive üle kogu oma maa - võib-olla oled mõnda juba oma teekonnal näinud, teadmata, kelle omad need olid." Ta naeratab ja kaob varjude vahele Toompeal, täpselt nii nagu lood on alati öelnud, et ta kord teeb.',
+  },
+};

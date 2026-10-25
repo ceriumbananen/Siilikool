@@ -30,6 +30,7 @@
     duel: { em: "⚔️", sv: "Vinn en duell" },
   };
   var SOUVENIR = window.SiiriData.SOUVENIR; /* app/utils/trip.ts */
+  var EPILOGUE = window.SiiriData.EPILOGUE; /* app/utils/trip.ts */
 
   function tripDone() {
     if (typeof S.tripDone !== "number") {
@@ -7507,6 +7508,13 @@
         (S.songDone
           ? '<button class="btn green big wide" id="singit" style="margin-top:10px">🎵 Sjung med Siiri igen</button>'
           : '<button class="btn green big wide" id="singit" style="margin-top:10px">🎤 Sjung hela sången</button>') +
+        (S.songDone
+          ? '<button class="btn ' +
+            (S.epiDone ? "ghost" : "green") +
+            ' big wide" id="epilogue" style="margin-top:10px">' +
+            (S.epiDone ? "🪨 Kalevipoja kivi" : S.epiStep ? "🪨 Fortsätt: Kalevipoja rajal" : "🪨 Kalevipoja rajal") +
+            "</button>"
+          : "") +
         "</div>";
     }
     /* ortkortet för orten man är på: berättelse, uppdrag och ord på samma ställe */
@@ -7640,6 +7648,11 @@
       sing.onclick = function () {
         stationStart("salme");
       };
+    var epi = document.getElementById("epilogue");
+    if (epi)
+      epi.onclick = function () {
+        go(epilogueScreen, true);
+      };
     var scrap = document.getElementById("scrapbookbtn");
     if (scrap)
       scrap.onclick = function () {
@@ -7723,6 +7736,153 @@
       burst(40);
     }
     tripScreen();
+  }
+  /* "Kalevipoja rajal" - frivillig epilog efter Laulupidu (se EPILOGUE, app/utils/trip.ts).
+     Fyra redan besökta orter får ett nytt kort var med en sägen om Kalevipoeg och ett nytt
+     ord, sen en exklusiv souvenir på slutet. Framsteg sparas i S.epiStep (hur många stopp
+     man gått igenom) och S.epiDone (souveniren redan given) - går att stänga och fortsätta
+     när som helst, precis som resten av Teekond. */
+  function epiLangToggleHtml(showEt) {
+    return (
+      '<button class="btn ghost sm" id="epilangbtn" style="margin-bottom:8px">' +
+      (showEt ? "🇸🇪 På svenska" : "🇪🇪 Eesti keeles") +
+      "</button>"
+    );
+  }
+  function epilogueScreen() {
+    screen = "epilogue";
+    setNav("trip");
+    var step = S.epiStep || 0,
+      done = S.epiDone || step >= EPILOGUE.stops.length,
+      showEt = !S.epiLangSv,
+      html;
+    if (done) {
+      var kp = EPILOGUE.keepsake;
+      html =
+        '<div class="zone map"><span class="zem">🪨</span><span><b>Kalevipoja rajal</b><span>Den sista gåvan</span></span></div>' +
+        '<div class="card" style="text-align:center">' +
+        '<img src="' +
+        kp.img +
+        '" alt="" style="max-width:100%;max-height:220px;margin:0 auto 10px;display:block">' +
+        '<h2 class="q">' +
+        esc(kp.et) +
+        "</h2>" +
+        '<p class="qsub">' +
+        esc(kp.sv) +
+        "</p>" +
+        '<p id="epilang" style="text-align:left">' +
+        esc(showEt ? kp.legendEt : kp.legend) +
+        "</p>" +
+        epiLangToggleHtml(showEt) +
+        '<button class="btn green big wide" id="epihome" style="margin-top:4px">🗺️ Till kartan</button>' +
+        "</div>";
+      app.innerHTML = html;
+      document.getElementById("epilangbtn").onclick = function () {
+        S.epiLangSv = !S.epiLangSv;
+        save();
+        var se = !S.epiLangSv;
+        document.getElementById("epilang").textContent = se ? kp.legendEt : kp.legend;
+        this.textContent = se ? "🇸🇪 På svenska" : "🇪🇪 Eesti keeles";
+      };
+      document.getElementById("epihome").onclick = function () {
+        go(tripScreen, true);
+      };
+      if (!S.epiDone) {
+        S.epiDone = true;
+        if (!S.badges) S.badges = [];
+        if (S.badges.indexOf("kalevipoja-rajal") < 0) S.badges.push("kalevipoja-rajal");
+        save();
+        refreshTop();
+        burst(300);
+        fanfare(2);
+        balloons(10);
+      }
+      return;
+    }
+    var st = EPILOGUE.stops[step],
+      town = null,
+      ti;
+    for (ti = 0; ti < TRIP.length; ti++)
+      if (TRIP[ti].id === st.id) {
+        town = TRIP[ti];
+        break;
+      }
+    var kalevi = LORE.kalevipoeg;
+    html =
+      '<div class="zone map"><span class="zem">🪨</span><span><b>Kalevipoja rajal</b><span>Steg ' +
+      (step + 1) +
+      " av " +
+      EPILOGUE.stops.length +
+      "</span></span></div>" +
+      '<div class="card">' +
+      '<p class="q" style="text-align:left;margin-bottom:2px">' +
+      town.em +
+      ' <span lang="et">' +
+      esc(town.et) +
+      "</span></p>" +
+      '<div class="center" style="margin:6px 0">' +
+      '<span class="charpeek" data-char="lore:kalevipoeg" role="button" tabindex="0" aria-label="Visa ' +
+      esc(kalevi.et) +
+      '"><img src="' +
+      (st.img || kalevi.img) +
+      '" alt="" style="max-width:100%;max-height:190px;border-radius:12px"></span>' +
+      "</div>" +
+      '<p id="epilang" style="text-align:left">' +
+      esc(showEt ? st.legendEt : st.legend) +
+      "</p>" +
+      epiLangToggleHtml(showEt) +
+      '<div class="stopwords"><div class="wordrow"><span class="em">' +
+      wIcon(st.word) +
+      '</span><span class="t"><b lang="et">' +
+      esc(st.word.et) +
+      "</b><span>" +
+      esc(st.word.sv) +
+      " · uttal: " +
+      esc(st.word.hint) +
+      "</span></span>" +
+      '<button class="speakbtn sm" data-say="' +
+      esc(st.word.et) +
+      '" aria-label="Hör ordet">🔊</button>' +
+      '<button class="speakbtn sm" data-slow="' +
+      esc(st.word.et) +
+      '" aria-label="Långsamt">🐢</button></div></div>' +
+      '<button class="btn green big wide" id="epinext" style="margin-top:10px">' +
+      (step + 1 < EPILOGUE.stops.length ? "Vidare ➡️" : "Till slutet 🪨") +
+      "</button>" +
+      "</div>";
+    app.innerHTML = html;
+    document.getElementById("epilangbtn").onclick = function () {
+      S.epiLangSv = !S.epiLangSv;
+      save();
+      var se = !S.epiLangSv;
+      document.getElementById("epilang").textContent = se ? st.legendEt : st.legend;
+      this.textContent = se ? "🇸🇪 På svenska" : "🇪🇪 Eesti keeles";
+    };
+    document.getElementById("epinext").onclick = function () {
+      S.epiStep = step + 1;
+      save();
+      epilogueScreen();
+    };
+    var eb = app.querySelectorAll("[data-say]"),
+      ek;
+    for (ek = 0; ek < eb.length; ek++) {
+      (function (el) {
+        el.onclick = function (e) {
+          e.stopPropagation();
+          speak(el.getAttribute("data-say"));
+        };
+      })(eb[ek]);
+    }
+    var esl = app.querySelectorAll("[data-slow]"),
+      esk;
+    for (esk = 0; esk < esl.length; esk++) {
+      (function (el) {
+        el.onclick = function (e) {
+          e.stopPropagation();
+          speak(el.getAttribute("data-slow"), true);
+        };
+      })(esl[esk]);
+    }
   }
   var DU = null;
   function rivalOpen(r) {
