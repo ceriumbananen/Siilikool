@@ -9793,17 +9793,10 @@
      en andra kopia av den på samma sida hade krockat med det. Båten och seglet är vektor -
      enkla föremål, ingen anledning att illustrera dem. */
   function boatIcon() {
-    return (
-      '<span class="riverboat" aria-hidden="true">' +
-      '<svg class="riverboat-hull" viewBox="0 0 90 70">' +
-      '<path d="M66 9 Q40 20 66 46 Z" fill="#F2EADA" stroke="#C9BBA0" stroke-width="1"/>' +
-      '<line x1="66" y1="8" x2="66" y2="49" stroke="#6E4A30" stroke-width="2"/>' +
-      '<path d="M3 49 Q45 55 87 49 Q66 67 45 65 Q24 67 3 49 Z" fill="#8A5A3C" stroke="#6E4A30" stroke-width="1.5"/>' +
-      '<path d="M3 49 Q45 55 87 49" fill="none" stroke="#A9754E" stroke-width="1.3" opacity=".8"/>' +
-      "</svg>" +
-      '<img class="riverboat-siiri" src="/images/siiri/siiri-body.webp" alt="">' +
-      "</span>"
-    );
+    /* en enda AI-illustrerad bild av Siiri som redan sitter i barkbåten (siiri-bark-boat.webp)
+       - ersätter det tidigare lagerbygget (skrov + Siiri-overlay + beskuren framkant), som
+       aldrig gick att få att se ut som att hon verkligen satt i båten istället för på den. */
+    return '<img class="riverboat" src="/images/games/siiri-bark-boat.webp" alt="">';
   }
   function boatIntro() {
     screen = "boat";
@@ -9835,26 +9828,48 @@
     } while (present.indexOf(c.et) !== -1 && tries < 30);
     return c;
   }
+  /* guldflaska: en sällsynt extra-glittrig flaska, men bara på ett ord som redan är rätt svar -
+     den ska aldrig kunna lura någon att fånga fel ord för belöningens skull. Högst en i taget
+     (BT.goldenActive), annars skulle floden kunna fyllas med guld. */
+  function boatAssignWord(s) {
+    var w = boatWordFor(s);
+    s.et = w.et;
+    s.golden = !BT.goldenActive && w.et === BT.target.et && Math.random() < 0.3;
+    if (s.golden) BT.goldenActive = true;
+  }
   /* nästa ord att leta efter - floden stannar aldrig för det, bara prompten och uppläsningen
      byts i farten (se boatCatch()) */
   function boatNextTarget() {
     BT.target = BT.pool[BT.poolIdx % BT.pool.length];
     BT.poolIdx++;
+    /* en guldflaska som hann bli guld för det GAMLA ordet är inte längre rätt svar - släck
+       guldet (men låt flaskan fortsätta flyta som en vanlig distraktor) så att ett guld
+       aldrig kan belöna fel ord. */
+    for (var gi = 0; gi < BT.slots.length; gi++) {
+      var gs = BT.slots[gi];
+      if (gs.golden && gs.et !== BT.target.et) {
+        gs.golden = false;
+        BT.goldenActive = false;
+        var gel = document.getElementById(gs.domId);
+        if (gel) gel.classList.remove("golden");
+      }
+    }
     var el = document.getElementById("boatprompt");
     if (el) el.innerHTML = promptHtml(BT.target, BT.target.sv);
     speak(BT.target.et);
   }
   function boatRespawn(s) {
     s.state = "flowing";
-    var w = boatWordFor(s);
-    s.et = w.et;
+    if (s.golden) BT.goldenActive = false; /* lämnade skärmen ofångad - fritt för nästa guld */
+    boatAssignWord(s);
     /* vid reducerad rörelse snurrar tick() aldrig, så en flaska som återfylls utanför rutan
        (det vanliga) skulle bli kvar osynlig för alltid - synlig, stillastående plats istället */
     s.x = BT.reduceMotion ? 10 + s.lane * 20 : -15 - Math.random() * 12;
     var el = document.getElementById(s.domId);
     if (el) {
-      el.textContent = w.et;
+      el.textContent = (s.golden ? "✨ " : "") + s.et;
       el.classList.remove("hit", "miss");
+      el.classList.toggle("golden", !!s.golden);
     }
     if (BT.paint) BT.paint();
   }
@@ -9866,31 +9881,56 @@
     if (!BT || s.state !== "flowing") return;
     s.state = "caught";
     var ok = s.et === BT.target.et,
+      golden = ok && !!s.golden,
       el = document.getElementById(s.domId);
     if (el) el.classList.add(ok ? "hit" : "miss");
     wmemHit(BT.target.et, ok, "choose", BT.target.sv);
-    praiseSay(ok ? BT.right + 1 : 0, ok, null);
+    /* buggrapport: beröm-repliken ("Bra!" m.fl.) köas med 150ms fördröjning (queuePraise) -
+       kom den efter att boatNextTarget() nedan redan hunnit säga nästa ord, kapade den
+       (speak() avbryter alltid föregående klipp) så man aldrig hörde det nya ordet. Talar
+       därför bara beröm när inget nästa-ord-uttal konkurrerar om det: sista fångsten eller
+       en felfångst (ingen av dem följs av boatNextTarget()). */
     if (ok) {
       BT.right++;
+      BT.streak = (BT.streak || 0) + 1;
       S.correct++;
-      earnStars(2);
-      addXp(10);
+      earnStars(golden ? 4 : 2);
+      addXp(golden ? 20 : 10);
       sndOk();
-      buzz(18);
+      if (golden) {
+        /* extra glittrigt ljud ovanpå sndOk() för guldfångsten */
+        tone(1180, 0.12, 0.3);
+        tone(1760, 0.18, 0.42);
+      }
+      buzz(golden ? 30 : 18);
       mood("cheer");
+      /* combo-eskalering: fler rätt i rad ger en större konfettikaskad - ingen nedsida vid miss */
+      burst(golden ? 60 : Math.min(8 + BT.streak * 5, 40));
       save();
       refreshTop();
       var scoreEl = document.getElementById("boatscore");
       if (scoreEl) scoreEl.textContent = BT.right + " av " + BT.n + " rätt";
+      var streakEl = document.getElementById("boatstreak");
+      if (streakEl) {
+        if (BT.streak >= 3) {
+          streakEl.style.display = "";
+          streakEl.textContent = "🔥 " + BT.streak;
+        } else streakEl.style.display = "none";
+      }
       if (BT.right >= BT.n) {
+        praiseSay(BT.right, true, null);
         setTimeout(boatEnd, 500);
         return;
       }
       boatNextTarget();
     } else {
       BT.wrong++;
+      BT.streak = 0;
       sndNo();
       mood("oops");
+      praiseSay(0, false, null);
+      var streakEl2 = document.getElementById("boatstreak");
+      if (streakEl2) streakEl2.style.display = "none";
     }
     setTimeout(function () {
       if (BT) boatRespawn(s);
@@ -9900,6 +9940,8 @@
     BT = {
       right: 0,
       wrong: 0,
+      streak: 0,
+      goldenActive: false,
       n: 10,
       pool: pickWeighted(allWords(), 20),
       poolIdx: 1,
@@ -9934,7 +9976,8 @@
         BT.right +
         " av " +
         BT.n +
-        " rätt</span></span></div>" +
+        " rätt</span>" +
+        '<span id="boatstreak" class="fchip" style="margin-left:6px;display:none"></span></span></div>' +
         '<div class="card"><p class="q">Hitta ordet för</p>' +
         '<div id="boatprompt">' +
         promptHtml(BT.target, BT.target.sv) +
@@ -9954,21 +9997,21 @@
     BT.reduceMotion = reduceMotion;
     BT.slots = [];
     for (i = 0; i < BOAT_LANES.length; i++) {
-      var w = boatWordFor(null);
       BT.slots.push({
         domId: "rw" + i,
         lane: i,
         y: BOAT_LANES[i],
         x: reduceMotion ? 10 + i * 20 : -15 - i * 22,
         state: "flowing",
-        et: w.et,
       });
+      boatAssignWord(BT.slots[i]);
     }
     for (i = 0; i < BT.slots.length; i++) {
       (function (s) {
         var el = document.getElementById(s.domId);
         if (el) {
-          el.textContent = s.et;
+          el.textContent = (s.golden ? "✨ " : "") + s.et;
+          el.classList.toggle("golden", !!s.golden);
           el.onclick = function () {
             boatCatch(s);
           };
@@ -9978,7 +10021,9 @@
     var box = document.getElementById("riverbox"),
       boatEl = box.querySelector(".riverboat");
     function paint() {
-      if (boatEl) boatEl.style.top = BT.boatY + "%";
+      /* båten guppar lite i vattnet ovanpå spelarens egen styrning (BT.bob, satt i tick()) -
+         ren känsla, påverkar aldrig BT.boatY som fångstzonen räknar på */
+      if (boatEl) boatEl.style.top = BT.boatY + (BT.bob || 0) + "%";
       for (var j = 0; j < BT.slots.length; j++) {
         var s = BT.slots[j],
           e2 = document.getElementById(s.domId);
@@ -10015,7 +10060,12 @@
       if (!BT || screen !== "boat") return; /* skärmen är lämnad - sluta tyst, inget mer att göra */
       var dt = ts - (BT.lastTs || ts);
       BT.lastTs = ts;
-      var speed = dt * 0.022; /* % av rutans bredd per ms, tillräckligt lugnt för ett barn att hinna styra */
+      BT.bob = Math.sin(ts / 450) * 2.2; /* mjuk guppning, ett varv på ca 2,8s */
+      /* strömmen växlar mjukt mellan lugnare och lite rappare partier istället för att alltid
+         flyta i exakt samma takt - ett varv på ca 20s, ±35% kring grundfarten */
+      var flow = 1 + 0.35 * Math.sin(ts / 3200);
+      /* buggrapport: "flaskorna rör sig för snabbt" - grundfarten var 0.022, sänkt ca 30% */
+      var speed = dt * 0.015 * flow; /* % av rutans bredd per ms, tillräckligt lugnt för ett barn att hinna styra */
       for (var j = 0; j < BT.slots.length; j++) {
         var s = BT.slots[j];
         if (s.state !== "flowing") continue; /* just fångad - väntar på boatRespawn() */
