@@ -215,25 +215,19 @@ function fLeft(id: string | null) {
 }
 function fRight(id: string | null) {
   if (id === "g-shelf") {
+    /* illustrerad bild istället för handritad SVG (public/images/room/bookshelf.webp) -
+       samma mönster som sängen/gungstolen - skuggan är kvar som vektor. */
     return (
-      '<g transform="translate(348,150)"><ellipse cx="32" cy="90" rx="38" ry="8" fill="#2A1B0C" opacity=".22"/>' +
-      '<rect x="0" y="0" width="64" height="88" rx="3" fill="#A8713C"/>' +
-      '<rect x="4" y="4" width="56" height="80" fill="#7A5230"/>' +
-      '<rect x="4" y="28" width="56" height="5" fill="#A8713C"/><rect x="4" y="54" width="56" height="5" fill="#A8713C"/>' +
-      '<g><rect x="8" y="8" width="7" height="20" fill="#C85A6A"/><rect x="17" y="10" width="6" height="18" fill="#4E8A8C"/>' +
-      '<rect x="25" y="7" width="8" height="21" fill="#E8B62C"/><rect x="35" y="12" width="6" height="16" fill="#7E5AA8"/>' +
-      '<rect x="8" y="36" width="6" height="18" fill="#5C9C5E"/><rect x="16" y="34" width="8" height="20" fill="#C06A4A"/>' +
-      '<rect x="26" y="38" width="7" height="16" fill="#3A72C8"/>' +
-      '<circle cx="46" cy="48" r="6" fill="#4E8A52"/><rect x="43" y="48" width="7" height="6" fill="#C06A4A"/></g></g>'
+      '<g transform="translate(348,150)"><ellipse cx="40" cy="70" rx="38" ry="8" fill="#2A1B0C" opacity=".22"/>' +
+      '<image href="/images/room/bookshelf.webp" x="0" y="0" width="79" height="65"/></g>'
     );
   }
   if (id === "g-toys") {
+    /* illustrerad bild istället för handritad SVG (public/images/room/toy-basket.webp) -
+       samma mönster som sängen/gungstolen - skuggan är kvar som vektor. */
     return (
-      '<g transform="translate(344,208)"><ellipse cx="30" cy="34" rx="34" ry="7" fill="#2A1B0C" opacity=".22"/>' +
-      '<path d="M2 4 h56 l-6 28 h-44 z" fill="#C9A06A"/><path d="M2 4 h56 l-1.4 6 h-53.2 z" fill="#E0BC8E"/>' +
-      '<g stroke="#A8824E" stroke-width="1.2" opacity=".6"><path d="M12 10 v20 M24 10 v20 M36 10 v20 M48 10 v20"/></g>' +
-      '<circle cx="16" cy="0" r="9" fill="#C85A6A"/><circle cx="34" cy="-2" r="7" fill="#3A72C8"/>' +
-      '<path d="M44 2 l6 -10 l6 10 z" fill="#E8B62C"/></g>'
+      '<g transform="translate(344,208)"><ellipse cx="24" cy="38" rx="28" ry="6" fill="#2A1B0C" opacity=".22"/>' +
+      '<image href="/images/room/toy-basket.webp" x="0" y="-4" width="48" height="42"/></g>'
     );
   }
   if (id === "g-kannel") {
