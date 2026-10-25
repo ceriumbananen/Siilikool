@@ -461,10 +461,14 @@ function fRugExtra(id: string | null) {
 function fLeftExtra(id: string | null) {
   if (id !== "l-sofa") return null;
   /* illustrerad bild istället för handritad SVG (public/images/room/sofa.webp), samma
-     mönster som sängen/gungstolen/skrivbordet - skuggan är kvar som vektor. */
+     mönster som sängen/gungstolen/skrivbordet - skuggan är kvar som vektor. Benen i bilden
+     når ända ner till bildens nederkant (ingen marginal kvar efter beskärning), så skuggan
+     måste ligga precis vid y=2+59.5=61.5 - annars ser soffan ut att sväva ovanför golvet. */
   return (
-    '<g transform="translate(16,150)"><ellipse cx="46" cy="74" rx="50" ry="9" fill="#2A1B0C" opacity=".22"/>' +
-    '<image href="/images/room/sofa.webp" x="-9" y="2" width="98" height="59.5"/></g>'
+    '<g transform="translate(16,150)"><ellipse cx="46" cy="61.5" rx="46" ry="7" fill="#2A1B0C" opacity=".22"/>' +
+    /* spegelvänd (scale(-1,1)) så soffan vetter åt andra hållet - bilden flyttad till x=-89
+       (istället för -9) så den spegelvända bilden hamnar på exakt samma plats som innan. */
+    '<g transform="scale(-1,1)"><image href="/images/room/sofa.webp" x="-89" y="2" width="98" height="59.5"/></g></g>'
   );
 }
 function fRightExtra(id: string | null) {
