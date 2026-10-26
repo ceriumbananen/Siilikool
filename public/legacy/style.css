@@ -2422,6 +2422,25 @@ body {
   }
 }
 
+/* växten gungar lite i ett luftdrag - samma idé som eldens flimmer (.fl) ovan, en lugn
+   kontinuerlig mikrorörelse istället för att rummet står helt stilla mellan tryckningarna. */
+.roomsvg #roomplant > g {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  animation: plantsway 4.2s ease-in-out infinite;
+}
+
+@keyframes plantsway {
+  0%,
+  100% {
+    transform: rotate(-2deg);
+  }
+
+  50% {
+    transform: rotate(2deg);
+  }
+}
+
 @keyframes flick {
   0%,
   100% {
@@ -2512,6 +2531,7 @@ body {
   .roomsvg .fl,
   .roomsvg .embers,
   .roomsvg .pettail,
+  .roomsvg #roomplant > g,
   .roomsvg #roomfire.roomfire--lit .flames,
   .roomsvg #roomlamp.roomlamp--lit .lampglow,
   .roomsvg #roomwindow.roomwindow--lit,

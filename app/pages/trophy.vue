@@ -17,6 +17,37 @@ const profile = useProfileStore();
 const ri = computed(() => rankIndex(profile.state.xp));
 const nextRank = computed(() => RANKS[ri.value + 1]);
 
+/* medaljerna går att snurra med fingret (billig CSS-3D, ingen ny tillgång behövs) - rent
+   kosmetiskt, funkar lika bra på en låst medalj som en upplåst. En gång per drag: håll koll
+   på start-x och vrid proportionellt mot hur långt fingret flyttat sig, fjädra sen tillbaka
+   till 0 när man släpper. */
+const spinDeg = reactive<Record<string, number>>({});
+const settlingId = ref<string | null>(null);
+let dragId: string | null = null;
+let dragStartX = 0;
+let dragStartDeg = 0;
+
+function onMedalPointerMove(e: PointerEvent) {
+  if (!dragId) return;
+  spinDeg[dragId] = dragStartDeg + (e.clientX - dragStartX) * 0.6;
+}
+function onMedalPointerUp() {
+  if (!dragId) return;
+  settlingId.value = dragId;
+  spinDeg[dragId] = 0;
+  dragId = null;
+  window.removeEventListener("pointermove", onMedalPointerMove);
+  window.removeEventListener("pointerup", onMedalPointerUp);
+  setTimeout(() => (settlingId.value = null), 500);
+}
+function onMedalPointerDown(id: string, e: PointerEvent) {
+  dragId = id;
+  dragStartX = e.clientX;
+  dragStartDeg = spinDeg[id] || 0;
+  window.addEventListener("pointermove", onMedalPointerMove);
+  window.addEventListener("pointerup", onMedalPointerUp, { once: true });
+}
+
 const quest = computed(() =>
   useDailyQuest(profile.state.dayp || {}, profile.state.questPick as { day: string; id: string } | null | undefined),
 );
@@ -61,7 +92,14 @@ const badgeRows = computed(() =>
             class="trophy-page__medal"
             :class="{ 'trophy-page__medal--locked': i > ri, 'trophy-page__medal--current': i === ri }"
           >
-            <UiMedalBadge :rank="rank" :locked="i > ri" :medal-style="medalStyleOf(profile.state.mstyle, rank.id)" />
+            <div
+              class="trophy-page__medal-spin"
+              :class="{ 'trophy-page__medal-spin--settling': settlingId === rank.id }"
+              :style="{ transform: `rotateY(${spinDeg[rank.id] || 0}deg)` }"
+              @pointerdown="onMedalPointerDown(rank.id, $event)"
+            >
+              <UiMedalBadge :rank="rank" :locked="i > ri" :medal-style="medalStyleOf(profile.state.mstyle, rank.id)" />
+            </div>
             <b lang="et">{{ rank.et }}</b>
             <span>{{ rank.sv }}</span>
             <span>{{
@@ -159,6 +197,7 @@ const badgeRows = computed(() =>
     padding: 0.5rem; // 8px
     text-align: center;
     box-shadow: $shadow-2;
+    perspective: 31.25rem; // 500px - ger medalj-snurren riktigt djup
 
     b {
       display: block;
@@ -183,6 +222,28 @@ const badgeRows = computed(() =>
       box-shadow:
         0 0 0 0.25rem color-mix(in srgb, var(--honey) 35%, transparent),
         $shadow-2;
+    }
+  }
+
+  &__medal-spin {
+    cursor: grab;
+    touch-action: pan-y; // sidledes drag snurrar medaljen, vertikal scroll av sidan funkar ändå
+    will-change: transform;
+
+    &--settling {
+      transition: transform 0.5s cubic-bezier(0.22, 1.4, 0.36, 1); // fjädrar tillbaka till 0
+    }
+
+    &:active {
+      cursor: grabbing;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      touch-action: auto;
+
+      &--settling {
+        transition: none;
+      }
     }
   }
 

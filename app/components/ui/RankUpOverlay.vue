@@ -54,6 +54,7 @@ const climbed = computed(() =>
     width: 100%;
     text-align: center;
     box-shadow: $shadow-3;
+    perspective: 50rem; // 800px - ger medaljens rotateY-snurr riktigt djup, inte en platt klämning
 
     h3 {
       font-size: $font-size-xl;
@@ -73,10 +74,31 @@ const climbed = computed(() =>
     width: 7.5rem; // 120px
     height: auto;
     margin: 0 auto;
+    animation: rank-up-flip 0.9s cubic-bezier(0.34, 1.56, 0.64, 1);
+
+    @media (prefers-reduced-motion: reduce) {
+      animation: none;
+    }
   }
 
   &__climbed {
     margin-top: $spacing-1;
+  }
+}
+
+@keyframes rank-up-flip {
+  0% {
+    transform: rotateY(900deg) scale(0.4);
+    opacity: 0;
+  }
+
+  55% {
+    opacity: 1;
+  }
+
+  100% {
+    transform: rotateY(0deg) scale(1);
+    opacity: 1;
   }
 }
 </style>
