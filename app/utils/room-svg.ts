@@ -377,7 +377,7 @@ function fView(id: string | null) {
       x = 32 + ((i * 37) % 76);
       y = 38 + ((i * 23) % 78);
       s +=
-        '<circle cx="' +
+        '<circle class="roomstar" cx="' +
         x +
         '" cy="' +
         y +
@@ -385,7 +385,11 @@ function fView(id: string | null) {
         (0.8 + (i % 3) * 0.4) +
         '" fill="#F6E28A" opacity="' +
         (0.5 + (i % 4) * 0.12) +
-        '"/>';
+        '" style="animation-delay:' +
+        ((i * 0.37) % 3.2) +
+        "s;animation-duration:" +
+        (2.4 + (i % 5) * 0.4) +
+        's"/>';
     }
     return (
       s +
@@ -402,7 +406,18 @@ function fView(id: string | null) {
     for (j = 0; j < 26; j++) {
       x2 = 30 + ((j * 31) % 80);
       y2 = 36 + ((j * 19) % 86);
-      s2 += '<circle cx="' + x2 + '" cy="' + y2 + '" r="' + (1.2 + (j % 3) * 0.5) + '" fill="#FFFFFF" opacity=".9"/>';
+      s2 +=
+        '<circle class="roomsnow" cx="' +
+        x2 +
+        '" cy="' +
+        y2 +
+        '" r="' +
+        (1.2 + (j % 3) * 0.5) +
+        '" fill="#FFFFFF" opacity=".9" style="animation-delay:' +
+        ((j * 0.23) % 2.6) +
+        "s;animation-duration:" +
+        (2.2 + (j % 4) * 0.35) +
+        's"/>';
     }
     return s2 + '<path d="M44 92 l6 -16 l6 16 z" fill="#E8F2F8"/><path d="M78 96 l7 -18 l7 18 z" fill="#E8F2F8"/>';
   }
@@ -412,8 +427,8 @@ function fView(id: string | null) {
       '<circle cx="94" cy="52" r="10" fill="#FFE58A"/>' +
       '<rect x="28" y="84" width="84" height="40" fill="#5AA8C8"/>' +
       '<g stroke="#FFFFFF" stroke-width="1.4" opacity=".7" fill="none">' +
-      '<path d="M32 94 q8 -4 16 0 q8 4 16 0 q8 -4 16 0 q8 4 16 0"/>' +
-      '<path d="M32 106 q8 -4 16 0 q8 4 16 0 q8 -4 16 0 q8 4 16 0"/></g>' +
+      '<path class="roomwave" d="M32 94 q8 -4 16 0 q8 4 16 0 q8 -4 16 0 q8 4 16 0"/>' +
+      '<path class="roomwave" style="animation-delay:-1.3s" d="M32 106 q8 -4 16 0 q8 4 16 0 q8 -4 16 0 q8 4 16 0"/></g>' +
       '<path d="M54 84 l8 -16 l8 16 z" fill="#F7EEDC"/><rect x="60" y="68" width="2" height="16" fill="#8A5E30"/>'
     );
   }
@@ -637,7 +652,9 @@ function fShelf() {
     dynamiskt från vald möbel i room.vue (FURN_SPOTS), inte hårdkodat här. */
 function wrapTap(id: string, label: string, inner: string): string {
   if (!inner) return "";
-  return '<g id="' + id + '" style="cursor:pointer" tabindex="0" role="button" aria-label="' + label + '">' + inner + "</g>";
+  return (
+    '<g id="' + id + '" style="cursor:pointer" tabindex="0" role="button" aria-label="' + label + '">' + inner + "</g>"
+  );
 }
 function roomSVGInner() {
   var wall = fWall(ctx.furnOf("wall")),

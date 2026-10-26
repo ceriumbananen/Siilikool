@@ -2441,6 +2441,55 @@ body {
   }
 }
 
+/* köpta fönstervyer (u-night/u-snow/u-sea) var helt stillastående trots att de föreställer
+   stjärnor som glittrar, snö som singlar ner och ett hav som rör sig - samma idé som
+   eldens/växtens mikrorörelse, egen animation-delay/duration per stjärna/flinga satt inline
+   i fView() (room-svg.ts) så de inte alla glittrar/singlar i exakt takt. */
+.roomsvg .roomstar {
+  animation: starwink 2.8s ease-in-out infinite;
+}
+
+@keyframes starwink {
+  0%,
+  100% {
+    opacity: 0.3;
+  }
+
+  50% {
+    opacity: 1;
+  }
+}
+
+.roomsvg .roomsnow {
+  animation: snowdrift 2.6s ease-in-out infinite;
+}
+
+@keyframes snowdrift {
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+
+  50% {
+    transform: translate(1.5px, 3px);
+  }
+}
+
+.roomsvg .roomwave {
+  animation: waveshift 3.6s ease-in-out infinite;
+}
+
+@keyframes waveshift {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+
+  50% {
+    transform: translateX(3px);
+  }
+}
+
 @keyframes flick {
   0%,
   100% {
@@ -2532,6 +2581,9 @@ body {
   .roomsvg .embers,
   .roomsvg .pettail,
   .roomsvg #roomplant > g,
+  .roomsvg .roomstar,
+  .roomsvg .roomsnow,
+  .roomsvg .roomwave,
   .roomsvg #roomfire.roomfire--lit .flames,
   .roomsvg #roomlamp.roomlamp--lit .lampglow,
   .roomsvg #roomwindow.roomwindow--lit,
