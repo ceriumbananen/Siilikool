@@ -2671,6 +2671,45 @@ body {
   font-size: 26px;
 }
 
+/* illustrerad behållare per ort (Põlva/Valga/Kuressaare, se COLLECT_ART i app.js) istället
+   för den tomma rutan - en mjuk guppning ger den liv utan att behöva en egen JS-loop som
+   båten i Paadisõit (ingen flödande scen att synka mot här). */
+.basket.artbasket {
+  background-color: transparent;
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center bottom;
+  border: none;
+  min-height: 130px;
+  align-items: flex-end;
+  animation: basketSway 3.6s ease-in-out infinite;
+}
+
+@keyframes basketSway {
+  0%,
+  100% {
+    transform: rotate(-1deg) translateY(0);
+  }
+  50% {
+    transform: rotate(1deg) translateY(-3px);
+  }
+}
+
+/* samlade sakerna ska synas i respektive behållares öppning, inte vid hela rutans botten -
+   öppningen sitter olika högt upp i varje bild, så varje ort behöver sitt eget mått
+   (uppmätt direkt mot bilderna i webbläsaren). */
+.basket.art-polva {
+  padding-bottom: 70px;
+}
+
+.basket.art-valga {
+  padding-bottom: 40px;
+}
+
+.basket.art-kuressaare {
+  padding-bottom: 35px;
+}
+
 .countbox {
   display: flex;
   flex-wrap: wrap;
@@ -2951,6 +2990,12 @@ body {
 .crate.loaded {
   opacity: 0.25;
   transform: scale(0.9);
+}
+
+/* guldföremålet - sällsynt, alltid rätt svar, ger dubbel belöning (se stCollect()).
+   Samma puls som guldflaskan i Paadisõit. */
+.crate.golden {
+  animation: riverGoldPulse 1.1s ease-in-out infinite;
 }
 
 .crate.nope {

@@ -5911,12 +5911,17 @@
   }
 
   /* ---------- SAMLA: lägg rätt saker i korgen/på brickan ---------- */
+  /* illustrerad behållare per ort istället för den gamla tomma rutan - samma bild-mönster
+     som guldflaskan/barkbåten i Paadisõit. Orter utan egen bild (de flesta "collect"-typer
+     hör bara till Põlva/Valga/Kuressaare) faller tillbaka till den gamla tomma rutan. */
+  var COLLECT_ART = { polva: "collect-basket", valga: "collect-wagon", kuressaare: "collect-tray" };
   function stCollect(id, first) {
     screen = "station";
     setNav("home");
     btnBack.hidden = false;
     var s = stationOf(id);
-    if (first) ST = { city: id, round: 0, n: 6, wrong: 0, stars: 0, pool: stPool(s.pool, 30), tier: stTier(id) };
+    if (first)
+      ST = { city: id, round: 0, n: 6, wrong: 0, stars: 0, streak: 0, pool: stPool(s.pool, 30), tier: stTier(id) };
     if (ST.round >= ST.n) {
       stDone(60 + ST.round * 9, s.em + " " + s.et, "Du klarade alla " + ST.n + " beställningarna.", null, id);
       speak("Hästi tehtud!");
@@ -5927,11 +5932,20 @@
     var t = ST.pool[(Math.random() * ST.pool.length) | 0];
     var items = stCrates(t, ST.pool, num, 6 + ST.tier),
       i;
+    /* guldföremål: en sällsynt extra-glittrig kopia av ett av de RÄTTA föremålen (aldrig
+       en lurendrejare) - precis som guldflaskan i Paadisõit, dubbel belöning utan att
+       någonsin kunna lura någon till fel svar. Högst ett i taget. */
+    var correctIdx = [];
+    for (i = 0; i < items.length; i++) if (items[i].w.et === t.et) correctIdx.push(i);
+    if (correctIdx.length && Math.random() < 0.3) {
+      items[correctIdx[(Math.random() * correctIdx.length) | 0]].golden = true;
+    }
     ST.need = num;
     ST.have = 0;
     ST.target = t;
     ST.items = items;
     ST.lock = false;
+    var art = COLLECT_ART[id];
     var html =
       stHead(id, ST.round + 1 + " / " + ST.n + " · ⭐ " + ST.stars) +
       '<div class="card">' +
@@ -5940,10 +5954,24 @@
       "●".repeat(num) +
       " <b>" +
       num +
-      "</b></div>" +
-      '<div class="basket" id="basket"></div><div class="quay">';
+      "</b>" +
+      '<span id="collectstreak" class="fchip" style="margin-left:6px;display:none"></span>' +
+      "</div>" +
+      '<div class="basket' +
+      (art ? " artbasket art-" + id : "") +
+      '" id="basket"' +
+      (art ? ' style="background-image:url(/images/games/' + art + '.webp)"' : "") +
+      "></div>" +
+      '<div class="quay">';
     for (i = 0; i < items.length; i++)
-      html += '<button class="crate" data-c="' + i + '">' + wIcon(items[i].w) + "</button>";
+      html +=
+        '<button class="crate' +
+        (items[i].golden ? " golden" : "") +
+        '" data-c="' +
+        i +
+        '">' +
+        wIcon(items[i].w) +
+        "</button>";
     html += '</div><p class="qsub" id="sttip">Tryck på sakerna som ska med.</p></div>';
     app.innerHTML = html;
     stWire(["Korja kokku", t.et]);
@@ -5959,22 +5987,36 @@
           if (it.w.et === ST.target.et) {
             it.got = true;
             ST.have++;
+            ST.streak = (ST.streak || 0) + 1;
             el.classList.add("loaded");
             sndOk();
+            if (it.golden) {
+              /* extra glittrigt ljud ovanpå sndOk() för guldfångsten, som i Paadisõit */
+              tone(1180, 0.12, 0.3);
+              tone(1760, 0.18, 0.42);
+            }
             stReact(true);
-            buzz(14);
+            buzz(it.golden ? 30 : 14);
             speak(NUMW[Math.min(2, ST.have - 1)]);
             var bk = document.getElementById("basket");
             if (bk) bk.innerHTML += "<span>" + wIcon(it.w) + "</span>";
+            /* combo-eskalering: fler rätt i rad ger en större konfettikaskad - som i Paadisõit */
+            burst(it.golden ? 55 : Math.min(8 + ST.streak * 5, 35));
             var hm = app.querySelector(".howmany");
-            if (hm)
+            if (hm) {
               hm.innerHTML =
                 "●".repeat(ST.need - ST.have) +
-                (ST.need - ST.have ? " <b>" + (ST.need - ST.have) + "</b>" : " <b>✓</b>");
+                (ST.need - ST.have ? " <b>" + (ST.need - ST.have) + "</b>" : " <b>✓</b>") +
+                '<span id="collectstreak" class="fchip" style="margin-left:6px;' +
+                (ST.streak >= 3 ? "" : "display:none") +
+                '">🔥 ' +
+                ST.streak +
+                "</span>";
+            }
             if (ST.have >= ST.need) {
               ST.lock = true;
               ST.round++;
-              var g = 10 + ST.round * 2;
+              var g = 10 + ST.round * 2 + (it.golden ? 10 : 0);
               ST.stars += g;
               earnStars(g);
               wmemHit(ST.target.et, true, "choose", ST.target.sv);
@@ -5989,12 +6031,15 @@
             }
           } else {
             ST.wrong++;
+            ST.streak = 0;
             el.classList.add("nope");
             sndNo();
             stReact(false);
             buzz(24);
             wmemHit(ST.target.et, false, "choose", ST.target.sv);
             if (tip) tip.innerHTML = "Det där är <b>" + esc(it.w.sv) + "</b>.";
+            var streakEl2 = document.getElementById("collectstreak");
+            if (streakEl2) streakEl2.style.display = "none";
             setTimeout(function () {
               el.classList.remove("nope");
             }, 500);
