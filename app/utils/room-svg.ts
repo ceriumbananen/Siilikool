@@ -367,7 +367,11 @@ function fWallExtra(id: string | null) {
   }
   return s;
 }
-function fView(id: string | null) {
+/* second: det andra fönstret (#roomwindow2) ritar samma himmel, men utan sol/måne - annars
+   ser det ut som att det finns två solar/månar på himlen, en per fönster. Stjärnorna/snön får
+   gärna synas i båda (ingen ser konstig ut dubblerad), bara den enda sol/månen ska synas en
+   gång. */
+function fView(id: string | null, second?: boolean) {
   if (id === "u-night") {
     var s = '<rect x="28" y="34" width="84" height="90" fill="#223052"/>',
       i,
@@ -393,7 +397,7 @@ function fView(id: string | null) {
     }
     return (
       s +
-      '<circle cx="92" cy="54" r="11" fill="#F8EDBE"/><circle cx="87" cy="50" r="9" fill="#223052"/>' +
+      (second ? "" : '<circle cx="92" cy="54" r="11" fill="#F8EDBE"/><circle cx="87" cy="50" r="9" fill="#223052"/>') +
       '<path d="M28 104 q22 -14 42 -4 q18 10 42 -4 v28 H28 z" fill="#2E4064"/>'
     );
   }
@@ -424,7 +428,7 @@ function fView(id: string | null) {
   if (id === "u-sea") {
     return (
       '<rect x="28" y="34" width="84" height="90" fill="#BFE0F2"/>' +
-      '<circle cx="94" cy="52" r="10" fill="#FFE58A"/>' +
+      (second ? "" : '<circle cx="94" cy="52" r="10" fill="#FFE58A"/>') +
       '<rect x="28" y="84" width="84" height="40" fill="#5AA8C8"/>' +
       '<g stroke="#FFFFFF" stroke-width="1.4" opacity=".7" fill="none">' +
       '<path class="roomwave" d="M32 94 q8 -4 16 0 q8 4 16 0 q8 -4 16 0 q8 4 16 0"/>' +
@@ -437,13 +441,13 @@ function fView(id: string | null) {
      statisk scen. Köpta vyer (u-night/u-snow/u-sea) ändras INTE av detta - de är ett
      medvetet, betalt val som ska vara kvar som man valde det, året och dygnet runt. */
   var hour = new Date().getHours();
-  if (hour < 6 || hour >= 21) return fView("u-night");
-  if (seasonId() === "vinter") return fView("u-snow");
+  if (hour < 6 || hour >= 21) return fView("u-night", second);
+  if (seasonId() === "vinter") return fView("u-snow", second);
   return (
     '<rect x="28" y="34" width="84" height="90" fill="#AFD8EF"/>' +
     '<ellipse cx="50" cy="52" rx="16" ry="8" fill="#fff" opacity=".85"/>' +
     '<ellipse cx="85" cy="60" rx="12" ry="6" fill="#fff" opacity=".7"/>' +
-    '<circle cx="100" cy="46" r="9" fill="#FFE58A"/>' +
+    (second ? "" : '<circle cx="100" cy="46" r="9" fill="#FFE58A"/>') +
     '<path d="M28 100 q18 -10 34 -2 q16 8 34 -2 v26 H28 z" fill="#79A36A" opacity=".85"/>' +
     '<path d="M28 112 q20 -6 40 0 q20 6 40 -4 v16 H28 z" fill="#5E8A54" opacity=".9"/>'
   );
@@ -714,7 +718,7 @@ function roomSVGInner() {
        det första fönstret, se kommentaren där - centrerat på x=200 istället. */
     '<g id="roomwindow2" style="cursor:pointer" tabindex="0" role="button" aria-label="Tryck på det andra fönstret">' +
     '<g transform="translate(162.13,13.08) scale(0.5412,0.6412)">' +
-    fView(ctx.furnOf("view")) +
+    fView(ctx.furnOf("view"), true) +
     "</g>" +
     '<image href="/images/room/window.webp" x="158.6" y="11.6" width="82.8" height="110.4"/>' +
     "</g>" +
