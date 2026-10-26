@@ -6349,7 +6349,8 @@
     setNav("home");
     btnBack.hidden = false;
     var s = stationOf(id);
-    if (first) ST = { city: id, round: 0, n: 3, wrong: 0, stars: 0, pool: stPool(s.pool, 24), tier: stTier(id) };
+    if (first)
+      ST = { city: id, round: 0, n: 3, wrong: 0, stars: 0, streak: 0, pool: stPool(s.pool, 24), tier: stTier(id) };
     if (ST.round >= ST.n) {
       stDone(70 + ST.round * 12, s.em + " " + s.et, "Alla par hittade.", null, id);
       speak("Hästi tehtud!");
@@ -6361,17 +6362,37 @@
     ST.picked = null;
     ST.left = set.length;
     ST.lock = false;
+    /* guldpar: ett sällsynt extra-glittrigt par (bild+ord) - matchar man det rätt ger det
+       dubbel belöning, precis som guldflaskan i Paadisõit. Högst ett i taget. */
+    ST.goldenKey = set.length && Math.random() < 0.3 ? set[(Math.random() * set.length) | 0].et : null;
     var words = shuffle(set.slice());
     var html =
       stHead(id, ST.round + 1 + " / " + ST.n + " · ⭐ " + ST.stars) +
       '<div class="card">' +
-      '<p class="q">Leia paar · Para ihop bild och ord</p><div class="pairgrid">';
+      '<p class="q">Leia paar · Para ihop bild och ord' +
+      '<span id="pairstreak" class="fchip" style="margin-left:6px;display:none"></span>' +
+      "</p>" +
+      '<div class="pairgrid">';
     var i;
     for (i = 0; i < set.length; i++)
-      html += '<button class="pcard pic" data-pic="' + esc(set[i].et) + '">' + wIcon(set[i]) + "</button>";
+      html +=
+        '<button class="pcard pic' +
+        (set[i].et === ST.goldenKey ? " golden" : "") +
+        '" data-pic="' +
+        esc(set[i].et) +
+        '">' +
+        wIcon(set[i]) +
+        "</button>";
     html += '</div><div class="pairgrid words">';
     for (i = 0; i < words.length; i++)
-      html += '<button class="pcard wrd" data-wrd="' + esc(words[i].et) + '">' + esc(words[i].et) + "</button>";
+      html +=
+        '<button class="pcard wrd' +
+        (words[i].et === ST.goldenKey ? " golden" : "") +
+        '" data-wrd="' +
+        esc(words[i].et) +
+        '">' +
+        esc(words[i].et) +
+        "</button>";
     html += '</div><p class="qsub" id="sttip">Tryck på en bild och sedan på ordet.</p></div>';
     app.innerHTML = html;
     var bs = app.querySelectorAll("[data-pic],[data-wrd]"),
@@ -6403,14 +6424,21 @@
             return;
           }
           if (ST.picked.key === key) {
+            var golden = key === ST.goldenKey;
             el.classList.add("done");
             ST.picked.el.classList.add("done");
             ST.picked.el.classList.remove("sel");
             ST.picked = null;
             ST.left--;
+            ST.streak = (ST.streak || 0) + 1;
             sndOk();
+            if (golden) {
+              /* extra glittrigt ljud ovanpå sndOk() för guldparet, som i Paadisõit */
+              tone(1180, 0.12, 0.3);
+              tone(1760, 0.18, 0.42);
+            }
             stReact(true);
-            buzz(12);
+            buzz(golden ? 30 : 12);
             speak(key);
             for (var pw = 0; pw < ST.set.length; pw++) {
               if (ST.set[pw].et === key) {
@@ -6419,10 +6447,19 @@
               }
             }
             if (tip) tip.innerHTML = '<b style="color:var(--moss)">Õige!</b>';
+            /* combo-eskalering: fler rätt i rad ger en större konfettikaskad - som i Paadisõit */
+            burst(golden ? 55 : Math.min(8 + ST.streak * 5, 35));
+            var streakEl = document.getElementById("pairstreak");
+            if (streakEl) {
+              if (ST.streak >= 3) {
+                streakEl.style.display = "";
+                streakEl.textContent = "🔥 " + ST.streak;
+              } else streakEl.style.display = "none";
+            }
             if (ST.left <= 0) {
               ST.lock = true;
               ST.round++;
-              var g = 16 + ST.round * 4;
+              var g = 16 + ST.round * 4 + (golden ? 12 : 0);
               ST.stars += g;
               earnStars(g);
               save();
@@ -6434,6 +6471,7 @@
             }
           } else {
             ST.wrong++;
+            ST.streak = 0;
             el.classList.add("nope");
             ST.picked.el.classList.remove("sel");
             var bad = el,
@@ -6443,6 +6481,8 @@
             stReact(false);
             buzz(22);
             if (tip) tip.textContent = "Inte det paret. Prova igen.";
+            var streakEl2 = document.getElementById("pairstreak");
+            if (streakEl2) streakEl2.style.display = "none";
             setTimeout(function () {
               bad.classList.remove("nope");
               old.classList.remove("nope");
