@@ -2377,29 +2377,62 @@ body {
   display: block;
 }
 
-.roomsvg .fl {
-  transform-origin: 50% 100%;
-  animation: flick 2.1s ease-in-out infinite;
+/* elden - tre AI-illustrerade flambilder (public/images/room/flame-1/2/3.webp, ersatte de
+   handritade .fl-formerna) som korsblandas i en lugn, mysig takt istället för att flimra
+   kraftigt - det här är en liten härd i ett barnrum, ingen lägereld. */
+.roomsvg .flameimg {
+  opacity: 0;
+  animation: flamecross 7s ease-in-out infinite;
 }
 
-.roomsvg .fl.b {
-  animation-duration: 2.6s;
-  animation-delay: 0.3s;
+.roomsvg .flameimg-a {
+  animation-delay: 0s;
 }
 
-.roomsvg .fl.c {
-  animation-duration: 2.4s;
-  animation-delay: 0.7s;
+.roomsvg .flameimg-b {
+  animation-delay: -2.33s;
 }
 
-.roomsvg .fl.d {
-  animation-duration: 1.8s;
-  animation-delay: 0.4s;
+.roomsvg .flameimg-c {
+  animation-delay: -4.67s;
 }
 
-.roomsvg .fl.e {
-  animation-duration: 3s;
-  animation-delay: 0.9s;
+@keyframes flamecross {
+  0%,
+  100% {
+    opacity: 0;
+  }
+
+  6% {
+    opacity: 1;
+  }
+
+  27% {
+    opacity: 1;
+  }
+
+  33% {
+    opacity: 0;
+  }
+}
+
+.roomsvg .fireglow {
+  transform-box: fill-box;
+  transform-origin: 50% 50%;
+  animation: fireglowpulse 4.4s ease-in-out infinite;
+}
+
+@keyframes fireglowpulse {
+  0%,
+  100% {
+    opacity: 0.85;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scale(1.05);
+  }
 }
 
 .roomsvg .embers {
@@ -2490,21 +2523,6 @@ body {
   }
 }
 
-@keyframes flick {
-  0%,
-  100% {
-    transform: scaleY(1) scaleX(1);
-  }
-
-  35% {
-    transform: scaleY(1.05) scaleX(0.986);
-  }
-
-  70% {
-    transform: scaleY(0.972) scaleX(1.012);
-  }
-}
-
 @keyframes embers {
   0%,
   100% {
@@ -2518,7 +2536,7 @@ body {
   }
 }
 
-.roomsvg #roomfire.roomfire--lit .flames {
+.roomsvg #roomfire.roomfire--lit .flames3 {
   animation: roomfireflare 0.6s ease-out;
   transform-origin: 49px 90px;
 }
@@ -2577,14 +2595,14 @@ body {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .roomsvg .fl,
+  .roomsvg .fireglow,
   .roomsvg .embers,
   .roomsvg .pettail,
   .roomsvg #roomplant > g,
   .roomsvg .roomstar,
   .roomsvg .roomsnow,
   .roomsvg .roomwave,
-  .roomsvg #roomfire.roomfire--lit .flames,
+  .roomsvg #roomfire.roomfire--lit .flames3,
   .roomsvg #roomlamp.roomlamp--lit .lampglow,
   .roomsvg #roomwindow.roomwindow--lit,
   .roomsvg #roomwindow2.roomwindow2--lit,
@@ -2594,6 +2612,17 @@ body {
   .roomsvg #roomplant.roomplant--lit,
   .roomsvg #roomart.roomart--lit {
     animation: none;
+  }
+
+  /* .flameimg börjar på opacity:0 (synlig bara via korsblandningen) - att bara stänga av
+     animationen skulle slockna elden helt, så den första bilden visas still istället. */
+  .roomsvg .flameimg {
+    animation: none;
+    opacity: 0;
+  }
+
+  .roomsvg .flameimg-a {
+    opacity: 1;
   }
 }
 
