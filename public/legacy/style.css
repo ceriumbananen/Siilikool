@@ -2377,42 +2377,68 @@ body {
   display: block;
 }
 
-/* elden - tre AI-illustrerade flambilder (public/images/room/flame-1/2/3.webp, ersatte de
-   handritade .fl-formerna) som korsblandas i en lugn, mysig takt istället för att flimra
-   kraftigt - det här är en liten härd i ett barnrum, ingen lägereld. */
+/* elden - sex AI-illustrerade bilder (public/images/room/flame-1..5.webp + flame-embers.webp,
+   ersatte de handritade .fl-formerna och den platta glödellipsen), alla synliga SAMTIDIGT och
+   omlottlagda (en glödbädd längst bak, två flammor som skymtar bakom, två vid sidorna, en hög
+   dominant i mitten) istället för att bara en i taget visas - precis som de fem gamla
+   .fl-formerna flimrade var för sig, fast med de nya, rikare bilderna. Varje flamma
+   vickar/skalar i sin egen takt (olika duration/delay) så helheten känns levande utan att
+   vara en enda stel form. */
 .roomsvg .flameimg {
-  opacity: 0;
-  animation: flamecross 7s ease-in-out infinite;
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  animation: flameflick 2.2s ease-in-out infinite;
 }
 
-.roomsvg .flameimg-a {
+.roomsvg .flameimg-a,
+.roomsvg .flameimg-e {
+  animation-duration: 2.1s;
   animation-delay: 0s;
 }
 
-.roomsvg .flameimg-b {
-  animation-delay: -2.33s;
+.roomsvg .flameimg-b,
+.roomsvg .flameimg-f {
+  animation-duration: 2.6s;
+  animation-delay: -0.4s;
 }
 
-.roomsvg .flameimg-c {
-  animation-delay: -4.67s;
+.roomsvg .flameimg-c,
+.roomsvg .flameimg-d {
+  animation-duration: 2.4s;
+  animation-delay: -1.1s;
 }
 
-@keyframes flamecross {
+@keyframes flameflick {
   0%,
   100% {
-    opacity: 0;
+    transform: scale(1, 1) skewX(0deg);
   }
 
-  6% {
-    opacity: 1;
+  35% {
+    transform: scale(0.95, 1.06) skewX(-1.5deg);
   }
 
-  27% {
-    opacity: 1;
+  70% {
+    transform: scale(1.04, 0.95) skewX(1.5deg);
+  }
+}
+
+/* glödbädden under flammorna - en mjuk, lugn puls istället för flammornas vickning, den
+   glöder snarare än flimrar. */
+.roomsvg .emberbed {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  animation: emberbedglow 3.4s ease-in-out infinite;
+}
+
+@keyframes emberbedglow {
+  0%,
+  100% {
+    filter: brightness(1);
   }
 
-  33% {
-    opacity: 0;
+  50% {
+    filter: brightness(1.12);
   }
 }
 
@@ -2425,18 +2451,14 @@ body {
 @keyframes fireglowpulse {
   0%,
   100% {
-    opacity: 0.85;
-    transform: scale(1);
+    opacity: 0.75;
+    transform: scale(0.96);
   }
 
   50% {
     opacity: 1;
-    transform: scale(1.05);
+    transform: scale(1.12);
   }
-}
-
-.roomsvg .embers {
-  animation: embers 3.2s ease-in-out infinite;
 }
 
 .roomsvg .pettail {
@@ -2523,16 +2545,27 @@ body {
   }
 }
 
-@keyframes embers {
-  0%,
-  100% {
-    opacity: 0.45;
-    transform: translateY(0);
+/* varje gnista stiger och tonar bort för sig (egen animation-delay satt inline per <circle>
+   i FIRESVG, scenes.ts) istället för att hela gnist-gruppen guppade i takt som en enda klump -
+   mer fokus på glöden, som efterfrågat. */
+.roomsvg .embers circle {
+  opacity: 0;
+  animation: emberrise 2.1s ease-out infinite;
+}
+
+@keyframes emberrise {
+  0% {
+    opacity: 0;
+    transform: translateY(0) scale(1);
   }
 
-  50% {
-    opacity: 0.85;
-    transform: translateY(-3px);
+  20% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+    transform: translateY(-14px) scale(0.6);
   }
 }
 
@@ -2595,8 +2628,9 @@ body {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .roomsvg .flameimg,
+  .roomsvg .emberbed,
   .roomsvg .fireglow,
-  .roomsvg .embers,
   .roomsvg .pettail,
   .roomsvg #roomplant > g,
   .roomsvg .roomstar,
@@ -2614,15 +2648,10 @@ body {
     animation: none;
   }
 
-  /* .flameimg börjar på opacity:0 (synlig bara via korsblandningen) - att bara stänga av
-     animationen skulle slockna elden helt, så den första bilden visas still istället. */
-  .roomsvg .flameimg {
+  /* samma sak för gnistorna - en stilla glöd istället för att slockna helt */
+  .roomsvg .embers circle {
     animation: none;
-    opacity: 0;
-  }
-
-  .roomsvg .flameimg-a {
-    opacity: 1;
+    opacity: 0.6;
   }
 }
 
