@@ -6255,7 +6255,8 @@
     setNav("home");
     btnBack.hidden = false;
     var s = stationOf(id);
-    if (first) ST = { city: id, round: 0, n: 7, wrong: 0, stars: 0, pool: stPool(s.pool, 20), tier: stTier(id) };
+    if (first)
+      ST = { city: id, round: 0, n: 7, wrong: 0, stars: 0, streak: 0, pool: stPool(s.pool, 20), tier: stTier(id) };
     if (ST.round >= ST.n) {
       stDone(
         60 + ST.round * 9,
@@ -6284,15 +6285,26 @@
     opts = shuffle(opts);
     ST.num = num;
     ST.lock = false;
+    /* guldsvaret: det RÄTTA talet är ibland extra-glittrigt - alltid rätt svar, dubbel
+       belöning, precis som guldflaskan i Paadisõit. */
+    ST.golden = Math.random() < 0.3;
     var html =
       stHead(id, ST.round + 1 + " / " + ST.n + " · ⭐ " + ST.stars) +
       '<div class="card">' +
       stAsk(["Mitu on?", t.et], "Hur många " + t.sv + " ser du?") +
+      '<span id="countstreak" class="fchip" style="display:none">🔥</span>' +
       '<div class="countbox">';
     for (i = 0; i < num; i++) html += '<span class="citem">' + wIcon(t) + "</span>";
     html += '</div><div class="opts numopts">';
     for (i = 0; i < opts.length; i++)
-      html += '<button class="opt" data-n="' + opts[i] + '">' + esc(NUMWORDS[opts[i] - 1]) + "</button>";
+      html +=
+        '<button class="opt' +
+        (ST.golden && opts[i] === num ? " golden" : "") +
+        '" data-n="' +
+        opts[i] +
+        '">' +
+        esc(NUMWORDS[opts[i] - 1]) +
+        "</button>";
     html += '</div><p class="qsub" id="sttip">Välj rätt tal på estniska.</p></div>';
     app.innerHTML = html;
     stWire(["Mitu on?", t.et]);
@@ -6313,16 +6325,31 @@
               if (+all[q].getAttribute("data-n") === ST.num) all[q].className = "opt right";
             }
             ST.round++;
-            var g = 10 + ST.round * 2;
+            ST.streak = (ST.streak || 0) + 1;
+            var g = 10 + ST.round * 2 + (ST.golden ? 10 : 0);
             ST.stars += g;
             earnStars(g);
             wmemHitSentenceWords([NUMWORDS[ST.num - 1]], true);
             save();
             refreshTop();
             sndOk();
+            if (ST.golden) {
+              /* extra glittrigt ljud ovanpå sndOk() för guldsvaret, som i Paadisõit */
+              tone(1180, 0.12, 0.3);
+              tone(1760, 0.18, 0.42);
+            }
             stReact(true);
-            buzz(14);
+            buzz(ST.golden ? 30 : 14);
             speak(NUMWORDS[ST.num - 1]);
+            /* combo-eskalering: fler rätt i rad ger en större konfettikaskad - som i Paadisõit */
+            burst(ST.golden ? 55 : Math.min(8 + ST.streak * 5, 35));
+            var streakEl = document.getElementById("countstreak");
+            if (streakEl) {
+              if (ST.streak >= 3) {
+                streakEl.style.display = "";
+                streakEl.textContent = "🔥 " + ST.streak;
+              } else streakEl.style.display = "none";
+            }
             if (tip)
               tip.innerHTML =
                 '<b style="color:var(--moss)">Õige! ' + ST.num + " = " + esc(NUMWORDS[ST.num - 1]) + "</b>";
@@ -6331,12 +6358,15 @@
             }, 1000);
           } else {
             ST.wrong++;
+            ST.streak = 0;
             el.className = "opt wrong";
             sndNo();
             stReact(false);
             buzz(24);
             wmemHitSentenceWords([NUMWORDS[ST.num - 1]], false);
             if (tip) tip.innerHTML = "Räkna en gång till — tryck på sakerna medan du räknar.";
+            var streakEl2 = document.getElementById("countstreak");
+            if (streakEl2) streakEl2.style.display = "none";
           }
         };
       })(bs[k]);
