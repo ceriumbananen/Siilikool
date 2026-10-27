@@ -2515,6 +2515,77 @@ body {
   }
 }
 
+/* månen glimrar - glöden bakom pulserar, och själva skivan får en mjuk ljusstyrke-puls
+   ovanpå (public/images/room/view-moon.webp är ett eget lager, se fView() i room-svg.ts). */
+.roomsvg .moonglow {
+  animation: moonglowpulse 5s ease-in-out infinite;
+}
+
+@keyframes moonglowpulse {
+  0%,
+  100% {
+    opacity: 0.7;
+    transform: scale(0.94);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scale(1.08);
+  }
+}
+
+.roomsvg .moonimg {
+  transform-box: fill-box;
+  transform-origin: 50% 50%;
+  animation: moonglimmer 5s ease-in-out infinite;
+}
+
+@keyframes moonglimmer {
+  0%,
+  100% {
+    filter: brightness(1);
+  }
+
+  50% {
+    filter: brightness(1.1);
+  }
+}
+
+/* stjärnfall: osynlig nästan hela tiden, en kort ljusstrimma som skjuter diagonalt över
+   himlen. De två fönstrens egna instanser har olika fördröjning (.shootingstar--b) så de
+   inte skjuter samtidigt. */
+.roomsvg .shootingstar {
+  opacity: 0;
+  animation: shootingstar 12s linear infinite;
+}
+
+.roomsvg .shootingstar--b {
+  animation-delay: -6.4s;
+}
+
+@keyframes shootingstar {
+  0%,
+  78% {
+    opacity: 0;
+    transform: translate(50px, 42px);
+  }
+
+  79% {
+    opacity: 1;
+  }
+
+  87% {
+    opacity: 1;
+    transform: translate(72px, 62px);
+  }
+
+  88%,
+  100% {
+    opacity: 0;
+    transform: translate(72px, 62px);
+  }
+}
+
 .roomsvg .roomsnow {
   animation: snowdrift 2.6s ease-in-out infinite;
 }
@@ -2636,6 +2707,9 @@ body {
   .roomsvg .roomstar,
   .roomsvg .roomsnow,
   .roomsvg .roomwave,
+  .roomsvg .moonglow,
+  .roomsvg .moonimg,
+  .roomsvg .shootingstar,
   .roomsvg #roomfire.roomfire--lit .flames3,
   .roomsvg #roomlamp.roomlamp--lit .lampglow,
   .roomsvg #roomwindow.roomwindow--lit,

@@ -373,13 +373,19 @@ function fWallExtra(id: string | null) {
    gång. */
 function fView(id: string | null, second?: boolean) {
   if (id === "u-night") {
-    var s = '<rect x="28" y="34" width="84" height="90" fill="#223052"/>',
+    /* AI-illustrerad himmel (public/images/room/view-night-bg.webp, trädsilhuetten är redan
+       målad in i bilden) istället för en platt rektangel + handritad trädform. Månen är ett
+       eget lager ovanpå (med en pulserande glöd bakom) så den kan glimra för sig - samma
+       teknik som eldstadens flammor. Stjärnorna hålls ovanför den målade trädlinjen (under
+       ca 60% av höjden var tidigare fri himmel, nu är det samma andel som förut). */
+    var s =
+        '<image href="/images/room/view-night-bg.webp" x="28" y="34" width="84" height="90" preserveAspectRatio="none"/>',
       i,
       x,
       y;
     for (i = 0; i < 22; i++) {
       x = 32 + ((i * 37) % 76);
-      y = 38 + ((i * 23) % 78);
+      y = 38 + ((i * 23) % 56);
       s +=
         '<circle class="roomstar" cx="' +
         x +
@@ -395,11 +401,20 @@ function fView(id: string | null, second?: boolean) {
         (2.4 + (i % 5) * 0.4) +
         's"/>';
     }
-    return (
-      s +
-      (second ? "" : '<circle cx="92" cy="54" r="11" fill="#F8EDBE"/><circle cx="87" cy="50" r="9" fill="#223052"/>') +
-      '<path d="M28 104 q22 -14 42 -4 q18 10 42 -4 v28 H28 z" fill="#2E4064"/>'
-    );
+    /* stjärnfall: en sällsynt, kort ljusstrimma som skjuter över himlen - mest osynlig,
+       blixnabb när den väl syns. De två fönstren har olika fördröjning så de inte råkar
+       skjuta i exakt samma sekund. */
+    s +=
+      '<g class="shootingstar' +
+      (second ? " shootingstar--b" : "") +
+      '"><line x1="0" y1="0" x2="-7" y2="-3.5" stroke="url(#shootgrad)" stroke-width="1" stroke-linecap="round"/>' +
+      '<circle r="0.9" fill="#FFFFFF"/></g>';
+    if (!second) {
+      s +=
+        '<ellipse class="moonglow" cx="89" cy="50" rx="15" ry="15" fill="url(#moonglow)"/>' +
+        '<image class="moonimg" href="/images/room/view-moon.webp" x="79" y="40" width="20" height="20" preserveAspectRatio="xMidYMid meet"/>';
+    }
+    return s;
   }
   if (id === "u-snow") {
     var s2 = '<rect x="28" y="34" width="84" height="90" fill="#CFE2EF"/>',
@@ -690,6 +705,12 @@ function roomSVGInner() {
     '<stop offset="100%" stop-color="#2A1B0C" stop-opacity=".30"/></radialGradient>' +
     '<linearGradient id="g-beam" x1="0" y1="0" x2="0.5" y2="1"><stop offset="0%" stop-color="#FFF6DC" stop-opacity=".5"/>' +
     '<stop offset="100%" stop-color="#FFF6DC" stop-opacity="0"/></linearGradient>' +
+    /* månens glöd (fView, u-night) - separat lager bakom måntbilden så den kan pulsera för
+       sig, som eldstadens fireglow. */
+    '<radialGradient id="moonglow" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#FFF6D6" stop-opacity=".55"/>' +
+    '<stop offset="100%" stop-color="#FFF6D6" stop-opacity="0"/></radialGradient>' +
+    '<linearGradient id="shootgrad" x1="1" y1="1" x2="0" y2="0"><stop offset="0%" stop-color="#FFFFFF" stop-opacity="1"/>' +
+    '<stop offset="100%" stop-color="#FFFFFF" stop-opacity="0"/></linearGradient>' +
     "</defs>" +
     wall.body +
     fWallExtra(ctx.furnOf("wall")) +
