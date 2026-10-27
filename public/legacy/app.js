@@ -9505,7 +9505,10 @@
   function memIntro() {
     screen = "mem";
     prefetchAllThemes();
-    if (!S.memLv) S.memLv = 1;
+    /* buggrapport: "memori på lätt 4 par har fastnat" - !S.memLv är sant även när memLv är 0
+       (Lätt), så den skrevs genast över till 1 (Lagom) igen - då kunde man ALDRIG spela Lätt,
+       bara se den förvälja sig tillbaka till Lagom. */
+    if (S.memLv !== 0 && !S.memLv) S.memLv = 1;
     var sizes = [4, 6, 8],
       names = ["Lätt · 4 par", "Lagom · 6 par", "Svår · 8 par"],
       i;
@@ -9550,7 +9553,8 @@
     document.getElementById("start").onclick = memStart;
   }
   function memStart() {
-    var n = [4, 6, 8][S.memLv || 1];
+    /* samma 0-är-falsy-fälla som i memIntro() - Lätt (memLv 0) fick annars alltid 6 par */
+    var n = [4, 6, 8][S.memLv !== 0 && !S.memLv ? 1 : S.memLv];
     var pool = pickWeighted(allWords().filter(hasPic), n),
       cards = [],
       i; /* bild ↔ ord: inga läxord */
@@ -9705,7 +9709,8 @@
       pairs = MM.pairs,
       st = memStars(t, pairs);
     if (!S.memBestLv) S.memBestLv = {};
-    var lv = S.memLv || 1,
+    /* samma 0-är-falsy-fälla - annars sparades Lätts bästa resultat under Lagoms nyckel */
+    var lv = S.memLv !== 0 && !S.memLv ? 1 : S.memLv,
       rec = !S.memBestLv[lv] || t < S.memBestLv[lv];
     if (rec) S.memBestLv[lv] = t;
     if (!S.memBest || t < S.memBest) S.memBest = t;
