@@ -9982,7 +9982,7 @@
     s.x = BT.reduceMotion ? 10 + s.lane * 20 : -15 - Math.random() * 12;
     var el = document.getElementById(s.domId);
     if (el) {
-      el.textContent = (s.golden ? "✨ " : "") + s.et;
+      el.innerHTML = '<span class="riverlabel">' + (s.golden ? "✨ " : "") + s.et + "</span>";
       el.classList.remove("hit", "miss");
       el.classList.toggle("golden", !!s.golden);
     }
