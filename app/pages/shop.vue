@@ -83,6 +83,21 @@ const bought = ref<{ item: ShopItem; tier: 1 | 2 | 3 } | null>(null);
 const tooExpensive = ref<{ n: number; key: number } | null>(null);
 let tooTimer: ReturnType<typeof setTimeout> | undefined;
 
+/* ---------- förhandsgranskning (buggrapport: "se saken bra innan man köper den") ----------
+   Rör bara overlayen - köpet går via de redan befintliga buyOrWear()/furnBuy() ovan/nedan,
+   precis som om man tryckt på raden/rutan själv. */
+const previewWear = ref<ShopItem | null>(null);
+const previewFurn = ref<FurnItem | null>(null);
+function closePreview() {
+  previewWear.value = null;
+  previewFurn.value = null;
+}
+function buyFromPreview() {
+  if (previewWear.value) buyOrWear(previewWear.value);
+  else if (previewFurn.value) furnBuy(previewFurn.value);
+  closePreview();
+}
+
 /* bakgrunden byts på hela sidan (app/plugins/appearance.client.ts) - en liten studs markerar det */
 function scenePop(ms: number) {
   document.body.classList.add("scenepop");
@@ -202,6 +217,7 @@ function toRoom() {
               ><span>{{ row.f.sv }}</span>
             </button>
             <span class="shop-page__furn-price">{{ row.label }}</span>
+            <button class="shop-page__preview" aria-label="Förhandsgranska" @click.stop="previewFurn = row.f">👁</button>
           </div>
         </template>
       </UiAppCard>
@@ -219,6 +235,7 @@ function toRoom() {
             :worn="wearing(it.slot) === it.id"
             :stars="stars"
             @click="buyOrWear(it)"
+            @preview="previewWear = it"
           />
         </div>
       </UiAppCard>
@@ -245,6 +262,7 @@ function toRoom() {
             :worn="wearing(it.slot) === it.id"
             :stars="stars"
             @click="buyOrWear(it)"
+            @preview="previewWear = it"
           />
         </div>
       </UiAppCard>
@@ -261,6 +279,7 @@ function toRoom() {
             :worn="wearing(it.slot) === it.id"
             :stars="stars"
             @click="buyOrWear(it)"
+            @preview="previewWear = it"
           />
         </div>
       </UiAppCard>
@@ -269,15 +288,18 @@ function toRoom() {
       <section class="shop-page__dreams">
         <h2 class="shop-page__slot shop-page__slot--dream">🌠 Drömmar</h2>
         <p class="shop-page__sub shop-page__sub--dream">Långa sparmål. De tar tid – men tänk vad fint det blir.</p>
-        <button v-for="d in dreams" :key="d.it.id" class="shop-page__dream" @click="buyOrWear(d.it)">
-          <span class="shop-page__dream-em" aria-hidden="true">{{ d.it.em }}</span>
-          <span class="shop-page__dream-text">
-            <b lang="et">{{ d.it.et }}</b>
-            <small>{{ d.it.sv }} · ⭐ {{ d.it.price.toLocaleString("sv-SE") }}</small>
-            <span class="shop-page__dream-bar"><i :style="{ width: `${d.pct}%` }" /></span>
-            <small>{{ d.status }}</small>
-          </span>
-        </button>
+        <div v-for="d in dreams" :key="d.it.id" class="shop-page__dream">
+          <button class="shop-page__dream-main" @click="buyOrWear(d.it)">
+            <span class="shop-page__dream-em" aria-hidden="true">{{ d.it.em }}</span>
+            <span class="shop-page__dream-text">
+              <b lang="et">{{ d.it.et }}</b>
+              <small>{{ d.it.sv }} · ⭐ {{ d.it.price.toLocaleString("sv-SE") }}</small>
+              <span class="shop-page__dream-bar"><i :style="{ width: `${d.pct}%` }" /></span>
+              <small>{{ d.status }}</small>
+            </span>
+          </button>
+          <button class="shop-page__dream-preview" aria-label="Förhandsgranska" @click="previewWear = d.it">👁</button>
+        </div>
       </section>
 
       <p class="shop-page__note">
@@ -294,6 +316,32 @@ function toRoom() {
       ⭐ {{ tooExpensive.n }} kvar
     </div>
     <ShopBuyOverlay v-if="bought" :item="bought.item" :tier="bought.tier" @close="bought = null" />
+    <ShopPreviewOverlay
+      v-if="previewWear"
+      kind="wear"
+      :wear-item="previewWear"
+      :wear="wear"
+      :owned-ids="owned"
+      :owns="owns(previewWear.id)"
+      :worn="wearing(previewWear.slot) === previewWear.id"
+      :stars="stars"
+      @close="closePreview"
+      @buy="buyFromPreview"
+    />
+    <ShopPreviewOverlay
+      v-else-if="previewFurn"
+      kind="furn"
+      :furn-item="previewFurn"
+      :furn-of="(slot: string) => furnOf(slot, room, furnOwnedIds)"
+      :diplomas="(profile.state.diplomas as Record<string, number> | undefined) || {}"
+      :trip-done="tripDone(profile.state)"
+      :own="furnOwned(previewFurn.id, furnOwnedIds)"
+      :on="furnOf(previewFurn.slot, room, furnOwnedIds) === previewFurn.id"
+      :cant="!furnOwned(previewFurn.id, furnOwnedIds) && stars < previewFurn.price"
+      :stars="stars"
+      @close="closePreview"
+      @buy="buyFromPreview"
+    />
   </UiAppShell>
 </template>
 
@@ -407,11 +455,13 @@ function toRoom() {
       background: color-mix(in srgb, var(--moss) 16%, transparent);
     }
 
-    /* som plaggrutorna (ShopCell): grått och "inte nu" - 🔊 går fortfarande att trycka på */
+    /* som plaggrutorna (ShopCell): grått och "inte nu" - 🔊 och 👁 går fortfarande att trycka
+       på (buggrapport: "se saken bra innan man köper den" ska gälla även det man inte har råd
+       med än) */
     &--cant {
       cursor: not-allowed;
 
-      > :not(.shop-page__say) {
+      > :not(.shop-page__say):not(.shop-page__preview) {
         opacity: 0.55;
         filter: grayscale(0.85);
       }
@@ -470,6 +520,19 @@ function toRoom() {
     @include focus-visible;
   }
 
+  &__preview {
+    width: 2.5rem; // 40px
+    height: 2.5rem;
+    flex: none;
+    border-radius: 50%;
+    border: $border-width solid var(--line);
+    background: var(--card);
+    cursor: pointer;
+    box-shadow: $shadow-1;
+
+    @include focus-visible;
+  }
+
   &__dreams {
     margin-top: $spacing-3;
     background: linear-gradient(150deg, #2b2250, #150f30);
@@ -482,15 +545,22 @@ function toRoom() {
 
   &__dream {
     display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    margin-top: 0.5rem;
+  }
+
+  &__dream-main {
+    display: flex;
     gap: 0.75rem;
     align-items: center;
-    width: 100%;
+    flex: 1;
+    min-width: 0;
     text-align: left;
     background: rgba(255, 255, 255, 0.07);
     border: $border-width solid rgba(255, 255, 255, 0.18);
     border-radius: $radius-md;
     padding: 0.5rem 0.75rem;
-    margin-top: 0.5rem;
     cursor: pointer;
     color: #fff;
     font: inherit;
@@ -511,6 +581,19 @@ function toRoom() {
       font-size: $font-size-xs;
       color: #c9bcef;
     }
+  }
+
+  &__dream-preview {
+    flex: none;
+    width: 2.5rem; // 40px
+    height: 2.5rem;
+    border-radius: 50%;
+    border: $border-width solid rgba(255, 255, 255, 0.18);
+    background: rgba(255, 255, 255, 0.07);
+    color: #fff;
+    cursor: pointer;
+
+    @include focus-visible;
   }
 
   &__dream-em {

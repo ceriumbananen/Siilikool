@@ -29,10 +29,19 @@
    (s-armL/R, s-ear, s-flower är tomma platshållare där också) och humöret "think" (trasig
    CSS-selektor i style.css). */
 
-const { size = "normal" } = defineProps<{
+const {
+  size = "normal",
+  previewWear,
+  previewOwned,
+} = defineProps<{
   /** Hur stor figuren är: "normal" (profil, hem), "big" (slutskärmar) eller "small" (bredvid en
    * uppgift) - samma tre storlekar som siilSVG(size) hade - eller "room" (i Tuba). */
   size?: "normal" | "big" | "small" | "room";
+  /** Förhandsgranskning i Laat (ShopPreviewOverlay): visar henne med DETTA istället för det
+   * riktiga S.wear/S.owned, utan att röra profilen - allt annat (päls, ögon, humör) är hennes
+   * egna som vanligt. Utelämnad = det riktiga, sparade utseendet. */
+  previewWear?: Wear;
+  previewOwned?: string[];
 }>();
 
 const profile = useProfileStore();
@@ -48,8 +57,8 @@ const furObj = computed(() => myFur(profile.state.fur as string | undefined));
 const eyeObj = computed(() => myEye(profile.state.eye as string | undefined));
 const isCool = computed(() => profile.state.diff === "svar");
 
-const wear = computed(() => profile.state.wear as Wear | undefined);
-const owned = computed(() => profile.state.owned as string[] | undefined);
+const wear = computed(() => previewWear ?? (profile.state.wear as Wear | undefined));
+const owned = computed(() => previewOwned ?? (profile.state.owned as string[] | undefined));
 
 /* ryggplagg: vissa (ryggsäck, vingar m.fl.) visas i två delar - en bakom figuren, en
  * framför - övriga visas som vanligt, helt bakom. Samma lista som siilSVG. */
