@@ -417,11 +417,14 @@ function fView(id: string | null, second?: boolean) {
     return s;
   }
   if (id === "u-snow") {
-    var s2 = '<rect x="28" y="34" width="84" height="90" fill="#CFE2EF"/>',
+    /* AI-illustrerad snöig by i skymning (public/images/room/view-winter-bg.webp) istället
+       för platt rektangel + handritade drivor. Det fallande snöet (roomsnow) är kvar som
+       eget CSS-lager ovanpå - bilden har medvetet inget fallande snö inbakat. */
+    var s2 =
+        '<image href="/images/room/view-winter-bg.webp" x="28" y="34" width="84" height="90" preserveAspectRatio="none"/>',
       j,
       x2,
       y2;
-    s2 += '<path d="M28 92 q22 -16 42 -6 q20 10 42 -6 v44 H28 z" fill="#F2F7FB"/>';
     for (j = 0; j < 26; j++) {
       x2 = 30 + ((j * 31) % 80);
       y2 = 36 + ((j * 19) % 86);
@@ -438,7 +441,36 @@ function fView(id: string | null, second?: boolean) {
         (2.2 + (j % 4) * 0.35) +
         's"/>';
     }
-    return s2 + '<path d="M44 92 l6 -16 l6 16 z" fill="#E8F2F8"/><path d="M78 96 l7 -18 l7 18 z" fill="#E8F2F8"/>';
+    return s2;
+  }
+  if (id === "u-sygis") {
+    /* Höstregn (public/images/room/view-autumn-bg.webp) - inte köpbar, bara ett automatiskt
+       säsongsbyte (se förvalet nedan). Regnet är randiga streck som faller snabbt och
+       vinklat, samma teknik som roomsnow men brantare/snabbare och genomskinligare. */
+    var s3 =
+        '<image href="/images/room/view-autumn-bg.webp" x="28" y="34" width="84" height="90" preserveAspectRatio="none"/>',
+      k,
+      x3,
+      y3;
+    for (k = 0; k < 20; k++) {
+      x3 = 30 + ((k * 29) % 80);
+      y3 = 36 + ((k * 17) % 86);
+      s3 +=
+        '<line class="roomrain" x1="' +
+        x3 +
+        '" y1="' +
+        y3 +
+        '" x2="' +
+        (x3 - 2) +
+        '" y2="' +
+        (y3 + 7) +
+        '" stroke="#CFE3EE" stroke-width="0.8" stroke-linecap="round" opacity=".55" style="animation-delay:' +
+        ((k * 0.17) % 1.4) +
+        "s;animation-duration:" +
+        (0.7 + (k % 3) * 0.15) +
+        's"/>';
+    }
+    return s3;
   }
   if (id === "u-sea") {
     return (
@@ -452,13 +484,15 @@ function fView(id: string | null, second?: boolean) {
     );
   }
   if (id === "u-day") {
-    /* förvalet (def:1, gratis) - dynamiskt: visar natt på kvällen/natten och snö på vintern,
-       genom att återanvända u-night/u-snow-ritningarna ovan istället för en egen scen. Köpta
-       vyer (u-night/u-snow/u-sea) ändras INTE av detta - de är ett medvetet, betalt val som
-       ska vara kvar som man valde det, året och dygnet runt. */
+    /* förvalet (def:1, gratis) - dynamiskt: visar natt på kvällen/natten, snö på vintern och
+       regn på hösten, genom att återanvända u-night/u-snow/u-sygis-ritningarna ovan istället
+       för en egen scen. Köpta vyer (u-night/u-snow/u-sea) ändras INTE av detta - de är ett
+       medvetet, betalt val som ska vara kvar som man valde det, året och dygnet runt.
+       u-sygis finns bara här - höstregnet är inte köpbart i butiken. */
     var hour = new Date().getHours();
     if (hour < 6 || hour >= 21) return fView("u-night", second);
     if (seasonId() === "vinter") return fView("u-snow", second);
+    if (seasonId() === "sygis") return fView("u-sygis", second);
     /* AI-illustrerad sommaräng (public/images/room/view-day-bg.webp) istället för platt
        rektangel + handritade molnbågar. Solen är ett eget lager ovanom (egen glöd redan
        inbakad i bilden, se view-sun.webp) så den kan glimra för sig - samma teknik som

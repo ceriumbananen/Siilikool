@@ -2620,6 +2620,30 @@ body {
   }
 }
 
+.roomsvg .roomrain {
+  animation: rainfall 0.9s linear infinite;
+}
+
+@keyframes rainfall {
+  0% {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+
+  15% {
+    opacity: 0.6;
+  }
+
+  85% {
+    opacity: 0.4;
+  }
+
+  100% {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+}
+
 .roomsvg .roomwave {
   animation: waveshift 3.6s ease-in-out infinite;
 }
@@ -2725,6 +2749,7 @@ body {
   .roomsvg #roomplant > g,
   .roomsvg .roomstar,
   .roomsvg .roomsnow,
+  .roomsvg .roomrain,
   .roomsvg .roomwave,
   .roomsvg .moonglow,
   .roomsvg .moonimg,
