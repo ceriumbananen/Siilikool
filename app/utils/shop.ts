@@ -89,7 +89,6 @@ export const FURN = [
   { id: "u-day", slot: "view", sv: "Sommardag", et: "Suvepäev", price: 0, def: 1 },
   { id: "u-night", slot: "view", sv: "Stjärnnatt", et: "Tähine öö", price: 340 },
   { id: "u-snow", slot: "view", sv: "Snöfall", et: "Lumesadu", price: 380 },
-  { id: "u-sea", slot: "view", sv: "Havsutsikt", et: "Merevaade", price: 460 },
   { id: "d-none", slot: "pet", sv: "Inget djur", et: "Ilma", price: 0, def: 1 },
   { id: "d-cat", slot: "pet", sv: "Kattunge", et: "Kassipoeg", price: 900 },
   { id: "d-bird", slot: "pet", sv: "Fågel i bur", et: "Lind puuris", price: 640 },

@@ -512,23 +512,12 @@ function fView(id: string | null, second?: boolean) {
     }
     return s3;
   }
-  if (id === "u-sea") {
-    return (
-      '<rect x="28" y="34" width="84" height="90" fill="#BFE0F2"/>' +
-      (second ? "" : '<circle cx="94" cy="52" r="10" fill="#FFE58A"/>') +
-      '<rect x="28" y="84" width="84" height="40" fill="#5AA8C8"/>' +
-      '<g stroke="#FFFFFF" stroke-width="1.4" opacity=".7" fill="none">' +
-      '<path class="roomwave" d="M32 94 q8 -4 16 0 q8 4 16 0 q8 -4 16 0 q8 4 16 0"/>' +
-      '<path class="roomwave" style="animation-delay:-1.3s" d="M32 106 q8 -4 16 0 q8 4 16 0 q8 -4 16 0 q8 4 16 0"/></g>' +
-      '<path d="M54 84 l8 -16 l8 16 z" fill="#F7EEDC"/><rect x="60" y="68" width="2" height="16" fill="#8A5E30"/>'
-    );
-  }
   if (id === "u-day") {
     /* förvalet (def:1, gratis) - dynamiskt: visar natt på kvällen/natten, snö på vintern och
        regn på hösten, genom att återanvända u-night/u-snow/u-sygis-ritningarna ovan istället
-       för en egen scen. Köpta vyer (u-night/u-snow/u-sea) ändras INTE av detta - de är ett
-       medvetet, betalt val som ska vara kvar som man valde det, året och dygnet runt.
-       u-sygis finns bara här - höstregnet är inte köpbart i butiken. */
+       för en egen scen. Köpta vyer (u-night/u-snow) ändras INTE av detta - de är ett medvetet,
+       betalt val som ska vara kvar som man valde det, året och dygnet runt. u-sygis finns
+       bara här - höstregnet är inte köpbart i butiken. */
     var hour = new Date().getHours();
     if (hour < 6 || hour >= 21) return fView("u-night", second);
     if (seasonId() === "vinter") return fView("u-snow", second);

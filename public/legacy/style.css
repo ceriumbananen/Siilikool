@@ -2670,21 +2670,6 @@ body {
   }
 }
 
-.roomsvg .roomwave {
-  animation: waveshift 3.6s ease-in-out infinite;
-}
-
-@keyframes waveshift {
-  0%,
-  100% {
-    transform: translateX(0);
-  }
-
-  50% {
-    transform: translateX(3px);
-  }
-}
-
 /* varje gnista stiger och tonar bort för sig (egen animation-delay satt inline per <circle>
    i FIRESVG, scenes.ts) istället för att hela gnist-gruppen guppade i takt som en enda klump -
    mer fokus på glöden, som efterfrågat. */
@@ -2777,7 +2762,6 @@ body {
   .roomsvg .roomsnow,
   .roomsvg .roomrain,
   .roomsvg .roomleaf,
-  .roomsvg .roomwave,
   .roomsvg .moonglow,
   .roomsvg .moonimg,
   .roomsvg .sunimg,
