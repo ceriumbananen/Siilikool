@@ -451,21 +451,26 @@ function fView(id: string | null, second?: boolean) {
       '<path d="M54 84 l8 -16 l8 16 z" fill="#F7EEDC"/><rect x="60" y="68" width="2" height="16" fill="#8A5E30"/>'
     );
   }
-  /* förvalet (u-day, def:1, gratis) - dynamiskt: visar kväll på kvällen/natten och snö på
-     vintern, genom att återanvända u-night/u-snow-ritningarna ovan istället för en tredje
-     statisk scen. Köpta vyer (u-night/u-snow/u-sea) ändras INTE av detta - de är ett
-     medvetet, betalt val som ska vara kvar som man valde det, året och dygnet runt. */
-  var hour = new Date().getHours();
-  if (hour < 6 || hour >= 21) return fView("u-night", second);
-  if (seasonId() === "vinter") return fView("u-snow", second);
-  return (
-    '<rect x="28" y="34" width="84" height="90" fill="#AFD8EF"/>' +
-    '<ellipse cx="50" cy="52" rx="16" ry="8" fill="#fff" opacity=".85"/>' +
-    '<ellipse cx="85" cy="60" rx="12" ry="6" fill="#fff" opacity=".7"/>' +
-    (second ? "" : '<circle cx="100" cy="46" r="9" fill="#FFE58A"/>') +
-    '<path d="M28 100 q18 -10 34 -2 q16 8 34 -2 v26 H28 z" fill="#79A36A" opacity=".85"/>' +
-    '<path d="M28 112 q20 -6 40 0 q20 6 40 -4 v16 H28 z" fill="#5E8A54" opacity=".9"/>'
-  );
+  if (id === "u-day") {
+    /* förvalet (def:1, gratis) - dynamiskt: visar natt på kvällen/natten och snö på vintern,
+       genom att återanvända u-night/u-snow-ritningarna ovan istället för en egen scen. Köpta
+       vyer (u-night/u-snow/u-sea) ändras INTE av detta - de är ett medvetet, betalt val som
+       ska vara kvar som man valde det, året och dygnet runt. */
+    var hour = new Date().getHours();
+    if (hour < 6 || hour >= 21) return fView("u-night", second);
+    if (seasonId() === "vinter") return fView("u-snow", second);
+    /* AI-illustrerad sommaräng (public/images/room/view-day-bg.webp) istället för platt
+       rektangel + handritade molnbågar. Solen är ett eget lager ovanom (egen glöd redan
+       inbakad i bilden, se view-sun.webp) så den kan glimra för sig - samma teknik som
+       månen/eldens flammor. */
+    return (
+      '<image href="/images/room/view-day-bg.webp" x="28" y="34" width="84" height="90" preserveAspectRatio="none"/>' +
+      (second
+        ? ""
+        : '<image class="sunimg" href="/images/room/view-sun.webp" x="84" y="34" width="26" height="21" preserveAspectRatio="xMidYMid meet"/>')
+    );
+  }
+  return fView("u-day", second);
 }
 function fRugExtra(id: string | null) {
   if (id !== "r-star") return null;

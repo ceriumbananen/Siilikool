@@ -2551,6 +2551,25 @@ body {
   }
 }
 
+.roomsvg .sunimg {
+  transform-box: fill-box;
+  transform-origin: 50% 50%;
+  animation: sunglimmer 4.6s ease-in-out infinite;
+}
+
+@keyframes sunglimmer {
+  0%,
+  100% {
+    filter: brightness(1);
+    transform: scale(1);
+  }
+
+  50% {
+    filter: brightness(1.12);
+    transform: scale(1.04);
+  }
+}
+
 /* stjärnfall: osynlig nästan hela tiden, en kort ljusstrimma som skjuter diagonalt över
    himlen. De två fönstrens egna instanser har olika fördröjning (.shootingstar--b) så de
    inte skjuter samtidigt. */
@@ -2709,6 +2728,7 @@ body {
   .roomsvg .roomwave,
   .roomsvg .moonglow,
   .roomsvg .moonimg,
+  .roomsvg .sunimg,
   .roomsvg .shootingstar,
   .roomsvg #roomfire.roomfire--lit .flames3,
   .roomsvg #roomlamp.roomlamp--lit .lampglow,
