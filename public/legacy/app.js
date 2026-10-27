@@ -2196,7 +2196,10 @@
   }
   /* samma ritning som Siiri, men med barnets päls och kläder och utan animationer */
   function siilSVG(size) {
-    var cls = "siiri" + (size ? " " + size : "") + (diff().id === "svar" ? " cool" : "");
+    /* förslag: "en ruta bredvid Siiri på svår nivå där man kan cheka av om man vill ha
+       glasögon eller inte" - S.shades (standard: på, samma som förut) styr om de syns även
+       när nivån är svår. Kryssrutan finns i setupScreen(). */
+    var cls = "siiri" + (size ? " " + size : "") + (diff().id === "svar" && S.shades !== false ? " cool" : "");
     return (
       '<span class="siiri3d">' +
       '<svg class="' +
@@ -4829,8 +4832,18 @@
         esc(DIFFS[i].txt) +
         "</small></button>";
     }
+    /* förslag: "en ruta bredvid Siiri på svår nivå där man kan cheka av om man vill ha
+       glasögon eller inte" - bara synlig när svår är vald, annars är den irrelevant. Döljs/
+       visas live i dif-knapparnas onclick nedan, utan att behöva rita om hela skärmen. */
     if (!first)
-      html += '</div><p class="qsub" style="margin-top:18px">Välj färg på appen</p><div class="colors" id="cols">';
+      html +=
+        '</div><div id="shadesrow" style="display:' +
+        (S.diff === "svar" ? "flex" : "none") +
+        ';align-items:center;gap:8px;margin-top:10px">' +
+        '<input type="checkbox" id="shades" ' +
+        (S.shades === false ? "" : "checked") +
+        '><label for="shades">😎 Siiri bär solglasögon på svår nivå</label></div>';
+    if (!first) html += '<p class="qsub" style="margin-top:18px">Välj färg på appen</p><div class="colors" id="cols">';
     for (i = 0; !first && i < COLORS.length; i++) {
       html +=
         '<button class="col' +
@@ -4884,9 +4897,11 @@
           el.classList.add("on");
           S.diff = el.getAttribute("data-dif");
           save();
+          var shadesrow = $s("shadesrow");
+          if (shadesrow) shadesrow.style.display = S.diff === "svar" ? "flex" : "none";
           var sv = $s("s-svg");
           if (sv) {
-            if (S.diff === "svar") {
+            if (S.diff === "svar" && S.shades !== false) {
               sv.classList.add("cool");
               tone(520, 0.1, 0);
               tone(780, 0.14, 0.1);
@@ -4898,6 +4913,16 @@
           } else tone(700, 0.09, 0);
         };
       })(dfs[i]);
+    }
+    var shadesBox = $s("shades");
+    if (shadesBox) {
+      shadesBox.onchange = function () {
+        S.shades = shadesBox.checked;
+        save();
+        var sv2 = $s("s-svg");
+        if (sv2) sv2.classList.toggle("cool", S.diff === "svar" && S.shades !== false);
+        tone(shadesBox.checked ? 700 : 520, 0.08, 0);
+      };
     }
     var cols = app.querySelectorAll("[data-col]");
     for (i = 0; i < cols.length; i++) {

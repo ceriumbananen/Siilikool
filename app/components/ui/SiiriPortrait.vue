@@ -55,7 +55,9 @@ const uid = useId().replace(/[^a-zA-Z0-9]/g, "");
 
 const furObj = computed(() => myFur(profile.state.fur as string | undefined));
 const eyeObj = computed(() => myEye(profile.state.eye as string | undefined));
-const isCool = computed(() => profile.state.diff === "svar");
+/* förslag: "en ruta bredvid Siiri på svår nivå där man kan cheka av om man vill ha
+   glasögon eller inte" - S.shades (kryssrutan i legacy setupScreen()) styr om de syns. */
+const isCool = computed(() => profile.state.diff === "svar" && profile.state.shades !== false);
 
 const wear = computed(() => previewWear ?? (profile.state.wear as Wear | undefined));
 const owned = computed(() => previewOwned ?? (profile.state.owned as string[] | undefined));
