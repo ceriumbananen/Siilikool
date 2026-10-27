@@ -4287,12 +4287,19 @@ body {
    text direkt på det bärnstensfärgade glaset (med bara en ljus halo) gick inte att läsa
    tillräckligt bra. En liten pappers-lapp-chip bakom texten löser det garanterat oavsett var
    på glaset den hamnar, och passar temat (en lapp i flaskposten) bättre än en ren textskugga. */
+/* buggrapport: "för små bokstäver" (Paadisõit) - och ett till jag hittade medan jag testade
+   den: långa ord (tuletõrjeauto, politseiauto) växte utanför flaskan och kunde hamna utanför
+   skärmen för flaskor nära kanten. max-width = flaskans inre bredd (74px - 2*6px padding)
+   tvingar fram radbrytning - men ett enda långt ord har inga mellanslag att bryta vid, så
+   overflow-wrap krävs också för att bryta mitt i ordet när det behövs. */
 .riverlabel {
   display: inline-block;
+  max-width: 62px;
+  overflow-wrap: break-word;
   background: rgba(255, 248, 230, 0.94);
   color: #3a2a1a;
   font-weight: 700;
-  font-size: 12px;
+  font-size: 13.5px;
   line-height: 1.15;
   text-align: center;
   border-radius: 7px;
