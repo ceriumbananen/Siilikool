@@ -2644,6 +2644,32 @@ body {
   }
 }
 
+.roomsvg .roomleaf {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: leafflutter 3.2s ease-in-out infinite;
+}
+
+@keyframes leafflutter {
+  0% {
+    opacity: 0;
+    transform: translate(0, -2px) rotate(0deg);
+  }
+
+  20% {
+    opacity: 0.75;
+  }
+
+  80% {
+    opacity: 0.6;
+  }
+
+  100% {
+    opacity: 0;
+    transform: translate(5px, 10px) rotate(200deg);
+  }
+}
+
 .roomsvg .roomwave {
   animation: waveshift 3.6s ease-in-out infinite;
 }
@@ -2750,6 +2776,7 @@ body {
   .roomsvg .roomstar,
   .roomsvg .roomsnow,
   .roomsvg .roomrain,
+  .roomsvg .roomleaf,
   .roomsvg .roomwave,
   .roomsvg .moonglow,
   .roomsvg .moonimg,

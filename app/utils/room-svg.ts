@@ -446,12 +446,20 @@ function fView(id: string | null, second?: boolean) {
   if (id === "u-sygis") {
     /* Höstregn (public/images/room/view-autumn-bg.webp) - inte köpbar, bara ett automatiskt
        säsongsbyte (se förvalet nedan). Regnet är randiga streck som faller snabbt och
-       vinklat, samma teknik som roomsnow men brantare/snabbare och genomskinligare. */
+       vinklat, samma teknik som roomsnow men brantare/snabbare och genomskinligare. Plus
+       ett par enstaka snöflingor (blötsnö/slask i sen höst) och löv som fladdrar i vinden. */
     var s3 =
         '<image href="/images/room/view-autumn-bg.webp" x="28" y="34" width="84" height="90" preserveAspectRatio="none"/>',
       k,
       x3,
-      y3;
+      y3,
+      m,
+      x4,
+      y4,
+      n,
+      x5,
+      y5,
+      leafCols = ["#D97F2E", "#B5542A", "#D9A52E"];
     for (k = 0; k < 20; k++) {
       x3 = 30 + ((k * 29) % 80);
       y3 = 36 + ((k * 17) % 86);
@@ -469,6 +477,38 @@ function fView(id: string | null, second?: boolean) {
         "s;animation-duration:" +
         (0.7 + (k % 3) * 0.15) +
         's"/>';
+    }
+    for (m = 0; m < 5; m++) {
+      x4 = 34 + ((m * 43) % 74);
+      y4 = 40 + ((m * 31) % 70);
+      s3 +=
+        '<circle class="roomsnow" cx="' +
+        x4 +
+        '" cy="' +
+        y4 +
+        '" r="1" fill="#FFFFFF" opacity=".7" style="animation-delay:' +
+        ((m * 0.5) % 2.6) +
+        "s;animation-duration:" +
+        (2.4 + (m % 3) * 0.4) +
+        's"/>';
+    }
+    for (n = 0; n < 7; n++) {
+      x5 = 32 + ((n * 26) % 78);
+      y5 = 38 + ((n * 34) % 50);
+      s3 +=
+        '<g transform="translate(' +
+        x5 +
+        "," +
+        y5 +
+        ") rotate(" +
+        ((n * 51) % 360) +
+        ')"><path class="roomleaf" d="M0,-2.4 Q1.6,-1 1.2,0.6 Q0.5,2 0,2.4 Q-0.5,2 -1.2,0.6 Q-1.6,-1 0,-2.4 Z" fill="' +
+        leafCols[n % leafCols.length] +
+        '" opacity=".75" style="animation-delay:' +
+        ((n * 0.44) % 3.4) +
+        "s;animation-duration:" +
+        (2.8 + (n % 3) * 0.5) +
+        's"/></g>';
     }
     return s3;
   }
