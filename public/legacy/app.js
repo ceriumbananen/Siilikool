@@ -10125,7 +10125,7 @@
       (function (s) {
         var el = document.getElementById(s.domId);
         if (el) {
-          el.textContent = (s.golden ? "✨ " : "") + s.et;
+          el.innerHTML = '<span class="riverlabel">' + (s.golden ? "✨ " : "") + s.et + "</span>";
           el.classList.toggle("golden", !!s.golden);
           el.onclick = function () {
             boatCatch(s);

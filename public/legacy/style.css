@@ -4223,12 +4223,18 @@ body {
 
 /* ---------- paadisõit (barkbåten) - samma spel som ordregnet, orden flyter
    horisontellt på en flod istället för att falla från himlen ---------- */
+/* buggrapport: "rutan är för liten, barnen vill att Siiri ska kunna röra sig mer fritt" -
+   höjden var ett fast 220px, nu skalar den med skärmen (46vh) så det faktiskt blir märkbart
+   mer plats på telefon/surfplatta, med ett golv/tak så den varken krymper för mycket på låga
+   skärmar eller blir orimligt stor på en dator. Negativ sidmarginal äter upp kortets egna
+   padding (18px, se .card) så vattnet går ända ut till kortets kant istället för att ha
+   ytterligare en ram innanför. BOAT_LANES/fångstzonen i app.js är redan i %, så de skalar
+   automatiskt med den nya höjden utan kodändring. */
 .riverbox {
   position: relative;
-  height: 220px;
-  margin-top: var(--sp-2);
+  height: clamp(280px, 46vh, 460px);
+  margin: var(--sp-2) -18px 0;
   overflow: hidden;
-  border-radius: var(--r-md);
   background: linear-gradient(
     180deg,
     color-mix(in srgb, var(--blue) 10%, transparent),
@@ -4273,17 +4279,25 @@ body {
   align-items: center;
   justify-content: center;
   padding-top: 14px;
+  cursor: pointer;
+  transition: filter 0.15s;
+}
+
+/* buggrapport: "texten på flaskorna är svårläst, nästan samma färg som flaskan" - mörkbrun
+   text direkt på det bärnstensfärgade glaset (med bara en ljus halo) gick inte att läsa
+   tillräckligt bra. En liten pappers-lapp-chip bakom texten löser det garanterat oavsett var
+   på glaset den hamnar, och passar temat (en lapp i flaskposten) bättre än en ren textskugga. */
+.riverlabel {
+  display: inline-block;
+  background: rgba(255, 248, 230, 0.94);
+  color: #3a2a1a;
   font-weight: 700;
   font-size: 12px;
   line-height: 1.15;
   text-align: center;
-  color: #3a2a1a;
-  text-shadow:
-    0 0 3px #fff8ec,
-    0 0 3px #fff8ec,
-    0 1px 1px #fff8ec;
-  cursor: pointer;
-  transition: filter 0.15s;
+  border-radius: 7px;
+  padding: 2px 5px;
+  box-shadow: 0 1px 2px rgba(60, 40, 20, 0.35);
 }
 
 .riverword.hit {
