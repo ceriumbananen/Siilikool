@@ -5946,6 +5946,12 @@ h2.sec {
   margin-top: 12px;
 }
 
+/* buggrapport: "texten syns inte när jag skriver här" (två oberoende rapporter, mörk
+   bakgrund/tema) - gick inte att återskapa i något tema/scen-läge jag testade (allt annat
+   på sidan följer redan --bg/--ink korrekt). Webkit/Chrome målar ibland ett <input>:s TEXT
+   med -webkit-text-fill-color istället för color i vissa lägen - en känd lucka som color
+   ensamt inte alltid täcker. Sätter den (och caret-color) explicit till samma färg som
+   color, så den aldrig kan hamna fel även om den triggas av nåt jag inte lyckades reproducera. */
 input.type {
   width: 100%;
   font-family: inherit;
@@ -5957,6 +5963,8 @@ input.type {
   border-radius: var(--r-md);
   background: var(--bg);
   color: var(--ink);
+  -webkit-text-fill-color: var(--ink);
+  caret-color: var(--ink);
   margin-top: 12px;
 }
 
