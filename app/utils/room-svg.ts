@@ -725,11 +725,17 @@ function roomSVGInner() {
        bara ca 0.82x1.10m, i underkant av ett normalt fönster (0.9-1.2m x 1.2-1.5m). 1.2x
        landar på ~0.99x1.31m. Höger-/nedre kanten (x91/y122) oförändrad så fönstret fortfarande
        inte krockar med diplomen (x94-131) eller Siiri (som börjar på y~127). */
+    /* ytterligare 8% större (du bad om "några % större") - en ren skalning runt fönstrets
+       egen höger-/nedre hörn (x91/y122) ovanpå allt annat nedan, så hela den invändiga
+       matematiken (bildens urklippta glasruta, utsiktens omskalning) kan vara orörd. Sen
+       en liten knuff nedåt (translate 0,4) eftersom skalning runt hörnet drog upp den. */
+    '<g transform="translate(0,4) translate(91,122) scale(1.08) translate(-91,-122)">' +
     '<g id="roomwindow" style="cursor:pointer" tabindex="0" role="button" aria-label="Tryck på fönstret">' +
     '<g transform="translate(11.73,13.08) scale(0.5412,0.6412)">' +
     fView(ctx.furnOf("view")) +
     "</g>" +
     '<image href="/images/room/window.webp" x="8.2" y="11.6" width="82.8" height="110.4"/>' +
+    "</g>" +
     "</g>" +
     /* andra fönstret - centrerat ovanför Siiri (hon börjar först på y~127, fönstret slutar
        på y122, så ingen krock trots att hon alltid sitter mitt i rummet). Flaggan/hyllan/
@@ -737,11 +743,15 @@ function roomSVGInner() {
        det här fönstret fyller ut tomrummet i mitten. Tryckbart precis som det första
        fönstret (samma ord, #roomwindow2 i ROOM_SPOTS, se room.vue). Samma 1.2x-storlek som
        det första fönstret, se kommentaren där - centrerat på x=200 istället. */
+    /* samma 1.08x-skalning + nedåtknuff som första fönstret, fast runt dess egna
+       höger-/nedre hörn (x241.4/y122). */
+    '<g transform="translate(0,4) translate(241.4,122) scale(1.08) translate(-241.4,-122)">' +
     '<g id="roomwindow2" style="cursor:pointer" tabindex="0" role="button" aria-label="Tryck på det andra fönstret">' +
     '<g transform="translate(162.13,13.08) scale(0.5412,0.6412)">' +
     fView(ctx.furnOf("view"), true) +
     "</g>" +
     '<image href="/images/room/window.webp" x="158.6" y="11.6" width="82.8" height="110.4"/>' +
+    "</g>" +
     "</g>" +
     '<path d="M36 148 L128 148 L196 268 L60 268 Z" fill="url(#g-beam)" opacity=".45"/>' +
     wrapTap("roomart", "Tryck på tavlan", fArtExtra(ctx.furnOf("art")) || fArt(ctx.furnOf("art"))) +
