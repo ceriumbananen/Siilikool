@@ -134,47 +134,25 @@ function fFloor(id: string | null) {
   return { defs: s, body: body };
 }
 function fRug(id: string | null) {
+  /* illustrerade bilder istället för handritade ellipser (public/images/room/rug-*.webp) -
+     samma fasta golv-yta för alla mattor (x62-238,y218-262, en platt 4:1-oval som om man
+     såg golvet snett uppifrån), icke-enhetligt skalad dit precis som utsikterna i fönstren. */
   if (id === "r-stripe") {
-    var s = '<ellipse cx="150" cy="240" rx="88" ry="22" fill="#2A1B0C" opacity=".2"/>',
-      i;
-    var cols = ["#C85A6A", "#E8D6B4", "#4E8A8C", "#E8D6B4"];
-    for (i = 0; i < 8; i++)
-      s +=
-        '<ellipse cx="150" cy="240" rx="' +
-        (86 - i * 10) +
-        '" ry="' +
-        (21.5 - i * 2.5) +
-        '" fill="' +
-        cols[i % 4] +
-        '"/>';
-    return s;
+    return (
+      '<ellipse cx="150" cy="240" rx="88" ry="22" fill="#2A1B0C" opacity=".2"/>' +
+      '<image href="/images/room/rug-stripe.webp" x="62" y="218" width="176" height="44" preserveAspectRatio="none"/>'
+    );
   }
   if (id === "r-folk") {
-    var s2 =
-        '<ellipse cx="150" cy="240" rx="88" ry="22" fill="#7E3348"/>' +
-        '<ellipse cx="150" cy="239" rx="72" ry="18" fill="#E6D2AE"/>' +
-        '<ellipse cx="150" cy="238" rx="54" ry="13" fill="#A8465C"/>' +
-        '<ellipse cx="150" cy="238" rx="30" ry="7" fill="#E6D2AE"/>',
-      k,
-      a,
-      x,
-      y;
-    for (k = 0; k < 12; k++) {
-      a = (Math.PI * 2 * k) / 12;
-      x = 150 + Math.cos(a) * 63;
-      y = 239 + Math.sin(a) * 15.5;
-      s2 += '<path d="M' + x + " " + (y - 3) + ' l2.4 3 l-2.4 3 l-2.4 -3 z" fill="#2E6B45"/>';
-    }
-    return s2;
+    return (
+      '<ellipse cx="150" cy="240" rx="88" ry="22" fill="#2A1B0C" opacity=".2"/>' +
+      '<image href="/images/room/rug-folk.webp" x="62" y="218" width="176" height="44" preserveAspectRatio="none"/>'
+    );
   }
   if (id === "r-bear") {
     return (
-      '<g><ellipse cx="150" cy="243" rx="74" ry="18" fill="#6E4E34"/>' +
-      '<ellipse cx="150" cy="241" rx="62" ry="15" fill="#8A6845"/>' +
-      '<circle cx="80" cy="238" r="15" fill="#6E4E34"/><circle cx="70" cy="228" r="6" fill="#5C3F28"/>' +
-      '<circle cx="90" cy="226" r="6" fill="#5C3F28"/><circle cx="75" cy="238" r="2" fill="#2A1B0C"/>' +
-      '<circle cx="86" cy="238" r="2" fill="#2A1B0C"/><ellipse cx="80" cy="243" rx="4" ry="3" fill="#3A2A1E"/>' +
-      '<circle cx="214" cy="232" r="11" fill="#6E4E34"/><circle cx="208" cy="252" r="11" fill="#6E4E34"/></g>'
+      '<ellipse cx="150" cy="243" rx="80" ry="19" fill="#2A1B0C" opacity=".2"/>' +
+      '<image href="/images/room/rug-bear.webp" x="58" y="219" width="184" height="46" preserveAspectRatio="none"/>'
     );
   }
   var s3 =
@@ -251,32 +229,19 @@ function fArt(id: string | null) {
      mellanrummet mellan de två fönstren (#roomwindow slutar x91, #roomwindow2 börjar x158.6 -
      se roomSVGInner) - mindre än förut, så den får plats i mellanrummet. Diplomen (fDiplomas)
      fick flytta för att göra plats, se kommentaren där. */
+  /* illustrerade bilder istället för handritade ramar (public/images/room/art-*.webp) - samma
+     mönster som Köler-tavlan (a-koler) nedan: bilden innehåller redan sin egen ram och
+     upphängningssnöre, så den läggs rakt in utan någon extra ritad ram runt om. Bredd/höjd
+     följer varje bilds egna proportioner, nederkanten liggandes på samma linje (y=82) som
+     a-koler, så tavlorna inte hoppar i höjd beroende på vilken som är vald. */
   if (id === "a-view") {
-    return (
-      '<g transform="translate(96.8,40.75) scale(0.5833)"><rect x="3" y="5" width="96" height="66" rx="3" fill="#2A1B0C" opacity=".22"/>' +
-      '<rect width="96" height="66" rx="3" fill="#8A6238"/><rect x="5" y="5" width="86" height="56" fill="#DCEEF6"/>' +
-      '<path d="M5 40 q18 -16 34 -4 q14 10 24 -4 q10 -12 23 -2 v27 H5 z" fill="#8FBE7E"/>' +
-      '<circle cx="70" cy="20" r="9" fill="#F6D24A"/><path d="M5 52 q22 -8 44 0 q22 8 42 -2 v11 H5 z" fill="#5E8A54"/></g>'
-    );
+    return '<g transform="translate(94.8,48.3)"><image href="/images/room/art-landscape.webp" x="0" y="0" width="60" height="33.7"/></g>';
   }
   if (id === "a-map") {
-    return (
-      '<g transform="translate(96.8,40.75) scale(0.5833)"><rect x="3" y="5" width="96" height="66" rx="3" fill="#2A1B0C" opacity=".22"/>' +
-      '<rect width="96" height="66" rx="3" fill="#6E4E2A"/><rect x="5" y="5" width="86" height="56" fill="#F2EAD6"/>' +
-      '<path d="M14 40 q6 -14 22 -12 q10 -8 24 -2 q14 -2 18 8 q4 12 -8 16 q-16 6 -34 2 q-18 -2 -22 -12 z" fill="#9EC48E" stroke="#6E8A5E" stroke-width="1"/>' +
-      '<circle cx="34" cy="30" r="2.2" fill="#C8305A"/><circle cx="56" cy="38" r="2" fill="#C8305A"/><circle cx="70" cy="34" r="2" fill="#C8305A"/>' +
-      '<path d="M34 30 L56 38 L70 34" stroke="#C8305A" stroke-width="1.2" fill="none" stroke-dasharray="3 2"/></g>'
-    );
+    return '<g transform="translate(96.8,35.2)"><image href="/images/room/art-map.webp" x="0" y="0" width="56" height="46.8"/></g>';
   }
   if (id === "a-photo") {
-    return (
-      '<g transform="translate(96.8,40.75) scale(0.5833)"><rect x="3" y="5" width="96" height="66" rx="3" fill="#2A1B0C" opacity=".22"/>' +
-      '<rect width="96" height="66" rx="3" fill="#C9A06A"/><rect x="6" y="6" width="84" height="54" fill="#FBF6EA"/>' +
-      '<circle cx="34" cy="30" r="11" fill="#E8D2B4"/><circle cx="34" cy="30" r="8" fill="#C9A98A"/>' +
-      '<circle cx="60" cy="33" r="9" fill="#E8D2B4"/><circle cx="60" cy="33" r="6.4" fill="#C9A98A"/>' +
-      '<path d="M18 52 q16 -12 32 0 q14 -10 28 0 v8 H18 z" fill="#8FA8C4"/>' +
-      '<path d="M26 20 q8 -8 16 0" stroke="#8A6238" stroke-width="2" fill="none"/></g>'
-    );
+    return '<g transform="translate(94.8,49.2)"><image href="/images/room/art-family.webp" x="0" y="0" width="60" height="32.8"/></g>';
   }
   if (id === "a-koler") {
     /* illustrerad bild av Johann Kölers "Tütarlaps allikal" (public/images/room/koler-painting.webp) -
@@ -537,28 +502,12 @@ function fView(id: string | null, second?: boolean) {
 }
 function fRugExtra(id: string | null) {
   if (id !== "r-star") return null;
-  var s =
-      '<ellipse cx="150" cy="240" rx="88" ry="22" fill="#2A1B0C" opacity=".2"/>' +
-      '<ellipse cx="150" cy="240" rx="86" ry="21" fill="#3A4C8A"/>' +
-      '<ellipse cx="150" cy="239" rx="64" ry="15" fill="#4E63A8"/>',
-    i,
-    a,
-    x,
-    y;
-  for (i = 0; i < 14; i++) {
-    a = (Math.PI * 2 * i) / 14;
-    x = 150 + Math.cos(a) * 70;
-    y = 239 + Math.sin(a) * 17;
-    s +=
-      '<path d="M' +
-      x +
-      " " +
-      (y - 3.4) +
-      ' l1.1 2.4 l2.6 .3 l-1.9 1.8 l.5 2.6 l-2.3 -1.3 l-2.3 1.3 l.5 -2.6 l-1.9 -1.8 l2.6 -.3 z" fill="#F6E28A"/>';
-  }
-  s +=
-    '<path d="M150 230 l3.4 7 l7.6 .9 l-5.6 5.4 l1.4 7.6 l-6.8 -3.8 l-6.8 3.8 l1.4 -7.6 l-5.6 -5.4 l7.6 -.9 z" fill="#F8EDBE"/>';
-  return s;
+  /* illustrerad bild istället för handritad ellips+stjärnor (public/images/room/rug-star.webp) -
+     samma fasta golv-yta som de andra mattorna, se fRug() ovan. */
+  return (
+    '<ellipse cx="150" cy="240" rx="88" ry="22" fill="#2A1B0C" opacity=".2"/>' +
+    '<image href="/images/room/rug-star.webp" x="62" y="218" width="176" height="44" preserveAspectRatio="none"/>'
+  );
 }
 function fLeftExtra(id: string | null) {
   if (id !== "l-sofa") return null;
@@ -591,15 +540,9 @@ function fRightExtra(id: string | null) {
 }
 function fArtExtra(id: string | null) {
   if (id !== "a-clock") return null;
-  /* samma centrerade plats som de andra tavelvalen (mellan fönstren), se fArt() ovan. */
-  return (
-    '<g transform="translate(115.47,45.42) scale(0.5833)"><circle cx="16" cy="18" r="21" fill="#8A6238"/>' +
-    '<circle cx="16" cy="18" r="17" fill="#F7F2E6"/>' +
-    '<g stroke="#6E5F55" stroke-width="1.4"><path d="M16 5 v3 M16 28 v3 M3 18 h3 M26 18 h3"/></g>' +
-    '<path d="M16 18 v-9 M16 18 l7 5" stroke="#33312E" stroke-width="2" stroke-linecap="round"/>' +
-    '<circle cx="16" cy="18" r="2" fill="#33312E"/>' +
-    '<path d="M16 39 v6" stroke="#8A6238" stroke-width="3"/><circle cx="16" cy="48" r="5" fill="#C9A06A"/></g>'
-  );
+  /* illustrerad bild istället för handritad urtavla (public/images/room/art-clock.webp) - samma
+     centrerade plats och nederkant (y=82) som de andra tavelvalen, se fArt() ovan. */
+  return '<g transform="translate(99.8,30.8)"><image href="/images/room/art-clock.webp" x="0" y="0" width="50" height="51.2"/></g>';
 }
 function fLampExtra(id: string | null) {
   if (id !== "p-ceil") return null;
