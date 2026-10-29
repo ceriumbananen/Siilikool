@@ -90,6 +90,7 @@ function fFloor(id: string | null) {
      handritad nedan. */
   var illustrated = {
     "f-dark": "floor-dark.webp",
+    "f-tile": "floor-tile.webp",
   }[id ?? ""];
   if (illustrated) {
     return {
@@ -101,10 +102,7 @@ function fFloor(id: string | null) {
         '<rect y="193" width="400" height="8" fill="#2A1B0C" opacity=".20"/>',
     };
   }
-  var c = {
-    "f-wood": ["#C39A68", "#AC8352", "#8A6238"],
-    "f-tile": ["#DCD2C2", "#C3B6A2", "#A2957F"],
-  }[id ?? ""] || ["#C39A68", "#AC8352", "#8A6238"];
+  var c = ["#C39A68", "#AC8352", "#8A6238"];
   var s =
     '<linearGradient id="g-floor" x1="0" y1="0" x2="0" y2="1">' +
     '<stop offset="0%" stop-color="' +
@@ -119,24 +117,10 @@ function fFloor(id: string | null) {
     i,
     x1,
     x2;
-  if (id === "f-tile") {
-    var r, q;
-    for (r = 0; r < 4; r++)
-      for (q = -1; q < 9; q++) {
-        if ((r + q) % 2) continue;
-        var yy = 196 + r * 19,
-          hh = 19,
-          xx = q * 52 + r * 8,
-          ww = 52 + r * 8;
-        body +=
-          '<rect x="' + xx + '" y="' + yy + '" width="' + ww + '" height="' + hh + '" fill="#F2ECE0" opacity=".5"/>';
-      }
-  } else {
-    for (i = -6; i < 14; i++) {
-      x1 = i * 34;
-      x2 = 200 + (x1 - 200) * 1.9;
-      body += '<path d="M' + x1 + " 196 L" + x2 + ' 270" stroke="#3A2410" stroke-width="1.2" opacity=".15"/>';
-    }
+  for (i = -6; i < 14; i++) {
+    x1 = i * 34;
+    x2 = 200 + (x1 - 200) * 1.9;
+    body += '<path d="M' + x1 + " 196 L" + x2 + ' 270" stroke="#3A2410" stroke-width="1.2" opacity=".15"/>';
   }
   body += '<rect y="193" width="400" height="8" fill="#2A1B0C" opacity=".20"/>';
   return { defs: s, body: body };
