@@ -244,6 +244,7 @@
   var PET_SENTENCE_TEMPLATES = window.SiiriData.PET_SENTENCE_TEMPLATES;
 
   var SHOP = window.SiiriData.SHOP;
+  var FURN = window.SiiriData.FURN; /* app/utils/shop.ts - rummets möbler/inredning */
   var SLOTS = window.SiiriData.WEAR_SLOTS; /* app/utils/shop.ts */
   function seasonId() {
     var m = new Date().getMonth() + 1;
@@ -4506,6 +4507,8 @@
           } else if (a === "shop") {
             S.owned = [];
             for (j = 0; j < SHOP.length; j++) S.owned.push(SHOP[j].id);
+            S.furnOwned = [];
+            for (j = 0; j < FURN.length; j++) S.furnOwned.push(FURN[j].id);
           } else if (a === "secrets") {
             S.secrets = [];
             for (j = 0; j < SECRETS.length; j++) S.secrets.push(SECRETS[j].id);
@@ -4519,6 +4522,8 @@
             S.showAll = 1;
             S.owned = [];
             for (j = 0; j < SHOP.length; j++) S.owned.push(SHOP[j].id);
+            S.furnOwned = [];
+            for (j = 0; j < FURN.length; j++) S.furnOwned.push(FURN[j].id);
             S.secrets = [];
             for (j = 0; j < SECRETS.length; j++) S.secrets.push(SECRETS[j].id);
             S.badges = [];
