@@ -186,10 +186,15 @@ function fLeft(id: string | null) {
 function fRight(id: string | null) {
   if (id === "g-shelf") {
     /* illustrerad bild istället för handritad SVG (public/images/room/bookshelf.webp) -
-       samma mönster som sängen/gungstolen - skuggan är kvar som vektor. */
+       samma mönster som sängen/gungstolen - skuggan är kvar som vektor.
+       buggrapport: stod tidigare på translate(348,150) bredvid eldstaden - både för brett
+       (348+79=427, utanför rummets 400 bredd) och för högt (overlappade eldstadens valv,
+       y150-215 mot eldstadens y128-200/216 efter nedflyttningen ovan). Flyttad ner under
+       eldstaden/vedkorgen istället och krympt något så den får plats innan golvets slut
+       (y270). */
     return (
-      '<g transform="translate(348,150)"><ellipse cx="40" cy="70" rx="38" ry="8" fill="#2A1B0C" opacity=".22"/>' +
-      '<image href="/images/room/bookshelf.webp" x="0" y="0" width="79" height="65"/></g>'
+      '<g transform="translate(322,212)"><ellipse cx="35" cy="60" rx="33" ry="7" fill="#2A1B0C" opacity=".22"/>' +
+      '<image href="/images/room/bookshelf.webp" x="0" y="0" width="70" height="57.6"/></g>'
     );
   }
   if (id === "g-toys") {
@@ -664,11 +669,19 @@ function roomSVGInner() {
        x~140-260,y~127-246 - se roomSVGInner) - ändras x/y/width/height här måste
        MANTELSVG (scenes.ts) och flamtransformen nedan räknas om på samma sätt,
        annars hamnar dockorna/dalahästen och elden fel. */
+    /* buggrapport: eldstaden såg ut att sväva en bit ovanför golvet jämfört med hur möblerna
+       annars är nedgrundade (deras skuggor ligger kring y226-230, eldstadens underkant låg
+       bara på y200, precis innanför golvets överkant y196). En extra, odekorerad yttre
+       <g transform="translate(0,12)"> flyttar hela paret (flamma+bild) nedåt tillsammans utan
+       att röra den inbördes matematiken mellan dem (eller MANTELSVG/scenes.ts, som utgår från
+       samma ursprungliga koordinater innanför den här nya, oskalade wrappern). */
+    '<g transform="translate(0,12)">' +
     '<g id="roomfire" style="cursor:pointer" tabindex="0" role="button" aria-label="Tryck på elden">' +
     '<g transform="translate(304,133.9) scale(0.517,0.527)">' +
     FIRESVG +
     "</g>" +
     '<image href="/images/room/fireplace.webp" x="264" y="128" width="124" height="72"/>' +
+    "</g>" +
     "</g>";
   return (
     '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 270" class="roomsvg" preserveAspectRatio="xMidYMid slice">' +
@@ -705,8 +718,11 @@ function roomSVGInner() {
     /* ytterligare 8% större (du bad om "några % större") - en ren skalning runt fönstrets
        egen höger-/nedre hörn (x91/y122) ovanpå allt annat nedan, så hela den invändiga
        matematiken (bildens urklippta glasruta, utsiktens omskalning) kan vara orörd. Sen
-       en liten knuff nedåt (translate 0,4) eftersom skalning runt hörnet drog upp den. */
-    '<g transform="translate(0,4) translate(91,122) scale(1.08) translate(-91,-122)">' +
+       en knuff nedåt (translate 0,11) eftersom skalning runt hörnets nedre kant drog upp
+       fönstret mest upptill - utan knuffen hamnade överkanten nästan uppe vid taklisten
+       (buggrapport: "fönstren är för högt upp, borde vara mer centerat på väggen"). 11 enheter
+       centrerar fönstret bättre i väggens målade yta (0-150, innan bröstpanelen). */
+    '<g transform="translate(0,11) translate(91,122) scale(1.08) translate(-91,-122)">' +
     '<g id="roomwindow" style="cursor:pointer" tabindex="0" role="button" aria-label="Tryck på fönstret">' +
     '<g transform="translate(11.73,13.08) scale(0.5412,0.6412)">' +
     fView(ctx.furnOf("view")) +
@@ -722,7 +738,7 @@ function roomSVGInner() {
        det första fönstret, se kommentaren där - centrerat på x=200 istället. */
     /* samma 1.08x-skalning + nedåtknuff som första fönstret, fast runt dess egna
        höger-/nedre hörn (x241.4/y122). */
-    '<g transform="translate(0,4) translate(241.4,122) scale(1.08) translate(-241.4,-122)">' +
+    '<g transform="translate(0,11) translate(241.4,122) scale(1.08) translate(-241.4,-122)">' +
     '<g id="roomwindow2" style="cursor:pointer" tabindex="0" role="button" aria-label="Tryck på det andra fönstret">' +
     '<g transform="translate(162.13,13.08) scale(0.5412,0.6412)">' +
     fView(ctx.furnOf("view"), true) +
