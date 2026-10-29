@@ -3307,10 +3307,18 @@
         t === (S.favSeason || "").trim())
     );
   }
+  /* epilogens fyra nya ord (Kalevipoja rajal) hann aldrig in i det förinspelade ljudbanken -
+     utan detta spelades inget alls upp på enheter utan estnisk systemröst. */
+  function isEpilogueWord(et) {
+    var t = (et || "").trim();
+    return EPILOGUE.stops.some(function (s) {
+      return s.word.et === t;
+    });
+  }
   /* ord värda att hämta uttal live för när de saknar förinspelat ljud - antingen en glosa
      från läxlistan eller något barnet själv skrivit, se speak(). */
   function needsLiveTts(et) {
-    return isSchoolWord(et) || isPersonalWord(et);
+    return isSchoolWord(et) || isPersonalWord(et) || isEpilogueWord(et);
   }
   /* ser till att alla ord i glosorna har ljud: tar från cachen, hämtar det som saknas
        och rensar bort ljud från gamla listor. onProgress(klara, totalt) är valfri.
