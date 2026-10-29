@@ -294,21 +294,20 @@ function fPlant(id: string | null) {
     );
   }
   if (id === "v-flow") {
+    /* illustrerad bild istället för handritad SVG (public/images/room/plant-vase.webp) - en
+       bukett med rukkilill (blåklint, Estlands nationalblomma) och vetestrån, samma mönster
+       som de andra möblerna. */
     return (
-      '<g transform="translate(366,168)"><ellipse cx="0" cy="34" rx="16" ry="5" fill="#2A1B0C" opacity=".24"/>' +
-      '<path d="M-8 10 q0 22 8 24 q8 -2 8 -24 z" fill="#9ACCE2"/><path d="M-8 10 h16 l-1 3 h-14 z" fill="#C6E4F2"/>' +
-      '<path d="M0 10 v-16" stroke="#4E8A52" stroke-width="2"/><circle cx="0" cy="-18" r="5" fill="#E86A8A"/>' +
-      '<path d="M-5 2 q-8 -6 -9 -14 q8 2 10 12 z" fill="#5CA05E"/>' +
-      '<path d="M4 -2 q9 -6 10 -16 q-9 3 -11 14 z" fill="#4E8A52"/>' +
-      '<circle cx="-7" cy="-12" r="4" fill="#F6D24A"/><circle cx="7" cy="-10" r="4" fill="#C8A0E2"/></g>'
+      '<g transform="translate(366,168)"><ellipse cx="0" cy="30" rx="22" ry="5" fill="#2A1B0C" opacity=".24"/>' +
+      '<image href="/images/room/plant-vase.webp" x="-32" y="-10" width="64" height="40"/></g>'
     );
   }
   if (id === "v-pot") {
+    /* illustrerad bild istället för handritad SVG (public/images/room/plant-pot.webp) - en
+       grön krukväxt i en kruka med estnisk folkmönsterrand, samma mönster som de andra möblerna. */
     return (
-      '<g transform="translate(366,168)"><ellipse cx="0" cy="34" rx="20" ry="5" fill="#2A1B0C" opacity=".24"/>' +
-      '<path d="M0 14 q-14 -6 -17 -22 q16 2 19 18 z" fill="#4E8A52"/>' +
-      '<path d="M3 14 q14 -9 15 -25 q-16 5 -17 22 z" fill="#69A86A"/>' +
-      '<path d="M-12 14 h26 l-4 20 h-18 z" fill="#C06A4A"/><path d="M-12 14 h26 l-1 5 h-24 z" fill="#E08A66"/></g>'
+      '<g transform="translate(366,168)"><ellipse cx="0" cy="32" rx="18" ry="5" fill="#2A1B0C" opacity=".24"/>' +
+      '<image href="/images/room/plant-pot.webp" x="-21.5" y="-10" width="43" height="42"/></g>'
     );
   }
   return "";
