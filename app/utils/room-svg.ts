@@ -217,11 +217,12 @@ function fRight(id: string | null) {
     );
   }
   if (id === "g-kannel") {
+    /* illustrerad bild istället för handritad SVG (public/images/room/gear-kannel.webp) - en
+       kannel (estniskt traditionellt stränginstrument) på stativ, samma mönster som de andra
+       möblerna. */
     return (
       '<g transform="translate(344,186)"><ellipse cx="34" cy="58" rx="36" ry="8" fill="#2A1B0C" opacity=".22"/>' +
-      '<path d="M4 20 h58 l-10 22 h-38 z" fill="#C08A54"/><path d="M4 20 h58 l-2 5 h-54 z" fill="#E0BC8E"/>' +
-      '<g stroke="#F2E4C8" stroke-width="1" opacity=".85"><path d="M10 24 l40 0 M12 29 l36 0 M14 34 l32 0 M16 39 l28 0"/></g>' +
-      '<rect x="14" y="42" width="7" height="16" fill="#8A5E30"/><rect x="46" y="42" width="7" height="16" fill="#8A5E30"/></g>'
+      '<image href="/images/room/gear-kannel.webp" x="4" y="32.6" width="58" height="25.4"/></g>'
     );
   }
   /* illustrerad bild istället för handritad vedtrave (public/images/room/wood-basket.webp) -
@@ -517,18 +518,11 @@ function fLeftExtra(id: string | null) {
 }
 function fRightExtra(id: string | null) {
   if (id !== "g-dress") return null;
+  /* illustrerad bild istället för handritad byrå (public/images/room/gear-dress.webp) - en
+     randig estnisk ylletäckeldrapering ersätter den tidigare handritade krukväxten ovanpå. */
   return (
     '<g transform="translate(336,156)"><ellipse cx="30" cy="74" rx="36" ry="8" fill="#2A1B0C" opacity=".22"/>' +
-    '<rect x="0" y="0" width="60" height="72" rx="4" fill="#B07C48"/>' +
-    '<rect x="0" y="0" width="60" height="6" rx="3" fill="#D8A86A"/>' +
-    '<rect x="6" y="10" width="48" height="18" rx="3" fill="#C9A06A"/>' +
-    '<rect x="6" y="32" width="48" height="18" rx="3" fill="#C9A06A"/>' +
-    '<rect x="6" y="54" width="48" height="14" rx="3" fill="#C9A06A"/>' +
-    '<circle cx="30" cy="19" r="2.6" fill="#F2E8D4"/><circle cx="30" cy="41" r="2.6" fill="#F2E8D4"/>' +
-    '<circle cx="30" cy="61" r="2.6" fill="#F2E8D4"/>' +
-    '<g transform="translate(14,-14)"><path d="M0 14 q-8 -4 -10 -12 q9 1 11 10 z" fill="#4E8A52"/>' +
-    '<path d="M2 14 q8 -5 9 -14 q-9 3 -10 12 z" fill="#69A86A"/>' +
-    '<path d="M-7 14 h16 l-2 10 h-12 z" fill="#C06A4A"/></g></g>'
+    '<image href="/images/room/gear-dress.webp" x="-9" y="10" width="78" height="64"/></g>'
   );
 }
 function fArtExtra(id: string | null) {
