@@ -4291,7 +4291,8 @@ body {
    den: långa ord (tuletõrjeauto, politseiauto) växte utanför flaskan och kunde hamna utanför
    skärmen för flaskor nära kanten. max-width = flaskans inre bredd (74px - 2*6px padding)
    tvingar fram radbrytning - men ett enda långt ord har inga mellanslag att bryta vid, så
-   overflow-wrap krävs också för att bryta mitt i ordet när det behövs. */
+   overflow-wrap krävs också för att bryta mitt i ordet när det behövs.
+   Samma rapport kom in igen efter att 13.5px redan skickats - höjt ytterligare till 15px. */
 .riverlabel {
   display: inline-block;
   max-width: 62px;
@@ -4299,8 +4300,8 @@ body {
   background: rgba(255, 248, 230, 0.94);
   color: #3a2a1a;
   font-weight: 700;
-  font-size: 13.5px;
-  line-height: 1.15;
+  font-size: 15px;
+  line-height: 1.12;
   text-align: center;
   border-radius: 7px;
   padding: 2px 5px;
