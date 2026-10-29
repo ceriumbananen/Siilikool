@@ -294,17 +294,21 @@ function fPlant(id: string | null) {
   if (id === "v-flow") {
     /* illustrerad bild istället för handritad SVG (public/images/room/plant-vase.webp) - en
        bukett med rukkilill (blåklint, Estlands nationalblomma) och vetestrån, samma mönster
-       som de andra möblerna. */
+       som de andra möblerna.
+       buggrapport: krukväxten/vasen/kaktusen "svävade i luften" - skuggan låg bara på y~198-200
+       (nästan uppe vid eldstadens valv), medan golvmöbler annars grundas kring y246-248 (se
+       t.ex. v-tree ovan). Flyttad ner till samma golvlinje. */
     return (
-      '<g transform="translate(366,168)"><ellipse cx="0" cy="30" rx="22" ry="5" fill="#2A1B0C" opacity=".24"/>' +
+      '<g transform="translate(366,214)"><ellipse cx="0" cy="30" rx="22" ry="5" fill="#2A1B0C" opacity=".24"/>' +
       '<image href="/images/room/plant-vase.webp" x="-32" y="-10" width="64" height="40"/></g>'
     );
   }
   if (id === "v-pot") {
     /* illustrerad bild istället för handritad SVG (public/images/room/plant-pot.webp) - en
-       grön krukväxt i en kruka med estnisk folkmönsterrand, samma mönster som de andra möblerna. */
+       grön krukväxt i en kruka med estnisk folkmönsterrand, samma mönster som de andra möblerna.
+       Nedflyttad till golvlinjen - se kommentaren vid v-flow ovan. */
     return (
-      '<g transform="translate(366,168)"><ellipse cx="0" cy="32" rx="18" ry="5" fill="#2A1B0C" opacity=".24"/>' +
+      '<g transform="translate(366,214)"><ellipse cx="0" cy="32" rx="18" ry="5" fill="#2A1B0C" opacity=".24"/>' +
       '<image href="/images/room/plant-pot.webp" x="-21.5" y="-10" width="43" height="42"/></g>'
     );
   }
@@ -531,9 +535,10 @@ function fLampExtra(id: string | null) {
 }
 function fPlantExtra(id: string | null) {
   if (id !== "v-cact") return null;
-  /* illustrerad bild istället för handritad SVG (public/images/room/plant-cactus.webp). */
+  /* illustrerad bild istället för handritad SVG (public/images/room/plant-cactus.webp).
+     Nedflyttad till golvlinjen - se buggrapport-kommentaren vid v-flow (fPlant) ovan. */
   return (
-    '<g transform="translate(366,172)"><ellipse cx="0" cy="30" rx="16" ry="5" fill="#2A1B0C" opacity=".24"/>' +
+    '<g transform="translate(366,216)"><ellipse cx="0" cy="30" rx="16" ry="5" fill="#2A1B0C" opacity=".24"/>' +
     '<image href="/images/room/plant-cactus.webp" x="-20.3" y="-18" width="40.6" height="48"/></g>'
   );
 }
