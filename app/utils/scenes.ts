@@ -81,19 +81,22 @@ export const OSCENES = [
 
 /* positionerna här (x/y på varje <image>) är beroende av var brasans spiselkrans faktiskt
    hamnar (#roomfire i room-svg.ts) - ändras brasans storlek/placering måste de här räknas
-   om på samma sätt, annars svävar dockorna/dalahästen i luften ovanför hyllan. */
+   om på samma sätt, annars svävar dockorna/dalahästen i luften ovanför hyllan.
+   buggrapport: det hände precis det - brasan flyttades ner 12 enheter (room-svg.ts, "eldstaden
+   flöt i luften") men dessa glömdes bort, så dockorna/hästen hamnade kvar vid den gamla,
+   högre hyllkanten. y-värdena nedan är +12 mot innan för att följa med. */
 export const MANTELSVG =
   /* illustrerad bild istället för handritade dockor (public/images/room/folk-dolls.webp) -
      samma mönster som möblerna, skuggan är kvar som vektor. Tryckbar (#roomdolls) - öppnar
      ett historiekort istället för en pratbubbla, se ROOM_LORE/touchLoreSpot i room.vue. */
   '<g id="roomdolls" style="cursor:pointer" tabindex="0" role="button" aria-label="Tryck på folkdockorna">' +
-  ' <ellipse cx="305.2" cy="141.5" rx="6.5" ry="1.6" fill="#2A1B0C" opacity=".22"/>' +
-  '<image href="/images/room/folk-dolls.webp" x="300" y="129.8" width="10.38" height="11"/></g>' +
+  ' <ellipse cx="305.2" cy="153.5" rx="6.5" ry="1.6" fill="#2A1B0C" opacity=".22"/>' +
+  '<image href="/images/room/folk-dolls.webp" x="300" y="141.8" width="10.38" height="11"/></g>' +
   /* illustrerad bild istället för handritad dalahäst (public/images/room/dala-horse.webp) -
      tryckbar (#roomdala), samma mönster som dockorna ovan. */
   '<g id="roomdala" style="cursor:pointer" tabindex="0" role="button" aria-label="Tryck på dalahästen">' +
-  ' <ellipse cx="348.4" cy="141.5" rx="7" ry="1.6" fill="#2A1B0C" opacity=".26"/>' +
-  '<image href="/images/room/dala-horse.webp" x="342.3" y="129.8" width="12.35" height="11"/></g>';
+  ' <ellipse cx="348.4" cy="153.5" rx="7" ry="1.6" fill="#2A1B0C" opacity=".26"/>' +
+  '<image href="/images/room/dala-horse.webp" x="342.3" y="141.8" width="12.35" height="11"/></g>';
 
 /* bara den levande elden kvar (öppning, glöd, vedträn, flammor, glöd) - stenomfattning,
    hylla och härdgolv kommer nu från den illustrerade bilden (public/images/room/fireplace.webp),
