@@ -84,9 +84,25 @@ function fWall(id: string | null) {
   return { defs: s, body: body };
 }
 function fFloor(id: string | null) {
+  /* illustrerade bilder istället för handritad gradient+mönster (public/images/room/floor-*.webp) -
+     samma mönster som väggarna (fWall ovan): hela golvytan (0,196 - 400,270) sträckt
+     (preserveAspectRatio="none") över en enda bild. f-wood (gratis, standard) är kvar
+     handritad nedan. */
+  var illustrated = {
+    "f-dark": "floor-dark.webp",
+  }[id ?? ""];
+  if (illustrated) {
+    return {
+      defs: "",
+      body:
+        '<image href="/images/room/' +
+        illustrated +
+        '" x="0" y="196" width="400" height="74" preserveAspectRatio="none"/>' +
+        '<rect y="193" width="400" height="8" fill="#2A1B0C" opacity=".20"/>',
+    };
+  }
   var c = {
     "f-wood": ["#C39A68", "#AC8352", "#8A6238"],
-    "f-dark": ["#8A6A4A", "#6E5134", "#4E3721"],
     "f-tile": ["#DCD2C2", "#C3B6A2", "#A2957F"],
   }[id ?? ""] || ["#C39A68", "#AC8352", "#8A6238"];
   var s =
