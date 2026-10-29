@@ -25,105 +25,42 @@ function escHtml(s: string): string {
 function fWall(id: string | null) {
   /* illustrerade bilder istället för handritad gradient+mönster (public/images/room/wall-*.webp) -
      hela väggen (målning + bröstpanel) är inbakad i varje bild, sträckt (preserveAspectRatio="none")
-     över hela väggytan (0,0 - 400,202). w-panel (gratis, standard) är kvar handritad nedan, samma
-     mönster som t.ex. r-round-mattan eller a-none-tavelplatsen. */
-  var illustrated = {
-    "w-mint": "wall-mint.webp",
-    "w-rose": "wall-rose.webp",
-    "w-blue": "wall-blue.webp",
-    "w-stars": "wall-stars.webp",
-    "w-wood": "wall-wood.webp",
-  }[id ?? ""];
-  if (illustrated) {
-    return {
-      defs: "",
-      body:
-        '<image href="/images/room/' +
-        illustrated +
-        '" x="0" y="0" width="400" height="202" preserveAspectRatio="none"/>',
-    };
-  }
-  var base = ["#EFE3CC", "#E2D3B8", "#C8B698"];
-  var s =
-    '<linearGradient id="g-wall" x1="0" y1="0" x2="0.25" y2="1">' +
-    '<stop offset="0%" stop-color="' +
-    base[0] +
-    '"/><stop offset="48%" stop-color="' +
-    base[1] +
-    '"/>' +
-    '<stop offset="100%" stop-color="' +
-    base[2] +
-    '"/></linearGradient>';
-  var body = '<rect width="400" height="202" fill="url(#g-wall)"/>',
-    x;
-  for (x = 0; x <= 400; x += 24) {
-    body +=
-      '<rect x="' +
-      x +
-      '" y="0" width="1.4" height="202" fill="#000" opacity=".03"/>' +
-      '<rect x="' +
-      (x + 1.4) +
-      '" y="0" width="1.2" height="202" fill="#fff" opacity=".10"/>';
-  }
-  body +=
-    '<rect x="0" y="0" width="34" height="202" fill="#3A2A18" opacity=".10"/>' +
-    '<rect x="366" y="0" width="34" height="202" fill="#3A2A18" opacity=".08"/>' +
-    '<rect x="0" y="0" width="400" height="16" fill="#3A2A18" opacity=".12"/>';
-  /* bröstpanel */
-  body +=
-    '<rect x="0" y="150" width="400" height="46" fill="#EADCC0"/>' +
-    '<rect x="0" y="147" width="400" height="5" rx="2.5" fill="#D9C8AB" opacity=".9"/>' +
-    '<rect x="0" y="147" width="400" height="2" fill="#FFF6E6" opacity=".7"/>';
-  for (x = 12; x < 400; x += 64) {
-    body +=
-      '<rect x="' +
-      x +
-      '" y="158" width="48" height="30" rx="3" fill="none" stroke="#C6B294" stroke-width="1.8" opacity=".8"/>';
-  }
-  body += '<rect x="0" y="190" width="400" height="6" fill="#B9A585"/>';
-  return { defs: s, body: body };
+     över hela väggytan (0,0 - 400,202). Även w-panel (gratis, standard) är nu en bild - det är
+     det allra första varje spelare ser, så det ska se lika fint ut som allt man kan köpa sig till. */
+  var illustrated =
+    {
+      "w-mint": "wall-mint.webp",
+      "w-rose": "wall-rose.webp",
+      "w-blue": "wall-blue.webp",
+      "w-stars": "wall-stars.webp",
+      "w-wood": "wall-wood.webp",
+    }[id ?? ""] || "wall-panel.webp";
+  return {
+    defs: "",
+    body:
+      '<image href="/images/room/' +
+      illustrated +
+      '" x="0" y="0" width="400" height="202" preserveAspectRatio="none"/>',
+  };
 }
 function fFloor(id: string | null) {
   /* illustrerade bilder istället för handritad gradient+mönster (public/images/room/floor-*.webp) -
      samma mönster som väggarna (fWall ovan): hela golvytan (0,196 - 400,270) sträckt
-     (preserveAspectRatio="none") över en enda bild. f-wood (gratis, standard) är kvar
-     handritad nedan. */
-  var illustrated = {
-    "f-dark": "floor-dark.webp",
-    "f-tile": "floor-tile.webp",
-  }[id ?? ""];
-  if (illustrated) {
-    return {
-      defs: "",
-      body:
-        '<image href="/images/room/' +
-        illustrated +
-        '" x="0" y="196" width="400" height="74" preserveAspectRatio="none"/>' +
-        '<rect y="193" width="400" height="8" fill="#2A1B0C" opacity=".20"/>',
-    };
-  }
-  var c = ["#C39A68", "#AC8352", "#8A6238"];
-  var s =
-    '<linearGradient id="g-floor" x1="0" y1="0" x2="0" y2="1">' +
-    '<stop offset="0%" stop-color="' +
-    c[0] +
-    '"/><stop offset="45%" stop-color="' +
-    c[1] +
-    '"/>' +
-    '<stop offset="100%" stop-color="' +
-    c[2] +
-    '"/></linearGradient>';
-  var body = '<rect y="196" width="400" height="74" fill="url(#g-floor)"/>',
-    i,
-    x1,
-    x2;
-  for (i = -6; i < 14; i++) {
-    x1 = i * 34;
-    x2 = 200 + (x1 - 200) * 1.9;
-    body += '<path d="M' + x1 + " 196 L" + x2 + ' 270" stroke="#3A2410" stroke-width="1.2" opacity=".15"/>';
-  }
-  body += '<rect y="193" width="400" height="8" fill="#2A1B0C" opacity=".20"/>';
-  return { defs: s, body: body };
+     (preserveAspectRatio="none") över en enda bild. Även f-wood (gratis, standard) är nu en
+     bild - se motiveringen vid w-panel i fWall ovan. */
+  var illustrated =
+    {
+      "f-dark": "floor-dark.webp",
+      "f-tile": "floor-tile.webp",
+    }[id ?? ""] || "floor-pine.webp";
+  return {
+    defs: "",
+    body:
+      '<image href="/images/room/' +
+      illustrated +
+      '" x="0" y="196" width="400" height="74" preserveAspectRatio="none"/>' +
+      '<rect y="193" width="400" height="8" fill="#2A1B0C" opacity=".20"/>',
+  };
 }
 function fRug(id: string | null) {
   /* illustrerade bilder istället för handritade ellipser (public/images/room/rug-*.webp) -
@@ -147,12 +84,12 @@ function fRug(id: string | null) {
       '<image href="/images/room/rug-bear.webp" x="58" y="219" width="184" height="46" preserveAspectRatio="none"/>'
     );
   }
-  var s3 =
+  /* r-round (gratis, standard) är nu också en bild - se motiveringen vid w-panel i fWall ovan -
+     en flätad trasmatta, samma stil som den förut handritade versionen (bär-röd/gräddvit). */
+  return (
     '<ellipse cx="150" cy="240" rx="88" ry="22" fill="#2A1B0C" opacity=".2"/>' +
-    '<ellipse cx="150" cy="240" rx="86" ry="21" fill="#B8566A"/>' +
-    '<ellipse cx="150" cy="239" rx="66" ry="16" fill="#E0CDAC"/>' +
-    '<ellipse cx="150" cy="238" rx="42" ry="10" fill="#A8465C"/>';
-  return s3;
+    '<image href="/images/room/rug-round.webp" x="62" y="218" width="176" height="44" preserveAspectRatio="none"/>'
+  );
 }
 function fLeft(id: string | null) {
   if (id === "l-bed") {
