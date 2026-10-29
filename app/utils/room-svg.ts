@@ -23,13 +23,27 @@ function escHtml(s: string): string {
 }
 
 function fWall(id: string | null) {
-  var base = {
-    "w-panel": ["#EFE3CC", "#E2D3B8", "#C8B698"],
-    "w-mint": ["#E4F0E2", "#CFE4CC", "#A9CBA6"],
-    "w-rose": ["#F6E6E4", "#EBD2CF", "#D2ADA8"],
-    "w-blue": ["#E2EDF6", "#CBDFEE", "#A5C2DA"],
-    "w-stars": ["#2B3A63", "#223052", "#16213C"],
-  }[id ?? ""] || ["#EFE3CC", "#E2D3B8", "#C8B698"];
+  /* illustrerade bilder istället för handritad gradient+mönster (public/images/room/wall-*.webp) -
+     hela väggen (målning + bröstpanel) är inbakad i varje bild, sträckt (preserveAspectRatio="none")
+     över hela väggytan (0,0 - 400,202). w-panel (gratis, standard) är kvar handritad nedan, samma
+     mönster som t.ex. r-round-mattan eller a-none-tavelplatsen. */
+  var illustrated = {
+    "w-mint": "wall-mint.webp",
+    "w-rose": "wall-rose.webp",
+    "w-blue": "wall-blue.webp",
+    "w-stars": "wall-stars.webp",
+    "w-wood": "wall-wood.webp",
+  }[id ?? ""];
+  if (illustrated) {
+    return {
+      defs: "",
+      body:
+        '<image href="/images/room/' +
+        illustrated +
+        '" x="0" y="0" width="400" height="202" preserveAspectRatio="none"/>',
+    };
+  }
+  var base = ["#EFE3CC", "#E2D3B8", "#C8B698"];
   var s =
     '<linearGradient id="g-wall" x1="0" y1="0" x2="0.25" y2="1">' +
     '<stop offset="0%" stop-color="' +
@@ -51,35 +65,13 @@ function fWall(id: string | null) {
       (x + 1.4) +
       '" y="0" width="1.2" height="202" fill="#fff" opacity=".10"/>';
   }
-  if (id === "w-stars") {
-    var i, sx, sy;
-    for (i = 0; i < 34; i++) {
-      sx = ((i * 97) % 380) + 10;
-      sy = ((i * 53) % 170) + 8;
-      body +=
-        '<path d="M' +
-        sx +
-        " " +
-        (sy - 3.2) +
-        ' l1 2.2 l2.4 .3 l-1.8 1.7 l.5 2.4 l-2.1 -1.2 l-2.1 1.2 l.5 -2.4 l-1.8 -1.7 l2.4 -.3 z" fill="#F6E28A" opacity="' +
-        (0.5 + (i % 3) * 0.2) +
-        '"/>';
-    }
-    body +=
-      '<circle cx="340" cy="38" r="16" fill="#F8EDBE" opacity=".9"/><circle cx="333" cy="33" r="13" fill="' +
-      base[0] +
-      '"/>';
-  }
   body +=
     '<rect x="0" y="0" width="34" height="202" fill="#3A2A18" opacity=".10"/>' +
     '<rect x="366" y="0" width="34" height="202" fill="#3A2A18" opacity=".08"/>' +
     '<rect x="0" y="0" width="400" height="16" fill="#3A2A18" opacity=".12"/>';
   /* bröstpanel */
-  var wain = id === "w-stars" ? "#33436E" : "#EADCC0";
   body +=
-    '<rect x="0" y="150" width="400" height="46" fill="' +
-    wain +
-    '"/>' +
+    '<rect x="0" y="150" width="400" height="46" fill="#EADCC0"/>' +
     '<rect x="0" y="147" width="400" height="5" rx="2.5" fill="#D9C8AB" opacity=".9"/>' +
     '<rect x="0" y="147" width="400" height="2" fill="#FFF6E6" opacity=".7"/>';
   for (x = 12; x < 400; x += 64) {
@@ -312,25 +304,10 @@ function fPlant(id: string | null) {
   }
   return "";
 }
-function fWallExtra(id: string | null) {
-  if (id !== "w-wood") return "";
-  var s = "",
-    y;
-  for (y = 0; y < 150; y += 22) {
-    s +=
-      '<path d="M0 ' +
-      y +
-      ' h400 v22 h-400 z" fill="#C9A06A" opacity="' +
-      (y % 44 ? ".55" : ".75") +
-      '"/>' +
-      '<path d="M0 ' +
-      (y + 22) +
-      ' h400" stroke="#8A5E30" stroke-width="1.4" opacity=".5"/>' +
-      '<path d="M0 ' +
-      (y + 2) +
-      ' h400" stroke="#E8C79A" stroke-width="1.2" opacity=".45"/>';
-  }
-  return s;
+function fWallExtra(_id: string | null) {
+  /* trä-väggens panelritning behövs inte längre - w-wood är nu en illustrerad bild
+     (wall-wood.webp, se fWall ovan) med snickeri-detaljerna redan inmålade. */
+  return "";
 }
 /* second: det andra fönstret (#roomwindow2) ritar samma himmel, men utan sol/måne - annars
    ser det ut som att det finns två solar/månar på himlen, en per fönster. Stjärnorna/snön får
