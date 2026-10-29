@@ -66,13 +66,14 @@ const ROOM_SPOTS: Record<RoomSpotId, RoomSpot> = {
 /* möblerna (vänster/höger/matta/växt/tavla) säger inte ett fast ord som ovan, utan precis
    det man själv valt i Laat (FURN i shop.ts har redan et/sv per sak) - annars hade t.ex.
    "möbeln" alltid behövt säga samma ord oavsett om det är en säng eller en gungstol. */
-type FurnSpotId = "roomleft" | "roomright" | "roomrug" | "roomplant" | "roomart";
+type FurnSpotId = "roomleft" | "roomright" | "roomrug" | "roomplant" | "roomart" | "roomwall";
 const FURN_SPOTS: Record<FurnSpotId, { slot: string; x: number; y: number; dir: "up" | "left" | "down" }> = {
   roomleft: { slot: "left", x: 14, y: 65, dir: "up" },
   roomright: { slot: "right", x: 88, y: 62, dir: "up" },
   roomrug: { slot: "rug", x: 50, y: 85, dir: "up" },
   roomplant: { slot: "plant", x: 92, y: 65, dir: "up" },
   roomart: { slot: "art", x: 31, y: 22, dir: "up" },
+  roomwall: { slot: "wall", x: 72, y: 14, dir: "up" },
 };
 const roomTurn: Partial<Record<RoomSpotId, number>> = {};
 const roomSaid = ref<{ et: string; sv: string; x: number; y: number; dir: "up" | "left" | "down" } | null>(null);
@@ -84,14 +85,33 @@ let roomSaidTimer: ReturnType<typeof setTimeout> | undefined;
    val (karta, foto...) faller tillbaka till den vanliga pratbubblan via FURN_SPOTS nedan.
    "roomflag" är fast (flaggan är inte längre ett tavelval, se fArt()/FLAGSVG i room-svg.ts -
    så att flaggan och en vald tavla kan synas samtidigt, på var sin plats i rummet). */
-const LORE_SPOT_IDS = ["roomfire", "roomart", "roomflag", "roomdala", "roomdolls"] as const;
+const LORE_SPOT_IDS = [
+  "roomfire",
+  "roomart",
+  "roomflag",
+  "roomdala",
+  "roomdolls",
+  "roomwall",
+  "roomrug",
+  "roomright",
+] as const;
+/* "roomart" var länge den enda dynamiska platsen (bara vald tavla, t.ex. a-koler, har lore) -
+   samma knep gäller nu även väggen/mattan/höger-möbeln (se FURN_SPOTS för deras slot). Val utan
+   egen lore (t.ex. en vanlig matta) faller igenom till den vanliga pratbubblan, se onStageClick. */
+const DYNAMIC_LORE_SLOTS: Partial<Record<string, string>> = {
+  roomart: "art",
+  roomwall: "wall",
+  roomrug: "rug",
+  roomright: "right",
+};
 function loreFor(id: string): RoomLore | null {
   if (id === "roomfire") return ROOM_LORE.roomfire!;
   if (id === "roomflag") return ROOM_LORE["a-flag"]!;
   if (id === "roomdala") return ROOM_LORE.dalahast!;
   if (id === "roomdolls") return ROOM_LORE.folkdockor!;
-  if (id === "roomart") {
-    const furnId = furnOf("art", room.value, furnOwnedIds.value);
+  const slot = DYNAMIC_LORE_SLOTS[id];
+  if (slot) {
+    const furnId = furnOf(slot, room.value, furnOwnedIds.value);
     return (furnId && ROOM_LORE[furnId]) || null;
   }
   return null;
@@ -602,7 +622,8 @@ function backFromQuiz() {
     <!-- historiekort: dalahäst, folkdockor, flagga, eldstad - se ROOM_LORE/openLore -->
     <div v-if="lore" class="room-page__found" role="dialog" aria-modal="true">
       <div class="room-page__found-card">
-        <img :src="lore.img" alt="" class="room-page__lore-img" />
+        <img v-if="lore.img" :src="lore.img" alt="" class="room-page__lore-img" />
+        <span v-else-if="lore.em" class="room-page__lore-em" aria-hidden="true">{{ lore.em }}</span>
         <h3 :lang="loreShowEt ? 'et' : 'sv'">{{ loreShowEt ? lore.name.et : lore.name.sv }}</h3>
         <p :lang="loreShowEt ? 'et' : 'sv'">{{ loreShowEt ? lore.factEt : lore.fact }}</p>
         <div class="room-page__found-row">
@@ -1193,6 +1214,13 @@ function backFromQuiz() {
     height: auto;
     margin: 0 auto $spacing-2;
     object-fit: contain;
+  }
+
+  &__lore-em {
+    display: block;
+    font-size: 3.5rem; // 56px
+    line-height: 1.1;
+    margin: 0 0 $spacing-2;
   }
 
   &__found-row {

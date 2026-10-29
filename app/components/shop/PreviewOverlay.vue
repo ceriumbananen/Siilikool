@@ -35,6 +35,11 @@ const voice = useSiiriVoice();
 const title = computed(() => (props.kind === "wear" ? props.wearItem! : props.furnItem!));
 const em = computed(() => (props.kind === "wear" ? props.wearItem!.em : null));
 
+/* vissa saker har en egen kulturell/historisk historia (ROOM_LORE i app/utils/room-lore.ts) -
+   visa den redan här, innan man köper, inte bara när man råkar trycka på den sen i rummet. */
+const lore = computed(() => ROOM_LORE[title.value.id] || null);
+const loreShowEt = ref(true);
+
 /* ---------- plagg: Siiri med det på, utan att röra profilen ---------- */
 const previewWear = computed<Wear>(
   () => ({ ...(props.wear || {}), [props.wearItem!.slot]: props.wearItem!.id }) as unknown as Wear,
@@ -80,6 +85,12 @@ const buyDisabled = computed(() => (props.kind === "wear" ? !props.owns && !affo
       <button v-if="kind === 'wear'" class="shop-preview__say" aria-label="Hör ordet" @click="voice.sayWord(title.et)">
         🔊
       </button>
+      <div v-if="lore" class="shop-preview__lore">
+        <p :lang="loreShowEt ? 'et' : 'sv'">{{ loreShowEt ? lore.factEt : lore.fact }}</p>
+        <button class="shop-preview__lore-toggle" @click="loreShowEt = !loreShowEt">
+          {{ loreShowEt ? "🇸🇪 På svenska" : "🇪🇪 Eesti keeles" }}
+        </button>
+      </div>
       <div class="shop-preview__actions">
         <UiAppButton variant="ghost" @click="emit('close')">Stäng</UiAppButton>
         <UiAppButton variant="primary" :disabled="buyDisabled" @click="emit('buy')">{{ buyLabel }}</UiAppButton>
@@ -180,6 +191,33 @@ const buyDisabled = computed(() => (props.kind === "wear" ? !props.owns && !affo
     cursor: pointer;
     box-shadow: $shadow-2;
     margin-bottom: $spacing-2;
+
+    @include focus-visible;
+  }
+
+  &__lore {
+    background: var(--bg);
+    border: $border-width solid var(--line);
+    border-radius: $radius-md;
+    padding: $spacing-2;
+    margin: 0 0 $spacing-2;
+    text-align: left;
+
+    p {
+      margin: 0 0 $spacing-1;
+      color: var(--ink);
+      font-size: $font-size-sm;
+    }
+  }
+
+  &__lore-toggle {
+    border: none;
+    background: none;
+    color: var(--muted);
+    font-size: $font-size-xs;
+    font-weight: 700;
+    cursor: pointer;
+    padding: 0;
 
     @include focus-visible;
   }

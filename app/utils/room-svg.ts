@@ -689,7 +689,7 @@ function roomSVGInner() {
     '<linearGradient id="shootgrad" x1="1" y1="1" x2="0" y2="0"><stop offset="0%" stop-color="#FFFFFF" stop-opacity="1"/>' +
     '<stop offset="100%" stop-color="#FFFFFF" stop-opacity="0"/></linearGradient>' +
     "</defs>" +
-    wall.body +
+    wrapTap("roomwall", "Tryck på väggen", wall.body) +
     fWallExtra(ctx.furnOf("wall")) +
     floor.body +
     /* illustrerad bild istället för handritad ram+gardiner (public/images/room/window.webp) -
