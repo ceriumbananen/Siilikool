@@ -263,33 +263,34 @@ var FLAGSVG =
   "</g>";
 function fLamp(id: string | null) {
   if (id === "p-floor") {
+    /* illustrerad bild istället för handritad SVG (public/images/room/lamp-floor.webp) - glöden
+       (lampglow) är kvar som eget vektorlager ovanpå bilden, samma teknik som förut. */
     return (
       '<g id="roomlamp" style="cursor:pointer" tabindex="0" role="button" aria-label="Tryck på lampan" transform="translate(120,124)">' +
       '<ellipse cx="0" cy="104" rx="16" ry="4" fill="#2A1B0C" opacity=".24"/>' +
-      '<rect x="-2" y="18" width="4" height="86" fill="#8A7A5E"/><rect x="-10" y="100" width="20" height="5" rx="2.5" fill="#6E6048"/>' +
-      '<path d="M-18 18 h36 l-7 -20 h-22 z" fill="#F2D98A"/><path d="M-18 18 h36 l-1 3 h-34 z" fill="#D8B964"/>' +
-      '<ellipse class="lampglow" cx="0" cy="26" rx="22" ry="9" fill="#FFE9A8" opacity=".35"/></g>'
+      '<image href="/images/room/lamp-floor.webp" x="-19.3" y="18" width="38.6" height="86"/>' +
+      '<ellipse class="lampglow" cx="0" cy="40" rx="20" ry="8" fill="#FFE9A8" opacity=".35"/></g>'
     );
   }
   if (id === "p-lant") {
+    /* illustrerad bild istället för handritad SVG (public/images/room/lamp-lantern.webp) -
+       lyktan är inte tryckbar (bara taklampan/golvlampan har lampglow/#roomlamp). */
     return (
-      '<g transform="translate(298,74)"><path d="M0 0 v8" stroke="#6E6048" stroke-width="2"/>' +
-      '<path d="M-9 8 h18 l-2 22 h-14 z" fill="#8A7A5E"/>' +
-      '<path d="M-7 10 h14 l-1.6 18 h-10.8 z" fill="#FFE9A8"/>' +
-      '<circle cx="0" cy="19" r="4" fill="#FFC24D"/>' +
-      '<ellipse cx="0" cy="19" rx="18" ry="14" fill="#FFE9A8" opacity=".25"/></g>'
+      '<g transform="translate(298,74)">' +
+      '<ellipse cx="0" cy="30" rx="15" ry="4" fill="#2A1B0C" opacity=".24"/>' +
+      '<image href="/images/room/lamp-lantern.webp" x="-13" y="-2" width="25.7" height="32"/>' +
+      '<ellipse cx="-3" cy="14" rx="12" ry="10" fill="#FFE9A8" opacity=".3"/></g>'
     );
   }
   return "";
 }
 function fPlant(id: string | null) {
   if (id === "v-tree") {
+    /* illustrerad bild istället för handritad SVG (public/images/room/plant-tree.webp) - en
+       björkplanta (Estlands nationalträd), samma mönster som de andra möblerna. */
     return (
-      '<g transform="translate(378,196)" transform-origin="378 196"><ellipse cx="0" cy="52" rx="24" ry="6" fill="#2A1B0C" opacity=".24"/>' +
-      '<rect x="-4" y="16" width="8" height="34" fill="#8A5E30"/>' +
-      '<circle cx="0" cy="8" r="20" fill="#4E8A52"/><circle cx="-14" cy="18" r="13" fill="#5CA05E"/>' +
-      '<circle cx="14" cy="18" r="13" fill="#3E7A46"/>' +
-      '<path d="M-14 50 h28 l-3 10 h-22 z" fill="#C06A4A"/></g>'
+      '<g transform="translate(378,196)"><ellipse cx="0" cy="52" rx="24" ry="6" fill="#2A1B0C" opacity=".24"/>' +
+      '<image href="/images/room/plant-tree.webp" x="-21.7" y="-14" width="43.4" height="66"/></g>'
     );
   }
   if (id === "v-flow") {
@@ -546,24 +547,19 @@ function fArtExtra(id: string | null) {
 }
 function fLampExtra(id: string | null) {
   if (id !== "p-ceil") return null;
+  /* illustrerad bild istället för handritad SVG (public/images/room/lamp-ceil.webp). */
   return (
     '<g id="roomlamp" style="cursor:pointer" tabindex="0" role="button" aria-label="Tryck på lampan" transform="translate(200,0)">' +
-    '<rect x="-1.5" y="0" width="3" height="26" fill="#8A7A5E"/>' +
-    '<path d="M-22 26 h44 l-9 -16 h-26 z" fill="#E8D8A8"/>' +
-    '<path d="M-22 26 h44 l-1.5 3 h-41 z" fill="#C9B882"/>' +
-    '<ellipse class="lampglow" cx="0" cy="34" rx="26" ry="11" fill="#FFE9A8" opacity=".35"/></g>'
+    '<image href="/images/room/lamp-ceil.webp" x="-25" y="0" width="50" height="50.1"/>' +
+    '<ellipse class="lampglow" cx="0" cy="42" rx="22" ry="9" fill="#FFE9A8" opacity=".35"/></g>'
   );
 }
 function fPlantExtra(id: string | null) {
   if (id !== "v-cact") return null;
+  /* illustrerad bild istället för handritad SVG (public/images/room/plant-cactus.webp). */
   return (
     '<g transform="translate(366,172)"><ellipse cx="0" cy="30" rx="16" ry="5" fill="#2A1B0C" opacity=".24"/>' +
-    '<rect x="-6" y="-14" width="12" height="28" rx="6" fill="#4E8A52"/>' +
-    '<rect x="-16" y="-4" width="10" height="8" rx="5" fill="#5CA05E"/>' +
-    '<rect x="6" y="-10" width="10" height="8" rx="5" fill="#5CA05E"/>' +
-    '<circle cx="0" cy="-18" r="3.4" fill="#E86A8A"/>' +
-    '<path d="M-10 14 h20 l-3 16 h-14 z" fill="#C06A4A"/>' +
-    '<path d="M-10 14 h20 l-1 4 h-18 z" fill="#E08A66"/></g>'
+    '<image href="/images/room/plant-cactus.webp" x="-20.3" y="-18" width="40.6" height="48"/></g>'
   );
 }
 function fPet(id: string | null) {
@@ -775,7 +771,17 @@ function roomSVGInner() {
     wrapTap("roomleft", "Tryck på möbeln", fLeftExtra(ctx.furnOf("left")) || fLeft(ctx.furnOf("left"))) +
     wrapTap("roomright", "Tryck på möbeln", fRightExtra(ctx.furnOf("right")) || fRight(ctx.furnOf("right"))) +
     (fLampExtra(ctx.furnOf("lamp")) || fLamp(ctx.furnOf("lamp"))) +
-    wrapTap("roomplant", "Tryck på växten", fPlantExtra(ctx.furnOf("plant")) || fPlant(ctx.furnOf("plant"))) +
+    /* buggrapport (hittad nu): #roomplant > g är vad plantsway (style.css) animerar med en
+       CSS transform (rotate) - det ERSÄTTER hela elementets transform, det lägger inte till
+       ovanpå. Växtens egen transform="translate(...)" satt direkt på den ytan skulle alltså
+       tystas av svängningen och växten hamna i SVG:ns hörn (0,0) istället för sin plats. En
+       extra, odekorerad mellan-<g> (den CSS faktiskt svänger) håller själva positioneringen
+       på ett barn därunder, orört av CSS - samma knep som höstlövens fladder (roomleaf). */
+    wrapTap(
+      "roomplant",
+      "Tryck på växten",
+      "<g>" + (fPlantExtra(ctx.furnOf("plant")) || fPlant(ctx.furnOf("plant"))) + "</g>",
+    ) +
     fPet(ctx.furnOf("pet")) +
     '<rect width="400" height="270" fill="url(#g-warm)" style="pointer-events:none"/><rect width="400" height="270" fill="url(#g-vign)" style="pointer-events:none"/>' +
     "</svg>"
