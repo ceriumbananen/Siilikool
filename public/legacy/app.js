@@ -10433,7 +10433,7 @@
     else if (step.verb === "sotku") kitchenSetupSotku();
     else if (step.verb === "puhkamine") kitchenSetupPuhkamine();
     else if (step.verb === "rulli") kitchenSetupRulli();
-    else if (step.verb === "maari") kitchenSetupMaari();
+    else if (step.verb === "maari") kitchenSetupMaari(step);
     else if (step.verb === "loika") kitchenSetupLoika();
     else if (step.verb === "vormi") kitchenSetupVormi();
     else kitchenSetupKupseta();
@@ -10450,9 +10450,9 @@
     var stage = document.getElementById("kitstage");
     stage.innerHTML =
       '<img class="kitbowl" id="kitbowl" src="/images/kitchen/skal.webp" alt="">' +
-      '<div class="kiting" id="kiting">' +
-      (step.ingredient ? step.ingredient.em : "🫐") +
-      "</div>";
+      (step.ingredient && step.ingredient.img
+        ? '<img class="kiting" id="kiting" src="' + step.ingredient.img + '" alt="">'
+        : '<div class="kiting" id="kiting">' + (step.ingredient ? step.ingredient.em : "🫐") + "</div>");
     var ing = document.getElementById("kiting"),
       bowl = document.getElementById("kitbowl"),
       dragging = false,
@@ -10527,7 +10527,7 @@
     stage.innerHTML =
       '<div class="kithint">Dra strökrukan över skålen</div>' +
       '<img class="kitbowl" id="kitbowl" src="/images/kitchen/skal.webp" alt="">' +
-      '<div class="kitshaker" id="kitshaker">🧂</div>' +
+      '<img class="kitshaker" id="kitshaker" src="/images/kitchen/strokruka.webp" alt="">' +
       '<div class="kitturns" id="kitcount">0 puistet</div>';
     var shaker = document.getElementById("kitshaker"),
       bowl = document.getElementById("kitbowl"),
@@ -10556,8 +10556,8 @@
     shaker.addEventListener("pointermove", function (e) {
       if (!dragging) return;
       var r = stage.getBoundingClientRect();
-      shaker.style.left = e.clientX - r.left - 22 + "px";
-      shaker.style.top = e.clientY - r.top - 50 + "px";
+      shaker.style.left = e.clientX - r.left - 30 + "px";
+      shaker.style.top = e.clientY - r.top - 62 + "px";
       if (!within(bowl, e.clientX, e.clientY)) return;
       /* räknar bara var annan träff så det inte regnar korn absurt snabbt bara för att
          pointermove avfyras ofta - samma andetag som sega/rulli/määri räknar rörelse. */
@@ -10765,11 +10765,22 @@
      över ytan - ackumulerad rörelse i VILKEN RIKTNING SOM HELST (till skillnad från rullis
      bara sidled), en täckningsgrad fylls i som en genomskinlig gyllene yta istället för en
      siffra, så det känns som att bre ut något snarare än att mäta en sträcka. */
-  function kitchenSetupMaari() {
-    var stage = document.getElementById("kitstage");
+  function kitchenSetupMaari(step) {
+    var stage = document.getElementById("kitstage"),
+      isVoi = step && step.tool === "voi",
+      toolSrc = isVoi ? "/images/kitchen/voikniv.webp" : "/images/kitchen/pensel.webp",
+      toolW = 108,
+      toolH = isVoi ? 20 : 33;
     stage.innerHTML =
       '<div class="kitspread" id="kitspread"><div class="kitspreadfill" id="kitspreadfill"></div></div>' +
-      '<div class="kitbrush" id="kitbrush">🖌️</div><div class="kitturns" id="kitcount">0%</div>';
+      '<img class="kitbrush" id="kitbrush" src="' +
+      toolSrc +
+      '" alt="" style="width:' +
+      toolW +
+      "px;height:" +
+      toolH +
+      'px">' +
+      '<div class="kitturns" id="kitcount">0%</div>';
     var brush = document.getElementById("kitbrush"),
       fill = document.getElementById("kitspreadfill"),
       dragging = false,
@@ -10801,8 +10812,8 @@
       document.getElementById("kitcount").textContent = Math.round(frac * 100) + "%";
       fill.style.opacity = frac;
       var r = stage.getBoundingClientRect();
-      brush.style.left = e.clientX - r.left - 20 + "px";
-      brush.style.top = e.clientY - r.top - 20 + "px";
+      brush.style.left = e.clientX - r.left - toolW / 2 + "px";
+      brush.style.top = e.clientY - r.top - toolH / 2 + "px";
       if (total >= MIN_PX) showContinue();
     });
     brush.addEventListener("pointerup", function () {

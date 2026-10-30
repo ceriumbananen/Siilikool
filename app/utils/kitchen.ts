@@ -29,8 +29,12 @@ export type KitchenStep = {
   verb: KitchenVerb;
   et: string;
   sv: string;
-  /** bara vala: vad man drar till skålen */
-  ingredient?: { em: string; et: string; sv: string };
+  /** bara vala: vad man drar till skålen. img = riktig AI-bild istället för emoji (kitchenSetupVala,
+   * app.js) - saknas img faller den tillbaka på emojit (t.ex. marjad/bär har ingen egen bild). */
+  ingredient?: { em: string; et: string; sv: string; img?: string };
+  /** bara maari: vilket redskap som visas - en smörkniv (dra ut smör) eller en pensel (pensla
+   * med ägg), se kitchenSetupMaari (app.js). Saknas den används penseln som standard. */
+  tool?: "voi" | "muna";
 };
 
 export type KitchenOutcome = {
@@ -165,21 +169,21 @@ export const KITCHEN_RECIPES: KitchenRecipe[] = [
         verb: "vala",
         et: "Vala leige piim pärmile",
         sv: "Häll ljummen mjölk över jästen",
-        ingredient: { em: "🥛", et: "piim", sv: "mjölk" },
+        ingredient: { em: "🥛", et: "piim", sv: "mjölk", img: "/images/kitchen/piim.webp" },
       },
       { verb: "puista", et: "Puista hulka suhkur ja sool", sv: "Strö i socker och salt" },
       {
         verb: "vala",
         et: "Löö kaussi muna",
         sv: "Knäck i ägget",
-        ingredient: { em: "🥚", et: "muna", sv: "ägg" },
+        ingredient: { em: "🥚", et: "muna", sv: "ägg", img: "/images/kitchen/muna.webp" },
       },
       { verb: "puista", et: "Puista sisse kardemon", sv: "Strö i kardemumman" },
       { verb: "sega", et: "Sega ühtlaseks taignaks", sv: "Rör ihop till en jämn smet" },
       { verb: "sotku", et: "Sõtku sisse või ja jahu", sv: "Knåda in smöret och mjölet" },
       { verb: "puhkamine", et: "Lase taignal kerkida", sv: "Låt degen jäsa" },
       { verb: "rulli", et: "Rulli taigen lahti", sv: "Kavla ut degen" },
-      { verb: "maari", et: "Määri peale või", sv: "Bred ut smöret" },
+      { verb: "maari", et: "Määri peale või", sv: "Bred ut smöret", tool: "voi" },
       {
         verb: "puista",
         et: "Puista peale suhkur, kaneel ja kardemon",
@@ -187,7 +191,7 @@ export const KITCHEN_RECIPES: KitchenRecipe[] = [
       },
       { verb: "loika", et: "Lõika ribadeks", sv: "Skär i remsor" },
       { verb: "vormi", et: "Vormi ribad sõlmedeks", sv: "Knyt remsorna till knutar" },
-      { verb: "maari", et: "Määri munaga", sv: "Pensla med ägg" },
+      { verb: "maari", et: "Määri munaga", sv: "Pensla med ägg", tool: "muna" },
       { verb: "puista", et: "Puista pärlsuhkrut", sv: "Strö på pärlsocker" },
       { verb: "kupseta", et: "Küpseta ahjus", sv: "Grädda i ugnen" },
     ],
