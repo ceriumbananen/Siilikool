@@ -1,9 +1,20 @@
 /* Siiri köök - matlagningsspelet. Ett recept är en kedja av steg, varje steg ett eget verb/gest
-   (se kitchenStart() m.fl. i public/legacy/app.js för själva interaktionen):
+   (se kitchenStart() m.fl. i public/legacy/app.js för själva interaktionen). Designprincip
+   (buggrapport: "massor av genvägar... det handlar om att man ska göra saker som är roligt
+   också, det är ett spel"): VARJE riktig handlingstyp i receptet får sin egen gest - inget
+   slås ihop till en enda generisk "håll"-knapp bara för att vara kort. Ingredienser som delar
+   exakt samma fysiska handling i samma ögonblick (t.ex. socker+salt som strös i samtidigt) får
+   däremot dela EN instans av den gesten, annars blir tre identiska strö-moment i rad tråkiga.
+
    - vala (häll): dra ingrediensen till skålen
+   - puista (strö): tryck upprepat på en strökruka, korn faller ner i skålen
    - sega (röra): cirkelrörelse i skålen (en sked kretsar runt skålens kant, dra den runt)
+   - sõtku (knåda): håll nedtryckt på degen, ackumulerad håll-tid istället för antal tryck
+   - puhkamine (jäsning): inget att göra - en kort, odömande väntestund, degen puffar upp
+   - rulli (kavel): dra kaveln fram och tillbaka - degen plattas ut efter hand
+   - määri (bre ut/pensla): svep ett verktyg över ytan - en täckningsgrad fylls i efter hand
    - loika (hacka/skär): upprepade tryck
-   - vormi (forma): dra degen genom två punkter i ordning, t.ex. till en åtta-form
+   - vormi (forma): dra degen till en knut-symbol (samma enkla dra-och-släpp som vala)
    - kupseta (steka/baka): släpp när man vill - ingen tidspress, bara olika utfall
 
    Design: inget steg kan "misslyckas" på riktigt - gör man det press/för löst/för sent blir
@@ -11,7 +22,8 @@
    Se SECRETS (secrets.ts) för samma "samla det udda resultatet"-mönster - S.cookbook fylls på
    likadant. */
 
-export type KitchenVerb = "vala" | "sega" | "loika" | "vormi" | "kupseta";
+export type KitchenVerb =
+  "vala" | "puista" | "sega" | "sotku" | "puhkamine" | "rulli" | "maari" | "loika" | "vormi" | "kupseta";
 
 export type KitchenStep = {
   verb: KitchenVerb;
@@ -151,26 +163,33 @@ export const KITCHEN_RECIPES: KitchenRecipe[] = [
     steps: [
       {
         verb: "vala",
-        et: "Vala pärm, piim ja muna kaussi",
-        sv: "Häll jäst, mjölk och ägg i skålen",
+        et: "Vala leige piim pärmile",
+        sv: "Häll ljummen mjölk över jästen",
         ingredient: { em: "🥛", et: "piim", sv: "mjölk" },
       },
+      { verb: "puista", et: "Puista hulka suhkur ja sool", sv: "Strö i socker och salt" },
       {
-        verb: "sega",
-        et: "Sega hulka suhkur, sool, kardemon, või ja jahu",
-        sv: "Rör ner socker, salt, kardemumma, smör och mjöl",
+        verb: "vala",
+        et: "Löö kaussi muna",
+        sv: "Knäck i ägget",
+        ingredient: { em: "🥚", et: "muna", sv: "ägg" },
       },
+      { verb: "puista", et: "Puista sisse kardemon", sv: "Strö i kardemumman" },
+      { verb: "sega", et: "Sega ühtlaseks taignaks", sv: "Rör ihop till en jämn smet" },
+      { verb: "sotku", et: "Sõtku sisse või ja jahu", sv: "Knåda in smöret och mjölet" },
+      { verb: "puhkamine", et: "Lase taignal kerkida", sv: "Låt degen jäsa" },
+      { verb: "rulli", et: "Rulli taigen lahti", sv: "Kavla ut degen" },
+      { verb: "maari", et: "Määri peale või", sv: "Bred ut smöret" },
       {
-        verb: "loika",
-        et: "Määri peale täidis (või, suhkur, kaneel, kardemon) ja lõika ribadeks",
-        sv: "Bred på fyllningen (smör, socker, kanel, kardemumma) och skär i remsor",
+        verb: "puista",
+        et: "Puista peale suhkur, kaneel ja kardemon",
+        sv: "Strö på socker, kanel och kardemumma",
       },
+      { verb: "loika", et: "Lõika ribadeks", sv: "Skär i remsor" },
       { verb: "vormi", et: "Vormi ribad sõlmedeks", sv: "Knyt remsorna till knutar" },
-      {
-        verb: "kupseta",
-        et: "Määri munaga, puista pärlsuhkrut ja küpseta",
-        sv: "Pensla med ägg, strö på pärlsocker och grädda",
-      },
+      { verb: "maari", et: "Määri munaga", sv: "Pensla med ägg" },
+      { verb: "puista", et: "Puista pärlsuhkrut", sv: "Strö på pärlsocker" },
+      { verb: "kupseta", et: "Küpseta ahjus", sv: "Grädda i ugnen" },
     ],
     perfect: {
       id: "kanelbulle-ok",

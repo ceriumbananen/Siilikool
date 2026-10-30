@@ -10428,7 +10428,12 @@
       "</div>";
     speak(step.et);
     if (step.verb === "vala") kitchenSetupVala(step);
+    else if (step.verb === "puista") kitchenSetupPuista();
     else if (step.verb === "sega") kitchenSetupSega();
+    else if (step.verb === "sotku") kitchenSetupSotku();
+    else if (step.verb === "puhkamine") kitchenSetupPuhkamine();
+    else if (step.verb === "rulli") kitchenSetupRulli();
+    else if (step.verb === "maari") kitchenSetupMaari();
     else if (step.verb === "loika") kitchenSetupLoika();
     else if (step.verb === "vormi") kitchenSetupVormi();
     else kitchenSetupKupseta();
@@ -10486,6 +10491,58 @@
       } else {
         reset();
       }
+    });
+  }
+  /* liten fall-animation för puista (strö) - några korn som faller från strökrukan ner mot
+     skålen, en i taget per tryck. Rena DOM-noder som städar sig själva, inget state att hålla
+     reda på mellan tryck. */
+  function kitchenSprinkleFx(stage, from) {
+    var sr = from.getBoundingClientRect(),
+      r = stage.getBoundingClientRect(),
+      n = 4,
+      i;
+    for (i = 0; i < n; i++) {
+      var dot = document.createElement("div");
+      dot.className = "kitgrain";
+      dot.style.left = sr.left - r.left + sr.width / 2 + (Math.random() * 24 - 12) + "px";
+      dot.style.top = sr.top - r.top + sr.height - 10 + "px";
+      dot.style.animationDelay = i * 45 + "ms";
+      stage.appendChild(dot);
+      (function (d) {
+        setTimeout(function () {
+          d.remove();
+        }, 700);
+      })(dot);
+    }
+  }
+  /* puista: upprepade tryck på strökrukan, precis som loika men med ett eget utseende (korn
+     som faller) så det känns som att strö, inte som att hacka. Ingen gradering - man strör
+     tills man själv tycker det räcker, som vala/vormi. */
+  function kitchenSetupPuista() {
+    var stage = document.getElementById("kitstage");
+    stage.innerHTML =
+      '<div class="kitshaker" id="kitshaker">🧂</div><div class="kitbowl" id="kitbowl">🥣</div>' +
+      '<div class="kitturns" id="kitcount">0 puistet</div>';
+    var shaker = document.getElementById("kitshaker"),
+      count = 0,
+      MIN_SHAKES = 3;
+    function showContinue() {
+      var c = document.getElementById("kitcontinue");
+      if (c.firstChild) return;
+      c.innerHTML = '<button class="btn green big wide" id="kitdone">Klar! ✅</button>';
+      document.getElementById("kitdone").onclick = function () {
+        kitchenAdvance(false);
+      };
+    }
+    shaker.addEventListener("pointerdown", function () {
+      count++;
+      document.getElementById("kitcount").textContent = count + " puistet";
+      shaker.classList.remove("kit-shake");
+      void shaker.offsetWidth;
+      shaker.classList.add("kit-shake");
+      kitchenSprinkleFx(stage, shaker);
+      tone(620 + count * 15, 0.05, 0);
+      if (count >= MIN_SHAKES) showContinue();
     });
   }
   /* sega: cirkelrörelse i skålen (sveper total vinkel runt skålens mittpunkt, oavsett
@@ -10560,6 +10617,157 @@
     });
     spoon.addEventListener("pointerup", function () {
       down = false;
+    });
+  }
+  /* sõtku: håll nedtryckt på degen - ackumulerad HÅLL-TID (inte antal tryck, till skillnad
+     från loika/puista) så det känns som att knåda med handflatan, inte hacka eller strö.
+     Degen trycks ihop visuellt medan man håller, fjädrar tillbaka när man släpper. */
+  function kitchenSetupSotku() {
+    var stage = document.getElementById("kitstage");
+    stage.innerHTML = '<div class="kitdough" id="kitdough">🍞</div><div class="kitturns" id="kitcount">0.0 s</div>';
+    var dough = document.getElementById("kitdough"),
+      total = 0,
+      pressStart = 0,
+      pressing = false,
+      MIN_MS = 1200,
+      raf;
+    function showContinue() {
+      var c = document.getElementById("kitcontinue");
+      if (c.firstChild) return;
+      c.innerHTML = '<button class="btn green big wide" id="kitdone">Klar! ✅</button>';
+      document.getElementById("kitdone").onclick = function () {
+        kitchenAdvance(false);
+      };
+    }
+    function tick() {
+      if (!pressing) return;
+      document.getElementById("kitcount").textContent = ((total + (Date.now() - pressStart)) / 1000).toFixed(1) + " s";
+      raf = requestAnimationFrame(tick);
+    }
+    dough.addEventListener("pointerdown", function () {
+      pressing = true;
+      pressStart = Date.now();
+      dough.classList.add("kit-squish");
+      tick();
+    });
+    function endPress() {
+      if (!pressing) return;
+      pressing = false;
+      if (raf) cancelAnimationFrame(raf);
+      total += Date.now() - pressStart;
+      dough.classList.remove("kit-squish");
+      document.getElementById("kitcount").textContent = (total / 1000).toFixed(1) + " s";
+      if (total >= MIN_MS) showContinue();
+    }
+    dough.addEventListener("pointerup", endPress);
+    dough.addEventListener("pointerleave", endPress);
+  }
+  /* puhkamine: inget att göra - en kort, odömande väntestund medan degen jäser. Ingen
+     gradering, ingen gest, bara en liten paus med en rolig "puffar upp"-animation innan man
+     går vidare - ett andningshål mellan alla de aktiva momenten. */
+  function kitchenSetupPuhkamine() {
+    var stage = document.getElementById("kitstage");
+    stage.innerHTML = '<div class="kitrise" id="kitrise">🫓</div><div class="kithint">Degen vilar och jäser …</div>';
+    var rise = document.getElementById("kitrise");
+    setTimeout(function () {
+      rise.classList.add("kit-risen");
+      tone(520, 0.1, 0);
+      var c = document.getElementById("kitcontinue");
+      c.innerHTML = '<button class="btn green big wide" id="kitdone">Nu är den klar! ✅</button>';
+      document.getElementById("kitdone").onclick = function () {
+        kitchenAdvance(false);
+      };
+    }, 1700);
+  }
+  /* rulli: dra kaveln fram och tillbaka över degen - ackumulerad SIDLED rörelse (till
+     skillnad från sega ovan som ackumulerar vinkel runt en mittpunkt), degen plattas
+     synligt ut efter hand som ett eget svar på rörelsen. */
+  function kitchenSetupRulli() {
+    var stage = document.getElementById("kitstage");
+    stage.innerHTML =
+      '<div class="kitdoughflat" id="kitdoughflat">🫓</div><div class="kitpin" id="kitpin">🪵</div>' +
+      '<div class="kitturns" id="kitcount">0%</div>';
+    var pin = document.getElementById("kitpin"),
+      flat = document.getElementById("kitdoughflat"),
+      dragging = false,
+      lastX = 0,
+      total = 0,
+      MIN_PX = 260;
+    pin.style.touchAction = "none";
+    function showContinue() {
+      var c = document.getElementById("kitcontinue");
+      if (c.firstChild) return;
+      c.innerHTML = '<button class="btn green big wide" id="kitdone">Klar! ✅</button>';
+      document.getElementById("kitdone").onclick = function () {
+        kitchenAdvance(false);
+      };
+    }
+    pin.addEventListener("pointerdown", function (e) {
+      dragging = true;
+      pin.setPointerCapture(e.pointerId);
+      lastX = e.clientX;
+    });
+    pin.addEventListener("pointermove", function (e) {
+      if (!dragging) return;
+      total += Math.abs(e.clientX - lastX);
+      lastX = e.clientX;
+      var frac = Math.min(1, total / MIN_PX);
+      document.getElementById("kitcount").textContent = Math.round(frac * 100) + "%";
+      flat.style.transform = "scaleX(" + (1 + frac * 0.7) + ") scaleY(" + (1 - frac * 0.35) + ")";
+      var r = stage.getBoundingClientRect();
+      pin.style.left = e.clientX - r.left - 30 + "px";
+      if (total >= MIN_PX) showContinue();
+    });
+    pin.addEventListener("pointerup", function () {
+      dragging = false;
+    });
+  }
+  /* määri: svep ett verktyg (bred ut smör eller pensla ägg - samma gest, olika steg-text)
+     över ytan - ackumulerad rörelse i VILKEN RIKTNING SOM HELST (till skillnad från rullis
+     bara sidled), en täckningsgrad fylls i som en genomskinlig gyllene yta istället för en
+     siffra, så det känns som att bre ut något snarare än att mäta en sträcka. */
+  function kitchenSetupMaari() {
+    var stage = document.getElementById("kitstage");
+    stage.innerHTML =
+      '<div class="kitspread" id="kitspread"><div class="kitspreadfill" id="kitspreadfill"></div></div>' +
+      '<div class="kitbrush" id="kitbrush">🖌️</div><div class="kitturns" id="kitcount">0%</div>';
+    var brush = document.getElementById("kitbrush"),
+      fill = document.getElementById("kitspreadfill"),
+      dragging = false,
+      lastX = 0,
+      lastY = 0,
+      total = 0,
+      MIN_PX = 320;
+    brush.style.touchAction = "none";
+    function showContinue() {
+      var c = document.getElementById("kitcontinue");
+      if (c.firstChild) return;
+      c.innerHTML = '<button class="btn green big wide" id="kitdone">Klar! ✅</button>';
+      document.getElementById("kitdone").onclick = function () {
+        kitchenAdvance(false);
+      };
+    }
+    brush.addEventListener("pointerdown", function (e) {
+      dragging = true;
+      brush.setPointerCapture(e.pointerId);
+      lastX = e.clientX;
+      lastY = e.clientY;
+    });
+    brush.addEventListener("pointermove", function (e) {
+      if (!dragging) return;
+      total += Math.abs(e.clientX - lastX) + Math.abs(e.clientY - lastY);
+      lastX = e.clientX;
+      lastY = e.clientY;
+      var frac = Math.min(1, total / MIN_PX);
+      document.getElementById("kitcount").textContent = Math.round(frac * 100) + "%";
+      fill.style.opacity = frac;
+      var r = stage.getBoundingClientRect();
+      brush.style.left = e.clientX - r.left - 20 + "px";
+      brush.style.top = e.clientY - r.top - 20 + "px";
+      if (total >= MIN_PX) showContinue();
+    });
+    brush.addEventListener("pointerup", function () {
+      dragging = false;
     });
   }
   /* loika: upprepade tryck. För få hack lämnar degen som en stor klump (en egen rolig
