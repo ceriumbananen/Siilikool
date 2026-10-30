@@ -4334,13 +4334,20 @@ body {
 /* ---------- Siiri köök (kitchenIntro/kitchenStep m.fl., app.js) ---------- */
 .kitstage {
   position: relative;
-  height: 220px;
+  height: 320px;
   margin: 12px 0;
   border-radius: var(--r-md);
   overflow: hidden;
   background-image: url("/images/kitchen/kokscen.webp");
   background-size: cover;
   background-position: center 65%;
+  /* steg utan absolutpositionerade element (sõtku/loika/puhkamine/kupseta) flyter annars upp
+     i toppen och lämnar ett stort tomt område under sig i den högre rutan - centrera dem
+     istället. Påverkar inte de absolutpositionerade elementen (skål, degring, kavel m.fl.). */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
 }
 
 /* hjälptext/räknare ligger nu ovanpå ett fotorealistiskt kök istället för en enfärgad
@@ -4418,6 +4425,12 @@ body {
   touch-action: none;
   user-select: none;
   z-index: 2;
+}
+
+/* vätskor (mjölk) hälls, de bärs inte upprätt som en mugg - tippad som om den redan är på väg
+   att hällas, se KitchenIngredient.pour (kitchen.ts) och kitchenSetupVala (app.js). */
+.kiting.kit-pour {
+  rotate: -28deg;
 }
 
 .kit-dragging {
@@ -4551,6 +4564,9 @@ body {
   width: 64px;
   height: 56px;
   object-fit: contain;
+  /* krukan är ritad liggande med hålen pekandes uppåt-höger (som en vas) - roterad så att
+     hålen istället pekar nedåt mot skålen, annars ser det ut som man häller uppåt. */
+  rotate: 95deg;
   cursor: pointer;
   touch-action: manipulation;
   user-select: none;
@@ -4564,13 +4580,13 @@ body {
 @keyframes kitShake {
   0%,
   100% {
-    rotate: 0deg;
+    rotate: 95deg;
   }
   25% {
-    rotate: -12deg;
+    rotate: 83deg;
   }
   75% {
-    rotate: 12deg;
+    rotate: 107deg;
   }
 }
 
@@ -4627,7 +4643,11 @@ body {
 
 .kitpin {
   position: absolute;
-  top: 70px;
+  /* kaveln ska rulla OVANPÅ degen (.kitdoughimg) - bottenankrad precis som degen, med ett
+     litet fast avstånd, så de alltid möts oavsett rutans höjd. Tidigare var kaveln top-
+     ankrad och degen bottenankrad, vilket gjorde att kaveln svävade fritt långt ovanför
+     degen istället för att röra den. */
+  bottom: 90px;
   left: 50%;
   transform: translateX(-50%);
   width: 130px;
@@ -4663,8 +4683,11 @@ body {
 
 .kitbrush {
   position: absolute;
-  top: 20px;
-  left: 20px;
+  /* inte uppe i hörnet (top/left 20px) som kiting/kitshaker - där hamnade den rakt ovanpå
+     hyllans bråte i kökbakgrunden och gick knappt att se eller hitta. Strax ovanför
+     bre-ut-ytan istället, mot en lugnare del av bakgrunden. */
+  bottom: 112px;
+  left: 16px;
   object-fit: contain;
   cursor: grab;
   touch-action: none;

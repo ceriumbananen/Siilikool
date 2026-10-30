@@ -10451,7 +10451,11 @@
     stage.innerHTML =
       '<img class="kitbowl" id="kitbowl" src="/images/kitchen/skal.webp" alt="">' +
       (step.ingredient && step.ingredient.img
-        ? '<img class="kiting" id="kiting" src="' + step.ingredient.img + '" alt="">'
+        ? '<img class="kiting' +
+          (step.ingredient.pour ? " kit-pour" : "") +
+          '" id="kiting" src="' +
+          step.ingredient.img +
+          '" alt="">'
         : '<div class="kiting" id="kiting">' + (step.ingredient ? step.ingredient.em : "🫐") + "</div>");
     var ing = document.getElementById("kiting"),
       bowl = document.getElementById("kitbowl"),
@@ -10769,8 +10773,8 @@
     var stage = document.getElementById("kitstage"),
       isVoi = step && step.tool === "voi",
       toolSrc = isVoi ? "/images/kitchen/voikniv.webp" : "/images/kitchen/pensel.webp",
-      toolW = 108,
-      toolH = isVoi ? 20 : 33;
+      toolW = 160,
+      toolH = isVoi ? 29 : 49;
     stage.innerHTML =
       '<div class="kitspread" id="kitspread"><div class="kitspreadfill" id="kitspreadfill"></div></div>' +
       '<img class="kitbrush" id="kitbrush" src="' +

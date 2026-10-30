@@ -30,8 +30,9 @@ export type KitchenStep = {
   et: string;
   sv: string;
   /** bara vala: vad man drar till skålen. img = riktig AI-bild istället för emoji (kitchenSetupVala,
-   * app.js) - saknas img faller den tillbaka på emojit (t.ex. marjad/bär har ingen egen bild). */
-  ingredient?: { em: string; et: string; sv: string; img?: string };
+   * app.js) - saknas img faller den tillbaka på emojit (t.ex. marjad/bär har ingen egen bild).
+   * pour = vätska (mjölk) - visas tippad, inte upprätt som en mugg, se .kit-pour (style.css). */
+  ingredient?: { em: string; et: string; sv: string; img?: string; pour?: boolean };
   /** bara maari: vilket redskap som visas - en smörkniv (dra ut smör) eller en pensel (pensla
    * med ägg), se kitchenSetupMaari (app.js). Saknas den används penseln som standard. */
   tool?: "voi" | "muna";
@@ -169,7 +170,7 @@ export const KITCHEN_RECIPES: KitchenRecipe[] = [
         verb: "vala",
         et: "Vala leige piim pärmile",
         sv: "Häll ljummen mjölk över jästen",
-        ingredient: { em: "🥛", et: "piim", sv: "mjölk", img: "/images/kitchen/piim.webp" },
+        ingredient: { em: "🥛", et: "piim", sv: "mjölk", img: "/images/kitchen/piim.webp", pour: true },
       },
       { verb: "puista", et: "Puista hulka suhkur ja sool", sv: "Strö i socker och salt" },
       {
