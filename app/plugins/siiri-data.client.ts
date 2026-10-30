@@ -33,6 +33,7 @@ export default defineNuxtPlugin(() => {
     EPILOGUE,
     SHOP,
     FURN,
+    KITCHEN_RECIPES,
     /* rivals.ts, avatars.ts, quests.ts */
     RIVALS,
     AVATARS,

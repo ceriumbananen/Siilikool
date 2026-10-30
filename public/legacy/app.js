@@ -31,6 +31,7 @@
   };
   var SOUVENIR = window.SiiriData.SOUVENIR; /* app/utils/trip.ts */
   var EPILOGUE = window.SiiriData.EPILOGUE; /* app/utils/trip.ts */
+  var KITCHEN_RECIPES = window.SiiriData.KITCHEN_RECIPES; /* app/utils/kitchen.ts */
 
   function tripDone() {
     if (typeof S.tripDone !== "number") {
@@ -3315,10 +3316,35 @@
       return s.word.et === t;
     });
   }
+  /* samma sak för Siiri köök (KITCHEN_RECIPES) - lärdomen från epilogen tillämpad direkt från
+     start den här gången, inte som en efterhandsfix: stegens instruktioner, ingrediensen och
+     alla resultatkortens texter/namn hämtas live precis som skolans glosor. */
+  var KITCHEN_TTS_WORDS = (function () {
+    var set = {};
+    KITCHEN_RECIPES.forEach(function (r) {
+      r.steps.forEach(function (s) {
+        set[s.et] = 1;
+        if (s.ingredient) set[s.ingredient.et] = 1;
+      });
+      var outs = [r.perfect].concat(
+        Object.keys(r.miss).map(function (k) {
+          return r.miss[k];
+        }),
+      );
+      outs.forEach(function (o) {
+        set[o.et] = 1;
+        set[o.name.et] = 1;
+      });
+    });
+    return set;
+  })();
+  function isKitchenWord(et) {
+    return !!KITCHEN_TTS_WORDS[(et || "").trim()];
+  }
   /* ord värda att hämta uttal live för när de saknar förinspelat ljud - antingen en glosa
      från läxlistan eller något barnet själv skrivit, se speak(). */
   function needsLiveTts(et) {
-    return isSchoolWord(et) || isPersonalWord(et) || isEpilogueWord(et);
+    return isSchoolWord(et) || isPersonalWord(et) || isEpilogueWord(et) || isKitchenWord(et);
   }
   /* ser till att alla ord i glosorna har ljud: tar från cachen, hämtar det som saknas
        och rensar bort ljud från gamla listor. onProgress(klara, totalt) är valfri.
@@ -3955,6 +3981,7 @@
       { k: "mem", em: "🃏", et: "Mälumäng", sv: "Memory", grp: "gör" },
       { k: "rain", em: "🌧️", et: "Sõnasadu", sv: "Ordregnet", grp: "gör" },
       { k: "boat", em: "🛶", et: "Paadisõit", sv: "Barkbåten", grp: "gör" },
+      { k: "kok", em: "🥨", et: "Siiri köök", sv: "Siiri kök", grp: "gör" },
       { k: "speed", em: "🎲", et: esc(UI.mix.et), sv: esc(UI.mix.sv), grp: "öva" },
       { k: "sent", em: "🧩", et: esc(UI.sent.et), sv: esc(UI.sent.sv), grp: "öva" },
       { k: "talk", em: "💬", et: esc(UI.talk.et), sv: esc(UI.talk.sv), grp: "öva" },
@@ -4294,11 +4321,12 @@
       mem: memIntro,
       rain: rainIntro,
       boat: boatIntro,
+      kok: kitchenIntro,
       duel: duelIntro,
       chal: chIntro,
       otsi: otsiIntro,
     };
-    var keys = ["speed", "sent", "talk", "mem", "rain", "boat", "duel", "chal", "otsi"];
+    var keys = ["speed", "sent", "talk", "mem", "rain", "boat", "kok", "duel", "chal", "otsi"];
     for (i = 0; i < keys.length; i++) {
       (function (k) {
         var el = app.querySelector('[data-go="' + k + '"]');
@@ -4311,6 +4339,7 @@
               mem: "Mälumäng",
               rain: "Sõnasadu",
               boat: "Paadisõit",
+              kok: "Siiri köök",
               duel: "Duell",
               chal: "Väljakutse",
               otsi: "Otsi!",
@@ -10280,6 +10309,250 @@
     BT = null;
     mood("cheer");
     document.getElementById("again").onclick = boatIntro;
+    document.getElementById("home").onclick = function () {
+      go(homeScreen, false);
+    };
+  }
+
+  /* ---------- SIIRI KÖÖK ----------
+     Ett recept (KITCHEN_RECIPES, app/utils/kitchen.ts) är en kedja steg, varje steg ett eget
+     verb/gest: vala (dra till skålen), sega (cirkelrörelse), loika (upprepade tryck), kupseta
+     (släpp när man vill). Inget steg kan misslyckas på riktigt - gör man annorlunda (för många
+     varv, för få hack, fel tillagningstid) blir resultatet bara en annan, rolig maträtt
+     (recipe.miss[verb]) istället för den "perfekta" varianten, aldrig ett rött kryss. Hittade
+     resultat sparas i S.cookbook, samma "samla det udda"-mönster som SECRETS. */
+  var KT = null;
+  function kitchenIntro() {
+    screen = "kitchen";
+    app.innerHTML =
+      '<div class="zone play"><span class="zem">🥨</span><span><b>Siiri köök</b><span>Laga mat med Siiri</span></span></div>' +
+      '<div class="card" style="text-align:center"><p class="qsub">Följ receptet steg för steg - häll, rör, hacka och grädda tillsammans med Siiri. Gör du något lite annorlunda blir det aldrig fel, bara en annan rolig maträtt!</p>' +
+      '<div class="center">' +
+      siilSVG("small") +
+      "</div>" +
+      '<button class="btn green big wide" id="start">Sätt igång 🥨</button></div>';
+    document.getElementById("start").onclick = function () {
+      KT = { recipe: KITCHEN_RECIPES[0], stepIdx: 0, missVerb: null };
+      kitchenStep();
+    };
+  }
+  function kitchenStep() {
+    var step = KT.recipe.steps[KT.stepIdx];
+    app.innerHTML =
+      '<div class="zone play"><span class="zem">🥨</span><span><b>' +
+      esc(KT.recipe.name.sv) +
+      "</b><span>Steg " +
+      (KT.stepIdx + 1) +
+      " av " +
+      KT.recipe.steps.length +
+      "</span></span></div>" +
+      '<div class="card" style="text-align:center">' +
+      '<p class="q" lang="et">' +
+      esc(step.et) +
+      "</p>" +
+      '<p class="qsub">' +
+      esc(step.sv) +
+      "</p>" +
+      '<div class="kitstage" id="kitstage"></div>' +
+      '<div id="kitcontinue"></div>' +
+      "</div>";
+    speak(step.et);
+    if (step.verb === "vala") kitchenSetupVala(step);
+    else if (step.verb === "sega") kitchenSetupSega();
+    else if (step.verb === "loika") kitchenSetupLoika();
+    else kitchenSetupKupseta();
+  }
+  function kitchenAdvance(missedThisStep) {
+    if (missedThisStep && !KT.missVerb) KT.missVerb = KT.recipe.steps[KT.stepIdx].verb;
+    KT.stepIdx++;
+    if (KT.stepIdx >= KT.recipe.steps.length) kitchenResult();
+    else kitchenStep();
+  }
+  /* vala: dra ingrediensen till skålen. Ingen gradering - missar man skålen får man bara
+     försöka igen, det finns inget "fel" sätt att till slut få den dit. */
+  function kitchenSetupVala(step) {
+    var stage = document.getElementById("kitstage");
+    stage.innerHTML =
+      '<div class="kitbowl" id="kitbowl">🥣</div>' +
+      '<div class="kiting" id="kiting">' +
+      (step.ingredient ? step.ingredient.em : "🫐") +
+      "</div>";
+    var ing = document.getElementById("kiting"),
+      bowl = document.getElementById("kitbowl"),
+      dragging = false,
+      startLeft = ing.offsetLeft,
+      startTop = ing.offsetTop;
+    ing.style.touchAction = "none";
+    function reset() {
+      ing.style.left = startLeft + "px";
+      ing.style.top = startTop + "px";
+    }
+    ing.addEventListener("pointerdown", function (e) {
+      dragging = true;
+      ing.setPointerCapture(e.pointerId);
+      ing.classList.add("kit-dragging");
+    });
+    ing.addEventListener("pointermove", function (e) {
+      if (!dragging) return;
+      var r = stage.getBoundingClientRect();
+      /* ritas en bit OVANFÖR fingret, inte rakt under - annars skymmer fingret precis det man
+         ska styra, särskilt kännbart på touch där man inte har en liten musmarkör att se runt. */
+      ing.style.left = e.clientX - r.left - 24 + "px";
+      ing.style.top = e.clientY - r.top - 56 + "px";
+    });
+    ing.addEventListener("pointerup", function (e) {
+      if (!dragging) return;
+      dragging = false;
+      ing.classList.remove("kit-dragging");
+      var br = bowl.getBoundingClientRect();
+      var hit = e.clientX >= br.left && e.clientX <= br.right && e.clientY >= br.top && e.clientY <= br.bottom;
+      if (hit) {
+        bowl.classList.add("kit-pop");
+        sndOk();
+        setTimeout(function () {
+          kitchenAdvance(false);
+        }, 350);
+      } else {
+        reset();
+      }
+    });
+  }
+  /* sega: cirkelrörelse i skålen (sveper total vinkel runt skålens mittpunkt, oavsett
+     medurs/moturs). Ett barn som tycker cirklandet är kul och fortsätter väldigt länge får en
+     jättepannkaka istället för kringeldeg - den "typiska" överdriften ger ett eget roligt
+     resultat, inte ett straff. */
+  function kitchenSetupSega() {
+    var stage = document.getElementById("kitstage");
+    stage.innerHTML =
+      '<div class="kitbowl kitbowl--stir" id="kitbowl">🥣<div class="kitturns" id="kitturns">0 varv</div></div>';
+    var bowl = document.getElementById("kitbowl"),
+      total = 0,
+      lastAngle = null,
+      down = false,
+      MIN_TURNS = 0.4,
+      MAX_TURNS = 3;
+    bowl.style.touchAction = "none";
+    function angleFor(e) {
+      var r = bowl.getBoundingClientRect();
+      return Math.atan2(e.clientY - (r.top + r.height / 2), e.clientX - (r.left + r.width / 2));
+    }
+    function showContinue() {
+      var c = document.getElementById("kitcontinue");
+      if (c.firstChild) return;
+      c.innerHTML = '<button class="btn green big wide" id="kitdone">Klar! ✅</button>';
+      document.getElementById("kitdone").onclick = function () {
+        kitchenAdvance(total / (2 * Math.PI) > MAX_TURNS);
+      };
+    }
+    bowl.addEventListener("pointerdown", function (e) {
+      down = true;
+      bowl.setPointerCapture(e.pointerId);
+      lastAngle = angleFor(e);
+    });
+    bowl.addEventListener("pointermove", function (e) {
+      if (!down) return;
+      var a = angleFor(e),
+        d = a - lastAngle;
+      if (d > Math.PI) d -= 2 * Math.PI;
+      if (d < -Math.PI) d += 2 * Math.PI;
+      total += Math.abs(d);
+      lastAngle = a;
+      document.getElementById("kitturns").textContent = (total / (2 * Math.PI)).toFixed(1) + " varv";
+      if (total / (2 * Math.PI) >= MIN_TURNS) showContinue();
+    });
+    bowl.addEventListener("pointerup", function () {
+      down = false;
+    });
+  }
+  /* loika: upprepade tryck. För få hack lämnar degen som en stor klump (en egen rolig
+     "sõlm"-rätt) istället för fina bitar - motsatt typ av överdrift mot sega ovan, så de två
+     gesterna inte känns likadana. */
+  function kitchenSetupLoika() {
+    var stage = document.getElementById("kitstage");
+    stage.innerHTML = '<div class="kitdough" id="kitdough">🍞<div class="kitcount" id="kitcount">0 hack</div></div>';
+    var dough = document.getElementById("kitdough"),
+      count = 0,
+      MIN_CHOPS = 3;
+    function showContinue() {
+      var c = document.getElementById("kitcontinue");
+      if (c.firstChild) return;
+      c.innerHTML = '<button class="btn green big wide" id="kitdone">Klar! ✅</button>';
+      document.getElementById("kitdone").onclick = function () {
+        kitchenAdvance(count < MIN_CHOPS);
+      };
+    }
+    dough.addEventListener("pointerdown", function () {
+      count++;
+      document.getElementById("kitcount").textContent = count + " hack";
+      dough.classList.remove("kit-pop");
+      void dough.offsetWidth;
+      dough.classList.add("kit-pop");
+      tone(300 + count * 20, 0.05, 0);
+      showContinue();
+    });
+  }
+  /* kupseta: släpp när man vill - ingen tidspress alls. Var man släpper avgör bara SMAKEN på
+     resultatet (för tidigt/sent = en egen rolig rätt, mitten = perfekt), aldrig om man
+     "hann" eller inte. */
+  function kitchenSetupKupseta() {
+    var stage = document.getElementById("kitstage");
+    stage.innerHTML =
+      '<div class="kitoven">🔥</div><div class="kitheatbar"><div class="kitheatfill" id="kitheatfill"></div></div>' +
+      '<button class="btn green big wide" id="kittake" style="margin-top:12px">Ta ut! 🍽️</button>';
+    var fill = document.getElementById("kitheatfill"),
+      t0 = Date.now(),
+      DURATION = 6000,
+      raf;
+    function tick() {
+      var p = Math.min(1, (Date.now() - t0) / DURATION);
+      fill.style.width = p * 100 + "%";
+      if (p < 1) raf = requestAnimationFrame(tick);
+    }
+    raf = requestAnimationFrame(tick);
+    document.getElementById("kittake").onclick = function () {
+      cancelAnimationFrame(raf);
+      var p = Math.min(1, (Date.now() - t0) / DURATION);
+      kitchenAdvance(!(p >= 0.35 && p <= 0.75));
+    };
+  }
+  function kitchenResult() {
+    var r = KT.recipe,
+      outcome = KT.missVerb ? r.miss[KT.missVerb] || r.perfect : r.perfect,
+      isNew = (S.cookbook || []).indexOf(outcome.id) === -1;
+    if (isNew) {
+      if (!S.cookbook) S.cookbook = [];
+      S.cookbook.push(outcome.id);
+    }
+    var perfect = outcome === r.perfect;
+    earnStars(perfect ? 30 : 16);
+    addXp(perfect ? 40 : 24);
+    save();
+    burst(perfect ? 120 : 60);
+    fanfare(perfect ? 2 : 1);
+    speak(outcome.et);
+    app.innerHTML =
+      '<div class="card" style="text-align:center">' +
+      '<div style="font-size:64px">' +
+      outcome.em +
+      "</div>" +
+      '<p class="q" lang="et">' +
+      esc(outcome.name.et) +
+      "</p>" +
+      '<p class="qsub">' +
+      esc(outcome.name.sv) +
+      "</p>" +
+      '<p class="qsub" lang="et">' +
+      esc(outcome.et) +
+      "</p>" +
+      (isNew ? '<p class="qsub" style="color:var(--moss);font-weight:700">🆕 Ny sida i kokboken!</p>' : "") +
+      '<div class="center">' +
+      siilSVG("small") +
+      "</div>" +
+      '<div class="row"><button class="btn green big" id="again">Laga igen 🥨</button>' +
+      '<button class="btn ghost big" id="home">Tillbaka</button></div></div>';
+    mood("cheer");
+    KT = null;
+    document.getElementById("again").onclick = kitchenIntro;
     document.getElementById("home").onclick = function () {
       go(homeScreen, false);
     };

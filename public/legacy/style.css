@@ -4331,6 +4331,106 @@ body {
   }
 }
 
+/* ---------- Siiri köök (kitchenIntro/kitchenStep m.fl., app.js) ---------- */
+.kitstage {
+  position: relative;
+  height: 220px;
+  margin: 12px 0;
+}
+
+.kitbowl {
+  position: absolute;
+  left: 50%;
+  bottom: 6px;
+  transform: translateX(-50%);
+  font-size: 72px;
+  line-height: 1;
+  touch-action: none;
+  user-select: none;
+}
+
+.kitbowl--stir {
+  cursor: grab;
+}
+
+.kitturns,
+.kitcount {
+  position: absolute;
+  left: 50%;
+  bottom: -26px;
+  transform: translateX(-50%);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.kiting {
+  position: absolute;
+  left: 20px;
+  top: 20px;
+  font-size: 44px;
+  line-height: 1;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+  z-index: 2;
+}
+
+.kit-dragging {
+  cursor: grabbing;
+  filter: drop-shadow(0 6px 8px rgba(0, 0, 0, 0.25));
+  scale: 1.08;
+}
+
+.kit-pop {
+  animation: kitPop 0.35s ease;
+}
+
+@keyframes kitPop {
+  0% {
+    scale: 1;
+  }
+  40% {
+    scale: 1.25;
+  }
+  100% {
+    scale: 1;
+  }
+}
+
+.kitdough {
+  position: relative;
+  margin: 0 auto;
+  width: fit-content;
+  font-size: 72px;
+  line-height: 1;
+  cursor: pointer;
+  touch-action: manipulation;
+  user-select: none;
+}
+
+.kitoven {
+  font-size: 64px;
+  line-height: 1;
+}
+
+.kitheatbar {
+  width: min(280px, 90%);
+  height: 20px;
+  margin: 10px auto 0;
+  border-radius: 10px;
+  background: var(--line);
+  overflow: hidden;
+  border: var(--bd) solid var(--ink);
+}
+
+.kitheatfill {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, var(--honey), var(--berry));
+}
+
 /* ---------- garderob ---------- */
 .shopgrid {
   display: grid;
