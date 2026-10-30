@@ -10449,7 +10449,7 @@
   function kitchenSetupVala(step) {
     var stage = document.getElementById("kitstage");
     stage.innerHTML =
-      '<div class="kitbowl" id="kitbowl">🥣</div>' +
+      '<img class="kitbowl" id="kitbowl" src="/images/kitchen/skal.webp" alt="">' +
       '<div class="kiting" id="kiting">' +
       (step.ingredient ? step.ingredient.em : "🫐") +
       "</div>";
@@ -10526,7 +10526,7 @@
     var stage = document.getElementById("kitstage");
     stage.innerHTML =
       '<div class="kithint">Dra strökrukan över skålen</div>' +
-      '<div class="kitbowl" id="kitbowl">🥣</div>' +
+      '<img class="kitbowl" id="kitbowl" src="/images/kitchen/skal.webp" alt="">' +
       '<div class="kitshaker" id="kitshaker">🧂</div>' +
       '<div class="kitturns" id="kitcount">0 puistet</div>';
     var shaker = document.getElementById("kitshaker"),
@@ -10584,8 +10584,8 @@
   function kitchenSetupSega() {
     var stage = document.getElementById("kitstage");
     stage.innerHTML =
-      '<div class="kitbowl kitbowl--stir" id="kitbowl">🥣</div>' +
-      '<div class="kitspoon" id="kitspoon">🥄</div>' +
+      '<img class="kitbowl kitbowl--stir" id="kitbowl" src="/images/kitchen/skal.webp" alt="">' +
+      '<img class="kitspoon" id="kitspoon" src="/images/kitchen/slev.webp" alt="">' +
       '<div class="kitturns" id="kitturns">0 varv</div>';
     var bowl = document.getElementById("kitbowl"),
       spoon = document.getElementById("kitspoon"),
@@ -10617,8 +10617,8 @@
         deg = (angle * 180) / Math.PI + 270; /* sleven pekar alltid in mot skålens mitt, se
            kommentar i kitchenSetupSega ovan - rätt bara om bilden själv är ritad pekandes rakt
            upp (skaft nedåt, lusikas-huvud uppåt) i sin viloposition. */
-      spoon.style.left = g.cx + g.rad * Math.cos(angle) - g.sLeft - 18 + "px";
-      spoon.style.top = g.cy + g.rad * Math.sin(angle) - g.sTop - 18 + "px";
+      spoon.style.left = g.cx + g.rad * Math.cos(angle) - g.sLeft - 12 + "px";
+      spoon.style.top = g.cy + g.rad * Math.sin(angle) - g.sTop - 55 + "px";
       spoon.style.transform = "rotate(" + deg + "deg)";
     }
     placeSpoon(-Math.PI / 2); /* vilovinkel uppe på kanten, så det syns att den går att greppa */
@@ -10656,7 +10656,9 @@
      Degen trycks ihop visuellt medan man håller, fjädrar tillbaka när man släpper. */
   function kitchenSetupSotku() {
     var stage = document.getElementById("kitstage");
-    stage.innerHTML = '<div class="kitdough" id="kitdough">🍞</div><div class="kitturns" id="kitcount">0.0 s</div>';
+    stage.innerHTML =
+      '<div class="kitdough" id="kitdough"><img class="kitdoughimg" src="/images/kitchen/deg.webp" alt=""></div>' +
+      '<div class="kitturns" id="kitcount">0.0 s</div>';
     var dough = document.getElementById("kitdough"),
       total = 0,
       pressStart = 0,
@@ -10673,7 +10675,9 @@
     }
     function tick() {
       if (!pressing) return;
-      document.getElementById("kitcount").textContent = ((total + (Date.now() - pressStart)) / 1000).toFixed(1) + " s";
+      var countEl = document.getElementById("kitcount");
+      if (!countEl) return;
+      countEl.textContent = ((total + (Date.now() - pressStart)) / 1000).toFixed(1) + " s";
       raf = requestAnimationFrame(tick);
     }
     dough.addEventListener("pointerdown", function () {
@@ -10699,7 +10703,9 @@
      går vidare - ett andningshål mellan alla de aktiva momenten. */
   function kitchenSetupPuhkamine() {
     var stage = document.getElementById("kitstage");
-    stage.innerHTML = '<div class="kitrise" id="kitrise">🫓</div><div class="kithint">Degen vilar och jäser …</div>';
+    stage.innerHTML =
+      '<img class="kitrise" id="kitrise" src="/images/kitchen/deg.webp" alt="">' +
+      '<div class="kithint">Degen vilar och jäser …</div>';
     var rise = document.getElementById("kitrise");
     setTimeout(function () {
       rise.classList.add("kit-risen");
@@ -10717,7 +10723,8 @@
   function kitchenSetupRulli() {
     var stage = document.getElementById("kitstage");
     stage.innerHTML =
-      '<div class="kitdoughflat" id="kitdoughflat">🫓</div><div class="kitpin" id="kitpin">🪵</div>' +
+      '<img class="kitdoughflat" id="kitdoughflat" src="/images/kitchen/deg.webp" alt="">' +
+      '<img class="kitpin" id="kitpin" src="/images/kitchen/kavel.webp" alt="">' +
       '<div class="kitturns" id="kitcount">0%</div>';
     var pin = document.getElementById("kitpin"),
       flat = document.getElementById("kitdoughflat"),
@@ -10747,7 +10754,7 @@
       document.getElementById("kitcount").textContent = Math.round(frac * 100) + "%";
       flat.style.transform = "scaleX(" + (1 + frac * 0.7) + ") scaleY(" + (1 - frac * 0.35) + ")";
       var r = stage.getBoundingClientRect();
-      pin.style.left = e.clientX - r.left - 30 + "px";
+      pin.style.left = e.clientX - r.left - 65 + "px";
       if (total >= MIN_PX) showContinue();
     });
     pin.addEventListener("pointerup", function () {
@@ -10807,7 +10814,9 @@
      gesterna inte känns likadana. */
   function kitchenSetupLoika() {
     var stage = document.getElementById("kitstage");
-    stage.innerHTML = '<div class="kitdough" id="kitdough">🍞<div class="kitcount" id="kitcount">0 hack</div></div>';
+    stage.innerHTML =
+      '<div class="kitdough" id="kitdough"><img class="kitdoughimg" src="/images/kitchen/deg.webp" alt="">' +
+      '<div class="kitcount" id="kitcount">0 hack</div></div>';
     var dough = document.getElementById("kitdough"),
       count = 0,
       MIN_CHOPS = 3;
@@ -10885,7 +10894,8 @@
      så det inte bara hoppar rakt till en eldflamma. */
   function kitchenSetupKupseta() {
     var stage = document.getElementById("kitstage");
-    stage.innerHTML = '<div class="kitoven">🔥</div><div class="kitslide" id="kitslide">🥨</div>';
+    stage.innerHTML =
+      '<img class="kitoven" src="/images/kitchen/ugn.webp" alt="">' + '<div class="kitslide" id="kitslide">🥨</div>';
     var slide = document.getElementById("kitslide");
     requestAnimationFrame(function () {
       slide.classList.add("kit-slide-in");
@@ -10895,7 +10905,8 @@
   function kitchenStartBake() {
     var stage = document.getElementById("kitstage");
     stage.innerHTML =
-      '<div class="kitoven">🔥</div><div class="kitheatbar"><div class="kitheatfill" id="kitheatfill"></div></div>' +
+      '<img class="kitoven" src="/images/kitchen/ugn.webp" alt="">' +
+      '<div class="kitheatbar"><div class="kitheatfill" id="kitheatfill"></div></div>' +
       '<button class="btn green big wide" id="kittake" style="margin-top:12px">Ta ut! 🍽️</button>';
     var fill = document.getElementById("kitheatfill"),
       t0 = Date.now(),

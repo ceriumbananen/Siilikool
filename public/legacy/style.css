@@ -4336,6 +4336,23 @@ body {
   position: relative;
   height: 220px;
   margin: 12px 0;
+  border-radius: var(--r-md);
+  overflow: hidden;
+  background-image: url("/images/kitchen/kokscen.webp");
+  background-size: cover;
+  background-position: center 65%;
+}
+
+/* hjälptext/räknare ligger nu ovanpå ett fotorealistiskt kök istället för en enfärgad
+   bakgrund - en liten mörk pill bakom texten håller den läsbar oavsett vad som råkar synas
+   bakom den, samma knep som .riverlabel (Paadisõit) använder för flasktexten. */
+.kithint,
+.kitturns,
+.kitcount {
+  background: rgba(20, 28, 16, 0.6);
+  padding: 2px 9px;
+  border-radius: 8px;
+  color: #fff !important;
 }
 
 .kitbowl {
@@ -4343,8 +4360,9 @@ body {
   left: 50%;
   bottom: 6px;
   transform: translateX(-50%);
-  font-size: 72px;
-  line-height: 1;
+  width: 130px;
+  height: 85px;
+  object-fit: contain;
   touch-action: none;
   user-select: none;
 }
@@ -4377,13 +4395,9 @@ body {
 
 .kitspoon {
   position: absolute;
-  width: 36px;
-  height: 36px;
-  font-size: 30px;
-  line-height: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  width: 25px;
+  height: 110px;
+  object-fit: contain;
   cursor: grab;
   touch-action: none;
   user-select: none;
@@ -4429,16 +4443,24 @@ body {
   position: relative;
   margin: 0 auto;
   width: fit-content;
-  font-size: 72px;
-  line-height: 1;
   cursor: pointer;
   touch-action: manipulation;
   user-select: none;
 }
 
+.kitdoughimg {
+  display: block;
+  width: 110px;
+  height: 80px;
+  object-fit: contain;
+}
+
 .kitoven {
-  font-size: 64px;
-  line-height: 1;
+  display: block;
+  margin: 0 auto;
+  width: 130px;
+  height: 102px;
+  object-fit: contain;
 }
 
 .kitheatbar {
@@ -4575,8 +4597,11 @@ body {
 
 /* puhkamine (jäsning): degen puffar synligt upp efter en kort väntan */
 .kitrise {
-  font-size: 56px;
-  line-height: 1;
+  display: block;
+  margin: 0 auto;
+  width: 110px;
+  height: 80px;
+  object-fit: contain;
   transition: scale 1.3s ease-out;
 }
 
@@ -4590,8 +4615,9 @@ body {
   left: 50%;
   bottom: 30px;
   transform: translateX(-50%);
-  font-size: 56px;
-  line-height: 1;
+  width: 110px;
+  height: 80px;
+  object-fit: contain;
   transition: transform 0.1s ease-out;
 }
 
@@ -4600,8 +4626,9 @@ body {
   top: 70px;
   left: 50%;
   transform: translateX(-50%);
-  font-size: 40px;
-  line-height: 1;
+  width: 130px;
+  height: 23px;
+  object-fit: contain;
   cursor: grab;
   touch-action: none;
   user-select: none;
