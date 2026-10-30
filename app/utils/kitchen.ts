@@ -88,29 +88,33 @@ export const KITCHEN_RECIPES: KitchenRecipe[] = [
       },
     },
   },
-  /* det svenska syskonreceptet till kringlor - samma fyra grundgester (inget formnings-steg
-     den här gången, så recepten varierar lite i längd), men en kanelbulle istället. En
-     svensk-estnisk familj ska känna igen båda bakverken. */
+  /* det svenska syskonreceptet till kringlor - en svensk-estnisk familj ska känna igen båda
+     bakverken. Research (gimmesomeoven.com, scandification.com): kardemumma är den ingrediens
+     som gör kanelbullar till just kanelbullar - "icke förhandlingsbar" smak, det som skiljer
+     dem från amerikanska cinnamon rolls. Den äkta formen är en KNUT (remsor skärs, tvinnas och
+     knyts), inte en uppspolad spiral - därför ett eget vormi-steg precis som kringlornas åtta,
+     istället för förra versionens direkta "dela i bullar". Toppas med pärlsocker före gräddning. */
   {
     id: "kanelbulle",
     name: { et: "Kaneelikukkel", sv: "Kanelbullar" },
     steps: [
       {
         verb: "vala",
-        et: "Vala sulavõi taignasse",
-        sv: "Häll i smält smör i degen",
-        ingredient: { em: "🧈", et: "või", sv: "smör" },
+        et: "Vala kardemoni taignasse",
+        sv: "Häll i kardemumma i degen",
+        ingredient: { em: "🫘", et: "kardemon", sv: "kardemumma" },
       },
       { verb: "sega", et: "Sega kaneelitaignat", sv: "Rör om kanelbullsdegen" },
-      { verb: "loika", et: "Lõika taigen kukliteks", sv: "Dela degen i bullar" },
+      { verb: "loika", et: "Lõika taigen ribadeks", sv: "Skär degen i remsor" },
+      { verb: "vormi", et: "Vormi sõlmeks", sv: "Knyt till en knut" },
       { verb: "kupseta", et: "Küpseta kaneelikuklid", sv: "Grädda kanelbullarna" },
     ],
     perfect: {
       id: "kanelbulle-ok",
       em: "🥐",
       name: { et: "Kaneelikukkel", sv: "En fin kanelbulle" },
-      et: "Nami! Täpselt paras kaneelikukkel, mahlane ja kaneelilõhnaline.",
-      sv: "Mums! En precis lagom kanelbulle, saftig och doftar kanel.",
+      et: "Nami! Täpselt paras kaneelikukkel - kardemoniga, ilusa sõlmega ja pärlsuhkruga pealt.",
+      sv: "Mums! En precis lagom kanelbulle - med kardemumma, en fin knut och pärlsocker på toppen.",
     },
     miss: {
       sega: {
@@ -124,8 +128,8 @@ export const KITCHEN_RECIPES: KitchenRecipe[] = [
         id: "kanelbulle-miss-loika",
         em: "🍥",
         name: { et: "Hiiglaslik kaneelirull", sv: "Jättelik kanelrulle" },
-        et: "Keegi ei jõudnud taignarulli kukliteks lõigata - sellest sai üks hiiglaslik rull.",
-        sv: "Ingen hann dela degrullen i bullar - den blev en enda jättelik rulle istället.",
+        et: "Keegi ei jõudnud taignarulli ribadeks lõigata - sellest sai üks hiiglaslik rull.",
+        sv: "Ingen hann skära degrullen i remsor - den blev en enda jättelik rulle istället.",
       },
       kupseta: {
         id: "kanelbulle-miss-kupseta",

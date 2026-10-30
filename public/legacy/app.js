@@ -10477,9 +10477,13 @@
       return Math.atan2(e.clientY - g.cy, e.clientX - g.cx);
     }
     function placeSpoon(angle) {
-      var g = bowlGeo();
+      var g = bowlGeo(),
+        deg = (angle * 180) / Math.PI + 270; /* sleven pekar alltid in mot skålens mitt, se
+           kommentar i kitchenSetupSega ovan - rätt bara om bilden själv är ritad pekandes rakt
+           upp (skaft nedåt, lusikas-huvud uppåt) i sin viloposition. */
       spoon.style.left = g.cx + g.rad * Math.cos(angle) - g.sLeft - 18 + "px";
       spoon.style.top = g.cy + g.rad * Math.sin(angle) - g.sTop - 18 + "px";
+      spoon.style.transform = "rotate(" + deg + "deg)";
     }
     placeSpoon(-Math.PI / 2); /* vilovinkel uppe på kanten, så det syns att den går att greppa */
     function showContinue() {
