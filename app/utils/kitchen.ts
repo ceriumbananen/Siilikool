@@ -1,8 +1,9 @@
 /* Siiri köök - matlagningsspelet. Ett recept är en kedja av steg, varje steg ett eget verb/gest
    (se kitchenStart() m.fl. i public/legacy/app.js för själva interaktionen):
    - vala (häll): dra ingrediensen till skålen
-   - sega (röra): cirkelrörelse i skålen
+   - sega (röra): cirkelrörelse i skålen (en sked kretsar runt skålens kant, dra den runt)
    - loika (hacka/skär): upprepade tryck
+   - vormi (forma): dra degen genom två punkter i ordning, t.ex. till en åtta-form
    - kupseta (steka/baka): släpp när man vill - ingen tidspress, bara olika utfall
 
    Design: inget steg kan "misslyckas" på riktigt - gör man det press/för löst/för sent blir
@@ -10,7 +11,7 @@
    Se SECRETS (secrets.ts) för samma "samla det udda resultatet"-mönster - S.cookbook fylls på
    likadant. */
 
-export type KitchenVerb = "vala" | "sega" | "loika" | "kupseta";
+export type KitchenVerb = "vala" | "sega" | "loika" | "vormi" | "kupseta";
 
 export type KitchenStep = {
   verb: KitchenVerb;
@@ -33,10 +34,10 @@ export type KitchenRecipe = {
   name: { et: string; sv: string };
   steps: KitchenStep[];
   perfect: KitchenOutcome;
-  /** utfallet om just det här steget blev det mest missade. "vala" (dra till skålen) har inget
-   * "för mycket/för lite" i sig själv - bara sega/loika/kupseta har en egen gradskala
-   * (för löst/för hårt rört, för få/för många tryck, för tidigt/sent uttagen), så bara de tre
-   * behöver ett utfall här. */
+  /** utfallet om just det här steget blev det mest missade. "vala" och "vormi" (dra till
+   * skålen/genom punkterna) har inget "för mycket/för lite" i sig själv - bara sega/loika/
+   * kupseta har en egen gradskala (för löst/för hårt rört, för få/för många tryck, för
+   * tidigt/sent uttagen), så bara de tre behöver ett utfall här. */
   miss: Partial<Record<KitchenVerb, KitchenOutcome>>;
 };
 
@@ -53,6 +54,7 @@ export const KITCHEN_RECIPES: KitchenRecipe[] = [
       },
       { verb: "sega", et: "Sega taignat", sv: "Rör om degen" },
       { verb: "loika", et: "Lõika taigen tükkideks", sv: "Dela degen i bitar" },
+      { verb: "vormi", et: "Vormi kaheksaks", sv: "Forma till en åtta" },
       { verb: "kupseta", et: "Küpseta kringlid", sv: "Grädda kringlorna" },
     ],
     perfect: {
@@ -81,6 +83,54 @@ export const KITCHEN_RECIPES: KitchenRecipe[] = [
         id: "kringel-miss-kupseta",
         em: "🦔",
         name: { et: "Siilikook", sv: "Igelkottskaka" },
+        et: "See nägi ahjust tulles välja täpselt nagu väike okkaline siil!",
+        sv: "Den såg ut precis som en liten taggig igelkott när den kom ur ugnen!",
+      },
+    },
+  },
+  /* det svenska syskonreceptet till kringlor - samma fyra grundgester (inget formnings-steg
+     den här gången, så recepten varierar lite i längd), men en kanelbulle istället. En
+     svensk-estnisk familj ska känna igen båda bakverken. */
+  {
+    id: "kanelbulle",
+    name: { et: "Kaneelikukkel", sv: "Kanelbullar" },
+    steps: [
+      {
+        verb: "vala",
+        et: "Vala sulavõi taignasse",
+        sv: "Häll i smält smör i degen",
+        ingredient: { em: "🧈", et: "või", sv: "smör" },
+      },
+      { verb: "sega", et: "Sega kaneelitaignat", sv: "Rör om kanelbullsdegen" },
+      { verb: "loika", et: "Lõika taigen kukliteks", sv: "Dela degen i bullar" },
+      { verb: "kupseta", et: "Küpseta kaneelikuklid", sv: "Grädda kanelbullarna" },
+    ],
+    perfect: {
+      id: "kanelbulle-ok",
+      em: "🥐",
+      name: { et: "Kaneelikukkel", sv: "En fin kanelbulle" },
+      et: "Nami! Täpselt paras kaneelikukkel, mahlane ja kaneelilõhnaline.",
+      sv: "Mums! En precis lagom kanelbulle, saftig och doftar kanel.",
+    },
+    miss: {
+      sega: {
+        id: "kanelbulle-miss-sega",
+        em: "🥞",
+        name: { et: "Kaneelipannkook", sv: "Kanelpannkaka" },
+        et: "Taigen sai nii kaua segatud, et sellest sai hoopis õhuke kaneelipannkook.",
+        sv: "Degen blev omrörd så länge att den blev en tunn kanelpannkaka istället.",
+      },
+      loika: {
+        id: "kanelbulle-miss-loika",
+        em: "🍥",
+        name: { et: "Hiiglaslik kaneelirull", sv: "Jättelik kanelrulle" },
+        et: "Keegi ei jõudnud taignarulli kukliteks lõigata - sellest sai üks hiiglaslik rull.",
+        sv: "Ingen hann dela degrullen i bullar - den blev en enda jättelik rulle istället.",
+      },
+      kupseta: {
+        id: "kanelbulle-miss-kupseta",
+        em: "🦔",
+        name: { et: "Siilikukkel", sv: "Igelkottsbulle" },
         et: "See nägi ahjust tulles välja täpselt nagu väike okkaline siil!",
         sv: "Den såg ut precis som en liten taggig igelkott när den kom ur ugnen!",
       },

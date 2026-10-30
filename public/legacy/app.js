@@ -10324,17 +10324,40 @@
   var KT = null;
   function kitchenIntro() {
     screen = "kitchen";
+    var i,
+      cards = "";
+    for (i = 0; i < KITCHEN_RECIPES.length; i++) {
+      var rc = KITCHEN_RECIPES[i];
+      cards +=
+        '<button class="btn big wide" style="margin-top:8px" data-ri="' +
+        i +
+        '"><span lang="et">' +
+        rc.perfect.em +
+        " " +
+        esc(rc.name.et) +
+        "</span><small>" +
+        esc(rc.name.sv) +
+        "</small></button>";
+    }
     app.innerHTML =
       '<div class="zone play"><span class="zem">🥨</span><span><b>Siiri köök</b><span>Laga mat med Siiri</span></span></div>' +
       '<div class="card" style="text-align:center"><p class="qsub">Följ receptet steg för steg - häll, rör, hacka och grädda tillsammans med Siiri. Gör du något lite annorlunda blir det aldrig fel, bara en annan rolig maträtt!</p>' +
       '<div class="center">' +
       siilSVG("small") +
       "</div>" +
-      '<button class="btn green big wide" id="start">Sätt igång 🥨</button></div>';
-    document.getElementById("start").onclick = function () {
-      KT = { recipe: KITCHEN_RECIPES[0], stepIdx: 0, missVerb: null };
-      kitchenStep();
-    };
+      '<p class="q">Vad ska vi laga?</p>' +
+      cards +
+      "</div>";
+    var bs = app.querySelectorAll("[data-ri]"),
+      j;
+    for (j = 0; j < bs.length; j++) {
+      (function (el) {
+        el.onclick = function () {
+          KT = { recipe: KITCHEN_RECIPES[+el.getAttribute("data-ri")], stepIdx: 0, missVerb: null };
+          kitchenStep();
+        };
+      })(bs[j]);
+    }
   }
   function kitchenStep() {
     var step = KT.recipe.steps[KT.stepIdx];
@@ -10360,6 +10383,7 @@
     if (step.verb === "vala") kitchenSetupVala(step);
     else if (step.verb === "sega") kitchenSetupSega();
     else if (step.verb === "loika") kitchenSetupLoika();
+    else if (step.verb === "vormi") kitchenSetupVormi();
     else kitchenSetupKupseta();
   }
   function kitchenAdvance(missedThisStep) {
@@ -10424,18 +10448,40 @@
   function kitchenSetupSega() {
     var stage = document.getElementById("kitstage");
     stage.innerHTML =
-      '<div class="kitbowl kitbowl--stir" id="kitbowl">🥣<div class="kitturns" id="kitturns">0 varv</div></div>';
+      '<div class="kitbowl kitbowl--stir" id="kitbowl">🥣</div>' +
+      '<div class="kitspoon" id="kitspoon">🥄</div>' +
+      '<div class="kitturns" id="kitturns">0 varv</div>';
     var bowl = document.getElementById("kitbowl"),
+      spoon = document.getElementById("kitspoon"),
       total = 0,
       lastAngle = null,
       down = false,
       MIN_TURNS = 0.4,
       MAX_TURNS = 3;
-    bowl.style.touchAction = "none";
-    function angleFor(e) {
-      var r = bowl.getBoundingClientRect();
-      return Math.atan2(e.clientY - (r.top + r.height / 2), e.clientX - (r.left + r.width / 2));
+    spoon.style.touchAction = "none";
+    /* sleven kretsar alltid precis vid skålens kant, oavsett hur nära/långt bort fingret
+       faktiskt är - samma knep som en klockvisare, den "hoppar" aldrig ut ur sitt spår. */
+    function bowlGeo() {
+      var br = bowl.getBoundingClientRect(),
+        sr = stage.getBoundingClientRect();
+      return {
+        cx: br.left + br.width / 2,
+        cy: br.top + br.height / 2,
+        rad: br.width * 0.36,
+        sLeft: sr.left,
+        sTop: sr.top,
+      };
     }
+    function angleFor(e) {
+      var g = bowlGeo();
+      return Math.atan2(e.clientY - g.cy, e.clientX - g.cx);
+    }
+    function placeSpoon(angle) {
+      var g = bowlGeo();
+      spoon.style.left = g.cx + g.rad * Math.cos(angle) - g.sLeft - 18 + "px";
+      spoon.style.top = g.cy + g.rad * Math.sin(angle) - g.sTop - 18 + "px";
+    }
+    placeSpoon(-Math.PI / 2); /* vilovinkel uppe på kanten, så det syns att den går att greppa */
     function showContinue() {
       var c = document.getElementById("kitcontinue");
       if (c.firstChild) return;
@@ -10444,12 +10490,12 @@
         kitchenAdvance(total / (2 * Math.PI) > MAX_TURNS);
       };
     }
-    bowl.addEventListener("pointerdown", function (e) {
+    spoon.addEventListener("pointerdown", function (e) {
       down = true;
-      bowl.setPointerCapture(e.pointerId);
+      spoon.setPointerCapture(e.pointerId);
       lastAngle = angleFor(e);
     });
-    bowl.addEventListener("pointermove", function (e) {
+    spoon.addEventListener("pointermove", function (e) {
       if (!down) return;
       var a = angleFor(e),
         d = a - lastAngle;
@@ -10457,10 +10503,11 @@
       if (d < -Math.PI) d += 2 * Math.PI;
       total += Math.abs(d);
       lastAngle = a;
+      placeSpoon(a);
       document.getElementById("kitturns").textContent = (total / (2 * Math.PI)).toFixed(1) + " varv";
       if (total / (2 * Math.PI) >= MIN_TURNS) showContinue();
     });
-    bowl.addEventListener("pointerup", function () {
+    spoon.addEventListener("pointerup", function () {
       down = false;
     });
   }
@@ -10491,10 +10538,78 @@
       showContinue();
     });
   }
+  /* vormi: dra degen genom två punkter i ordning (t.ex. en kringels två öglor). Ingen
+     gradering, precis som vala - det finns inget "fel" sätt att till slut forma den rätt,
+     bara försök igen om man släpper fel. */
+  function kitchenSetupVormi() {
+    var stage = document.getElementById("kitstage");
+    stage.innerHTML =
+      '<div class="kitspot" id="kitspota">①</div>' +
+      '<div class="kitspot kitspot--b" id="kitspotb">②</div>' +
+      '<div class="kiting" id="kitrope">🥖</div>';
+    var rope = document.getElementById("kitrope"),
+      a = document.getElementById("kitspota"),
+      b = document.getElementById("kitspotb"),
+      dragging = false,
+      visitedA = false,
+      startLeft = rope.offsetLeft,
+      startTop = rope.offsetTop;
+    rope.style.touchAction = "none";
+    function reset() {
+      visitedA = false;
+      a.classList.remove("kit-spot-done");
+      rope.style.left = startLeft + "px";
+      rope.style.top = startTop + "px";
+    }
+    function within(el, x, y) {
+      var r = el.getBoundingClientRect();
+      return x >= r.left && x <= r.right && y >= r.top && y <= r.bottom;
+    }
+    rope.addEventListener("pointerdown", function (e) {
+      dragging = true;
+      rope.setPointerCapture(e.pointerId);
+      rope.classList.add("kit-dragging");
+    });
+    rope.addEventListener("pointermove", function (e) {
+      if (!dragging) return;
+      var r = stage.getBoundingClientRect();
+      rope.style.left = e.clientX - r.left - 24 + "px";
+      rope.style.top = e.clientY - r.top - 56 + "px";
+      if (!visitedA && within(a, e.clientX, e.clientY)) {
+        visitedA = true;
+        a.classList.add("kit-spot-done");
+        tone(460, 0.06, 0);
+      }
+    });
+    rope.addEventListener("pointerup", function (e) {
+      if (!dragging) return;
+      dragging = false;
+      rope.classList.remove("kit-dragging");
+      if (visitedA && within(b, e.clientX, e.clientY)) {
+        b.classList.add("kit-spot-done");
+        sndOk();
+        setTimeout(function () {
+          kitchenAdvance(false);
+        }, 350);
+      } else {
+        reset();
+      }
+    });
+  }
   /* kupseta: släpp när man vill - ingen tidspress alls. Var man släpper avgör bara SMAKEN på
      resultatet (för tidigt/sent = en egen rolig rätt, mitten = perfekt), aldrig om man
-     "hann" eller inte. */
+     "hann" eller inte. En kort glid-in-i-ugnen-övergång innan själva gräddningsfältet visas,
+     så det inte bara hoppar rakt till en eldflamma. */
   function kitchenSetupKupseta() {
+    var stage = document.getElementById("kitstage");
+    stage.innerHTML = '<div class="kitoven">🔥</div><div class="kitslide" id="kitslide">🥨</div>';
+    var slide = document.getElementById("kitslide");
+    requestAnimationFrame(function () {
+      slide.classList.add("kit-slide-in");
+    });
+    setTimeout(kitchenStartBake, 650);
+  }
+  function kitchenStartBake() {
     var stage = document.getElementById("kitstage");
     stage.innerHTML =
       '<div class="kitoven">🔥</div><div class="kitheatbar"><div class="kitheatfill" id="kitheatfill"></div></div>' +

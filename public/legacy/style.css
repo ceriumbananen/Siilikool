@@ -4353,7 +4353,17 @@ body {
   cursor: grab;
 }
 
-.kitturns,
+.kitturns {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  transform: translateX(-50%);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
 .kitcount {
   position: absolute;
   left: 50%;
@@ -4363,6 +4373,22 @@ body {
   font-weight: 700;
   color: var(--muted);
   white-space: nowrap;
+}
+
+.kitspoon {
+  position: absolute;
+  width: 36px;
+  height: 36px;
+  font-size: 30px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+  z-index: 3;
+  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.3));
 }
 
 .kiting {
@@ -4429,6 +4455,52 @@ body {
   height: 100%;
   width: 0%;
   background: linear-gradient(90deg, var(--honey), var(--berry));
+}
+
+.kitslide {
+  position: absolute;
+  left: 50%;
+  bottom: 40px;
+  transform: translateX(-50%);
+  font-size: 56px;
+  line-height: 1;
+  transition:
+    transform 0.6s ease-in,
+    opacity 0.6s ease-in;
+}
+
+.kitslide.kit-slide-in {
+  transform: translate(-50%, 30px) scale(0.35);
+  opacity: 0.1;
+}
+
+/* vormi: två punkter degen (kitrope, delar .kiting-stilen) ska dras genom i ordning */
+.kitspot {
+  position: absolute;
+  left: 18%;
+  top: 46%;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 2px dashed var(--line);
+  background: rgba(255, 255, 255, 0.12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  color: var(--muted);
+}
+
+.kitspot--b {
+  left: auto;
+  right: 18%;
+}
+
+.kitspot.kit-spot-done {
+  border-style: solid;
+  border-color: var(--moss);
+  background: color-mix(in srgb, var(--moss) 30%, transparent);
+  color: var(--ink);
 }
 
 /* ---------- garderob ---------- */
