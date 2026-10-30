@@ -10485,7 +10485,13 @@
       dragging = false;
       ing.classList.remove("kit-dragging");
       var br = bowl.getBoundingClientRect();
-      var hit = e.clientX >= br.left && e.clientX <= br.right && e.clientY >= br.top && e.clientY <= br.bottom;
+      /* träffen testas mot var INGREDIENSEN syns på skärmen, inte var fingret släpps - den
+         ritas ju medvetet en bit ovanför fingret (se pointermove ovan), så att testa fingrets
+         egen position missar ofta skålen fast ingrediensen visuellt ligger mitt i den. */
+      var ir = ing.getBoundingClientRect(),
+        icx = ir.left + ir.width / 2,
+        icy = ir.top + ir.height / 2;
+      var hit = icx >= br.left && icx <= br.right && icy >= br.top && icy <= br.bottom;
       if (hit) {
         bowl.classList.add("kit-pop");
         sndOk();
@@ -10562,7 +10568,13 @@
       var r = stage.getBoundingClientRect();
       shaker.style.left = e.clientX - r.left - 30 + "px";
       shaker.style.top = e.clientY - r.top - 62 + "px";
-      if (!within(bowl, e.clientX, e.clientY)) return;
+      /* testar var krukan SYNS, inte var fingret är - krukan ritas en bit ovanför/vid sidan
+         av fingret (se ovan), så att testa fingrets råa position missar skålen nästan alltid
+         även när krukan visuellt hänger rakt över den. Samma bugg som vala hade. */
+      var sr = shaker.getBoundingClientRect(),
+        scx = sr.left + sr.width / 2,
+        scy = sr.top + sr.height / 2;
+      if (!within(bowl, scx, scy)) return;
       /* räknar bara var annan träff så det inte regnar korn absurt snabbt bara för att
          pointermove avfyras ofta - samma andetag som sega/rulli/määri räknar rörelse. */
       moveTicks++;
@@ -10891,7 +10903,11 @@
       dragging = false;
       rope.classList.remove("kit-dragging");
       var kr = knot.getBoundingClientRect();
-      var hit = e.clientX >= kr.left && e.clientX <= kr.right && e.clientY >= kr.top && e.clientY <= kr.bottom;
+      /* samma fix som vala/puista - testar var degen SYNS, inte var fingret släpps. */
+      var rr = rope.getBoundingClientRect(),
+        rcx = rr.left + rr.width / 2,
+        rcy = rr.top + rr.height / 2;
+      var hit = rcx >= kr.left && rcx <= kr.right && rcy >= kr.top && rcy <= kr.bottom;
       if (hit) {
         knot.classList.add("kit-pop");
         sndOk();
