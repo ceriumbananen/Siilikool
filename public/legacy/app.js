@@ -10377,10 +10377,25 @@
       j;
     for (i = 0; i < r.ingredients.length; i++) {
       var sec = r.ingredients[i];
-      html += '<p class="q">' + esc(sec.title.sv) + '</p><ul class="kitingredients">';
+      html +=
+        '<p class="q" lang="et">' +
+        esc(sec.title.et) +
+        ' <small style="font-weight:400">(' +
+        esc(sec.title.sv) +
+        ')</small></p><ul class="kitingredients">';
       for (j = 0; j < sec.items.length; j++) {
         var it = sec.items[j];
-        html += "<li>" + (it.amount ? "<b>" + esc(it.amount) + "</b> " : "") + esc(it.sv) + "</li>";
+        /* både estniska och svenska på varje rad - det här kortet ska gå att faktiskt baka
+           efter, och då är den svenska mängden/ordet lika viktigt som det estniska ordet man
+           övar in. */
+        html +=
+          "<li>" +
+          (it.amount ? "<b>" + esc(it.amount) + "</b> " : "") +
+          '<span lang="et">' +
+          esc(it.et) +
+          "</span><br><small>" +
+          esc(it.sv) +
+          "</small></li>";
       }
       html += "</ul>";
     }
@@ -10577,32 +10592,24 @@
   /* vormi: dra degen genom två punkter i ordning (t.ex. en kringels två öglor). Ingen
      gradering, precis som vala - det finns inget "fel" sätt att till slut forma den rätt,
      bara försök igen om man släpper fel. */
+  /* buggrapport: tvåpunkts-versionen (dra genom ① och sedan till ②) var "super otydlig" trots
+     en hjälptext och en pulserande ledtråd - att leverera degen till två separata punkter i
+     ordning har helt enkelt ingen tydlig koppling till "knyt en knut" i huvudet, oavsett hur
+     mycket man förklarar det. Förenklat till EXAKT samma dra-och-släpp-mönster som vala (som
+     aldrig orsakat förvirring) - dra degen till knut-symbolen, klart. */
   function kitchenSetupVormi() {
     var stage = document.getElementById("kitstage");
     stage.innerHTML =
-      '<div class="kithint">Dra degen genom ① och sedan till ②</div>' +
-      '<div class="kitspot kit-pulse" id="kitspota">①</div>' +
-      '<div class="kitspot kitspot--b" id="kitspotb">②</div>' +
-      '<div class="kiting" id="kitrope">🥖</div>';
+      '<div class="kithint">Dra degen till knuten</div><div class="kitknot" id="kitknot">🥨</div><div class="kiting" id="kitrope">🥖</div>';
     var rope = document.getElementById("kitrope"),
-      a = document.getElementById("kitspota"),
-      b = document.getElementById("kitspotb"),
+      knot = document.getElementById("kitknot"),
       dragging = false,
-      visitedA = false,
       startLeft = rope.offsetLeft,
       startTop = rope.offsetTop;
     rope.style.touchAction = "none";
     function reset() {
-      visitedA = false;
-      a.classList.remove("kit-spot-done");
-      a.classList.add("kit-pulse");
-      b.classList.remove("kit-pulse");
       rope.style.left = startLeft + "px";
       rope.style.top = startTop + "px";
-    }
-    function within(el, x, y) {
-      var r = el.getBoundingClientRect();
-      return x >= r.left && x <= r.right && y >= r.top && y <= r.bottom;
     }
     rope.addEventListener("pointerdown", function (e) {
       dragging = true;
@@ -10614,21 +10621,15 @@
       var r = stage.getBoundingClientRect();
       rope.style.left = e.clientX - r.left - 24 + "px";
       rope.style.top = e.clientY - r.top - 56 + "px";
-      if (!visitedA && within(a, e.clientX, e.clientY)) {
-        visitedA = true;
-        a.classList.add("kit-spot-done");
-        a.classList.remove("kit-pulse");
-        b.classList.add("kit-pulse"); /* ettan klar - nu pulserar tvåan istället, så det syns vart man ska näst */
-        tone(460, 0.06, 0);
-      }
     });
     rope.addEventListener("pointerup", function (e) {
       if (!dragging) return;
       dragging = false;
       rope.classList.remove("kit-dragging");
-      if (visitedA && within(b, e.clientX, e.clientY)) {
-        b.classList.remove("kit-pulse");
-        b.classList.add("kit-spot-done");
+      var kr = knot.getBoundingClientRect();
+      var hit = e.clientX >= kr.left && e.clientX <= kr.right && e.clientY >= kr.top && e.clientY <= kr.bottom;
+      if (hit) {
+        knot.classList.add("kit-pop");
         sndOk();
         setTimeout(function () {
           kitchenAdvance(false);

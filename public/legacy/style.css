@@ -4493,49 +4493,17 @@ body {
   opacity: 0.1;
 }
 
-/* vormi: två punkter degen (kitrope, delar .kiting-stilen) ska dras genom i ordning */
-.kitspot {
+/* vormi: dra degen (kitrope, delar .kiting-stilen) till knut-symbolen - samma enkla
+   dra-och-släpp-mönster som vala (kiting/kitbowl), se buggrapport-kommentaren i
+   kitchenSetupVormi (app.js) om varför den tidigare tvåpunkts-versionen byttes ut. */
+.kitknot {
   position: absolute;
-  left: 18%;
-  top: 46%;
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
-  border: 2px dashed var(--line);
-  background: rgba(255, 255, 255, 0.12);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 700;
-  color: var(--muted);
-}
-
-.kitspot--b {
-  left: auto;
-  right: 18%;
-}
-
-.kitspot.kit-spot-done {
-  border-style: solid;
-  border-color: var(--moss);
-  background: color-mix(in srgb, var(--moss) 30%, transparent);
-  color: var(--ink);
-}
-
-/* pulserar på den punkt man ska till näst (ettan från start, tvåan sen) - annars är det två
-   likadana prickar utan någon ledtråd om ordningen, se buggrapport "jättotydligt". */
-.kitspot.kit-pulse {
-  animation: kitSpotPulse 1.1s ease-in-out infinite;
-}
-
-@keyframes kitSpotPulse {
-  0%,
-  100% {
-    box-shadow: 0 0 0 0 color-mix(in srgb, var(--honey) 60%, transparent);
-  }
-  50% {
-    box-shadow: 0 0 0 8px transparent;
-  }
+  left: 50%;
+  bottom: 6px;
+  transform: translateX(-50%);
+  font-size: 64px;
+  line-height: 1;
+  opacity: 0.8;
 }
 
 .kithint {
