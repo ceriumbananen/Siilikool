@@ -10518,14 +10518,28 @@
   /* puista: upprepade tryck på strökrukan, precis som loika men med ett eget utseende (korn
      som faller) så det känns som att strö, inte som att hacka. Ingen gradering - man strör
      tills man själv tycker det räcker, som vala/vormi. */
+  /* buggrapport: puista kändes som att trycka på en knapp, inte som att hälla - fixat genom
+     att kräva att man faktiskt DRAR strökrukan bort till skålen och håller den där (precis
+     som man skulle tippa en saltkar över en skål i verkligheten), istället för att bara trycka
+     var som helst på skärmen. Korn faller bara medan krukan faktiskt är kvar över skålen. */
   function kitchenSetupPuista() {
     var stage = document.getElementById("kitstage");
     stage.innerHTML =
-      '<div class="kitshaker" id="kitshaker">🧂</div><div class="kitbowl" id="kitbowl">🥣</div>' +
+      '<div class="kithint">Dra strökrukan över skålen</div>' +
+      '<div class="kitbowl" id="kitbowl">🥣</div>' +
+      '<div class="kitshaker" id="kitshaker">🧂</div>' +
       '<div class="kitturns" id="kitcount">0 puistet</div>';
     var shaker = document.getElementById("kitshaker"),
-      count = 0,
-      MIN_SHAKES = 3;
+      bowl = document.getElementById("kitbowl"),
+      dragging = false,
+      moveTicks = 0,
+      pours = 0,
+      MIN_POURS = 8;
+    shaker.style.touchAction = "none";
+    function within(el, x, y) {
+      var r = el.getBoundingClientRect();
+      return x >= r.left && x <= r.right && y >= r.top && y <= r.bottom;
+    }
     function showContinue() {
       var c = document.getElementById("kitcontinue");
       if (c.firstChild) return;
@@ -10534,15 +10548,33 @@
         kitchenAdvance(false);
       };
     }
-    shaker.addEventListener("pointerdown", function () {
-      count++;
-      document.getElementById("kitcount").textContent = count + " puistet";
+    shaker.addEventListener("pointerdown", function (e) {
+      dragging = true;
+      shaker.setPointerCapture(e.pointerId);
+      shaker.classList.add("kit-dragging");
+    });
+    shaker.addEventListener("pointermove", function (e) {
+      if (!dragging) return;
+      var r = stage.getBoundingClientRect();
+      shaker.style.left = e.clientX - r.left - 22 + "px";
+      shaker.style.top = e.clientY - r.top - 50 + "px";
+      if (!within(bowl, e.clientX, e.clientY)) return;
+      /* räknar bara var annan träff så det inte regnar korn absurt snabbt bara för att
+         pointermove avfyras ofta - samma andetag som sega/rulli/määri räknar rörelse. */
+      moveTicks++;
+      if (moveTicks % 2) return;
+      pours++;
+      document.getElementById("kitcount").textContent = pours + " puistet";
       shaker.classList.remove("kit-shake");
       void shaker.offsetWidth;
       shaker.classList.add("kit-shake");
       kitchenSprinkleFx(stage, shaker);
-      tone(620 + count * 15, 0.05, 0);
-      if (count >= MIN_SHAKES) showContinue();
+      tone(620 + pours * 10, 0.04, 0);
+      if (pours >= MIN_POURS) showContinue();
+    });
+    shaker.addEventListener("pointerup", function () {
+      dragging = false;
+      shaker.classList.remove("kit-dragging");
     });
   }
   /* sega: cirkelrörelse i skålen (sveper total vinkel runt skålens mittpunkt, oavsett

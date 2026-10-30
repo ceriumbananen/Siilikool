@@ -4356,7 +4356,7 @@ body {
 .kitturns {
   position: absolute;
   left: 50%;
-  top: 0;
+  top: 18px; /* under .kithint, när båda visas samtidigt (t.ex. puista) - annars överlappar de */
   transform: translateX(-50%);
   font-size: 14px;
   font-weight: 700;
