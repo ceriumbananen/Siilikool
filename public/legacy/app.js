@@ -10444,6 +10444,26 @@
     if (KT.stepIdx >= KT.recipe.steps.length) kitchenResult();
     else kitchenStep();
   }
+  /* buggrapport: strökrukan "åkte bakom uppe i högra hörnet" och gick inte att få tillbaka -
+     .kitstage har overflow:hidden och ingen av dra-gesterna nedan höll sig innanför rutan, så
+     ett snabbt/långt drag kunde skicka ut objektet utanför kanten där det klipptes bort helt
+     och blev omöjligt att se eller styra tillbaka. Alla fria dra-gester (vala/puista/vormi/
+     rulli/määri) klämmer nu positionen innanför rutan med denna hjälpfunktion.
+     Tar elementet (inte bara dess bredd/höjd) eftersom strökrukan är roterad (rotate: 95deg,
+     style.css) - offsetWidth/Height ger bara den oroterade layout-boxen, medan den SYNLIGA
+     rutan efter rotationen är bredare/smalare (och mittpunkten för rotationen är boxens
+     centrum) - utan det slog kanten fortfarande ut ett par pixlar utanför rutan. */
+  function kitClampPos(stage, el, left, top) {
+    var w = el.offsetWidth,
+      h = el.offsetHeight,
+      br = el.getBoundingClientRect(),
+      extraW = (br.width - w) / 2,
+      extraH = (br.height - h) / 2;
+    return {
+      left: Math.max(extraW, Math.min(stage.clientWidth - w - extraW, left)),
+      top: Math.max(extraH, Math.min(stage.clientHeight - h - extraH, top)),
+    };
+  }
   /* vala: dra ingrediensen till skålen. Ingen gradering - missar man skålen får man bara
      försöka igen, det finns inget "fel" sätt att till slut få den dit. */
   function kitchenSetupVala(step) {
@@ -10477,8 +10497,9 @@
       var r = stage.getBoundingClientRect();
       /* ritas en bit OVANFÖR fingret, inte rakt under - annars skymmer fingret precis det man
          ska styra, särskilt kännbart på touch där man inte har en liten musmarkör att se runt. */
-      ing.style.left = e.clientX - r.left - 24 + "px";
-      ing.style.top = e.clientY - r.top - 56 + "px";
+      var p = kitClampPos(stage, ing, e.clientX - r.left - 24, e.clientY - r.top - 56);
+      ing.style.left = p.left + "px";
+      ing.style.top = p.top + "px";
     });
     ing.addEventListener("pointerup", function (e) {
       if (!dragging) return;
@@ -10566,8 +10587,9 @@
     shaker.addEventListener("pointermove", function (e) {
       if (!dragging) return;
       var r = stage.getBoundingClientRect();
-      shaker.style.left = e.clientX - r.left - 30 + "px";
-      shaker.style.top = e.clientY - r.top - 62 + "px";
+      var p = kitClampPos(stage, shaker, e.clientX - r.left - 30, e.clientY - r.top - 62);
+      shaker.style.left = p.left + "px";
+      shaker.style.top = p.top + "px";
       /* testar var krukan SYNS, inte var fingret är - krukan ritas en bit ovanför/vid sidan
          av fingret (se ovan), så att testa fingrets råa position missar skålen nästan alltid
          även när krukan visuellt hänger rakt över den. Samma bugg som vala hade. */
@@ -10770,7 +10792,8 @@
       document.getElementById("kitcount").textContent = Math.round(frac * 100) + "%";
       flat.style.transform = "scaleX(" + (1 + frac * 0.7) + ") scaleY(" + (1 - frac * 0.35) + ")";
       var r = stage.getBoundingClientRect();
-      pin.style.left = e.clientX - r.left - 65 + "px";
+      var p = kitClampPos(stage, pin, e.clientX - r.left - 65, 0);
+      pin.style.left = p.left + "px";
       if (total >= MIN_PX) showContinue();
     });
     pin.addEventListener("pointerup", function () {
@@ -10828,8 +10851,9 @@
       document.getElementById("kitcount").textContent = Math.round(frac * 100) + "%";
       fill.style.opacity = frac;
       var r = stage.getBoundingClientRect();
-      brush.style.left = e.clientX - r.left - toolW / 2 + "px";
-      brush.style.top = e.clientY - r.top - toolH / 2 + "px";
+      var p = kitClampPos(stage, brush, e.clientX - r.left - toolW / 2, e.clientY - r.top - toolH / 2);
+      brush.style.left = p.left + "px";
+      brush.style.top = p.top + "px";
       if (total >= MIN_PX) showContinue();
     });
     brush.addEventListener("pointerup", function () {
@@ -10895,8 +10919,9 @@
     rope.addEventListener("pointermove", function (e) {
       if (!dragging) return;
       var r = stage.getBoundingClientRect();
-      rope.style.left = e.clientX - r.left - 24 + "px";
-      rope.style.top = e.clientY - r.top - 56 + "px";
+      var p = kitClampPos(stage, rope, e.clientX - r.left - 24, e.clientY - r.top - 56);
+      rope.style.left = p.left + "px";
+      rope.style.top = p.top + "px";
     });
     rope.addEventListener("pointerup", function (e) {
       if (!dragging) return;
