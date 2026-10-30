@@ -29,9 +29,26 @@ export type KitchenOutcome = {
   sv: string;
 };
 
+export type KitchenIngredient = {
+  /** t.ex. "50 g", "3 dl" - redan ihopsatt, ingen separat enhets-logik behövs */
+  amount: string;
+  et: string;
+  sv: string;
+};
+
+export type KitchenIngredientSection = {
+  title: { et: string; sv: string };
+  items: KitchenIngredient[];
+};
+
 export type KitchenRecipe = {
   id: string;
   name: { et: string; sv: string };
+  /** det riktiga, fullständiga receptet - visas som ett eget receptkort innan man börjar spela
+   * (kitchenRecipeCard() i app.js), så att det faktiskt går att baka på riktigt efteråt. Inte
+   * varje ingrediens blir ett eget spelsteg (det skulle bli väldigt repetitivt) - stegen nedan
+   * slår ihop flera åt gången, men SÄGER de riktiga mängderna i sin instruktionstext. */
+  ingredients?: KitchenIngredientSection[];
   steps: KitchenStep[];
   perfect: KitchenOutcome;
   /** utfallet om just det här steget blev det mest missade. "vala" och "vormi" (dra till
@@ -89,25 +106,71 @@ export const KITCHEN_RECIPES: KitchenRecipe[] = [
     },
   },
   /* det svenska syskonreceptet till kringlor - en svensk-estnisk familj ska känna igen båda
-     bakverken. Research (gimmesomeoven.com, scandification.com): kardemumma är den ingrediens
-     som gör kanelbullar till just kanelbullar - "icke förhandlingsbar" smak, det som skiljer
-     dem från amerikanska cinnamon rolls. Den äkta formen är en KNUT (remsor skärs, tvinnas och
-     knyts), inte en uppspolad spiral - därför ett eget vormi-steg precis som kringlornas åtta,
-     istället för förra versionens direkta "dela i bullar". Toppas med pärlsocker före gräddning. */
+     bakverken. Receptet (ingredients nedan) är ett riktigt, fullständigt hemrecept som
+     bekräftats av användaren själv (inte efterforskat/påhittat) - exakta mängder, så att det
+     går att baka på riktigt efteråt. Den äkta formen är en KNUT (remsor skärs, tvinnas och
+     knyts), inte en uppspolad spiral - därför ett eget vormi-steg precis som kringlornas åtta. */
   {
     id: "kanelbulle",
     name: { et: "Kaneelikukkel", sv: "Kanelbullar" },
+    ingredients: [
+      {
+        title: { et: "Taigen", sv: "Deg" },
+        items: [
+          { amount: "50 g", et: "pärmi", sv: "färsk jäst" },
+          { amount: "3 dl", et: "leiget piima (3%)", sv: "rumsvarm mjölk (3%)" },
+          { amount: "1 sl", et: "uhmerdatud kardemoni", sv: "kardemummakärnor (mortlade)" },
+          { amount: "1½ dl", et: "suhkrut", sv: "strösocker" },
+          { amount: "½ tl", et: "soola", sv: "salt" },
+          { amount: "150 g", et: "toasooja võid", sv: "rumsvarmt smör" },
+          { amount: "1", et: "muna", sv: "ägg" },
+          {
+            amount: "660 g",
+            et: "nisujahu (u 11 dl + lisaks rullimiseks)",
+            sv: "vetemjöl (ca 11 dl + extra till utbakning)",
+          },
+        ],
+      },
+      {
+        title: { et: "Täidis", sv: "Fyllning" },
+        items: [
+          { amount: "200 g", et: "toasooja võid", sv: "rumsvarmt smör" },
+          { amount: "1 dl", et: "suhkrut", sv: "strösocker" },
+          { amount: "1 sl", et: "jahvatatud kaneeli", sv: "malen kanel" },
+          { amount: "1 sl", et: "uhmerdatud kardemoni", sv: "kardemummakärnor (mortlade)" },
+        ],
+      },
+      {
+        title: { et: "Pealt", sv: "Pensling/garnering" },
+        items: [
+          { amount: "", et: "muna (määrimiseks)", sv: "ägg (till pensling)" },
+          { amount: "", et: "pärlsuhkrut", sv: "pärlsocker" },
+        ],
+      },
+    ],
     steps: [
       {
         verb: "vala",
-        et: "Vala kardemoni taignasse",
-        sv: "Häll i kardemumma i degen",
-        ingredient: { em: "🫘", et: "kardemon", sv: "kardemumma" },
+        et: "Vala pärm, piim ja muna kaussi",
+        sv: "Häll jäst, mjölk och ägg i skålen",
+        ingredient: { em: "🥛", et: "piim", sv: "mjölk" },
       },
-      { verb: "sega", et: "Sega kaneelitaignat", sv: "Rör om kanelbullsdegen" },
-      { verb: "loika", et: "Lõika taigen ribadeks", sv: "Skär degen i remsor" },
-      { verb: "vormi", et: "Vormi sõlmeks", sv: "Knyt till en knut" },
-      { verb: "kupseta", et: "Küpseta kaneelikuklid", sv: "Grädda kanelbullarna" },
+      {
+        verb: "sega",
+        et: "Sega hulka suhkur, sool, kardemon, või ja jahu",
+        sv: "Rör ner socker, salt, kardemumma, smör och mjöl",
+      },
+      {
+        verb: "loika",
+        et: "Määri peale täidis (või, suhkur, kaneel, kardemon) ja lõika ribadeks",
+        sv: "Bred på fyllningen (smör, socker, kanel, kardemumma) och skär i remsor",
+      },
+      { verb: "vormi", et: "Vormi ribad sõlmedeks", sv: "Knyt remsorna till knutar" },
+      {
+        verb: "kupseta",
+        et: "Määri munaga, puista pärlsuhkrut ja küpseta",
+        sv: "Pensla med ägg, strö på pärlsocker och grädda",
+      },
     ],
     perfect: {
       id: "kanelbulle-ok",

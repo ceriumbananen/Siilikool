@@ -10353,11 +10353,43 @@
     for (j = 0; j < bs.length; j++) {
       (function (el) {
         el.onclick = function () {
-          KT = { recipe: KITCHEN_RECIPES[+el.getAttribute("data-ri")], stepIdx: 0, missVerb: null };
-          kitchenStep();
+          var rc = KITCHEN_RECIPES[+el.getAttribute("data-ri")];
+          KT = { recipe: rc, stepIdx: 0, missVerb: null };
+          if (rc.ingredients) kitchenRecipeCard();
+          else kitchenStep();
         };
       })(bs[j]);
     }
+  }
+  /* receptkortet: det RIKTIGA, fullständiga receptet (äkta mängder) - så att det faktiskt går
+     att baka på riktigt efteråt, inte bara en lekversion. Själva spelstegen slår ihop flera
+     ingredienser per gest (annars blir det tio enskilda håll-moment), men säger de riktiga
+     mängderna i sin text - se KITCHEN_RECIPES i app/utils/kitchen.ts. */
+  function kitchenRecipeCard() {
+    var r = KT.recipe,
+      html =
+        '<div class="zone play"><span class="zem">' +
+        r.perfect.em +
+        "</span><span><b>" +
+        esc(r.name.sv) +
+        '</b><span>Receptet</span></span></div><div class="card">',
+      i,
+      j;
+    for (i = 0; i < r.ingredients.length; i++) {
+      var sec = r.ingredients[i];
+      html += '<p class="q">' + esc(sec.title.sv) + '</p><ul class="kitingredients">';
+      for (j = 0; j < sec.items.length; j++) {
+        var it = sec.items[j];
+        html += "<li>" + (it.amount ? "<b>" + esc(it.amount) + "</b> " : "") + esc(it.sv) + "</li>";
+      }
+      html += "</ul>";
+    }
+    html +=
+      '<button class="btn green big wide" id="kitplay" style="margin-top:12px">Sätt igång ' +
+      r.perfect.em +
+      "</button></div>";
+    app.innerHTML = html;
+    document.getElementById("kitplay").onclick = kitchenStep;
   }
   function kitchenStep() {
     var step = KT.recipe.steps[KT.stepIdx];
@@ -10548,7 +10580,8 @@
   function kitchenSetupVormi() {
     var stage = document.getElementById("kitstage");
     stage.innerHTML =
-      '<div class="kitspot" id="kitspota">①</div>' +
+      '<div class="kithint">Dra degen genom ① och sedan till ②</div>' +
+      '<div class="kitspot kit-pulse" id="kitspota">①</div>' +
       '<div class="kitspot kitspot--b" id="kitspotb">②</div>' +
       '<div class="kiting" id="kitrope">🥖</div>';
     var rope = document.getElementById("kitrope"),
@@ -10562,6 +10595,8 @@
     function reset() {
       visitedA = false;
       a.classList.remove("kit-spot-done");
+      a.classList.add("kit-pulse");
+      b.classList.remove("kit-pulse");
       rope.style.left = startLeft + "px";
       rope.style.top = startTop + "px";
     }
@@ -10582,6 +10617,8 @@
       if (!visitedA && within(a, e.clientX, e.clientY)) {
         visitedA = true;
         a.classList.add("kit-spot-done");
+        a.classList.remove("kit-pulse");
+        b.classList.add("kit-pulse"); /* ettan klar - nu pulserar tvåan istället, så det syns vart man ska näst */
         tone(460, 0.06, 0);
       }
     });
@@ -10590,6 +10627,7 @@
       dragging = false;
       rope.classList.remove("kit-dragging");
       if (visitedA && within(b, e.clientX, e.clientY)) {
+        b.classList.remove("kit-pulse");
         b.classList.add("kit-spot-done");
         sndOk();
         setTimeout(function () {
