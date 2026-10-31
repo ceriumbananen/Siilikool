@@ -10428,7 +10428,7 @@
       "</div>";
     speak(step.et);
     if (step.verb === "vala") kitchenSetupVala(step);
-    else if (step.verb === "puista") kitchenSetupPuista();
+    else if (step.verb === "puista") kitchenSetupPuista(step);
     else if (step.verb === "sega") kitchenSetupSega();
     else if (step.verb === "sotku") kitchenSetupSotku();
     else if (step.verb === "puhkamine") kitchenSetupPuhkamine();
@@ -10573,15 +10573,24 @@
      att kräva att man faktiskt DRAR strökrukan bort till skålen och håller den där (precis
      som man skulle tippa en saltkar över en skål i verkligheten), istället för att bara trycka
      var som helst på skärmen. Korn faller bara medan krukan faktiskt är kvar över skålen. */
-  function kitchenSetupPuista() {
-    var stage = document.getElementById("kitstage");
+  /* buggrapport: steg som "strö socker/kanel på degen" (efter utkavlingen) visade ändå en
+     skål - det finns ingen skål kvar i receptet vid det laget, degen ligger redan utbredd på
+     bordet. target="dough" (kitchen.ts) visar nu den platta degen (samma bild/form som efter
+     rulli) istället för skålen som det strös på/mot. */
+  function kitchenSetupPuista(step) {
+    var stage = document.getElementById("kitstage"),
+      onDough = step && step.target === "dough";
     stage.innerHTML =
-      '<div class="kithint">Dra strökrukan över skålen</div>' +
-      '<img class="kitbowl" id="kitbowl" src="/images/kitchen/skal.webp" alt="">' +
+      '<div class="kithint">Dra strökrukan över ' +
+      (onDough ? "degen" : "skålen") +
+      "</div>" +
+      (onDough
+        ? '<img class="kitdoughflat" id="kitpuistatarget" src="/images/kitchen/deg.webp" alt="" style="transform:translateX(-50%) scaleX(1.7) scaleY(0.65)">'
+        : '<img class="kitbowl" id="kitpuistatarget" src="/images/kitchen/skal.webp" alt="">') +
       '<img class="kitshaker" id="kitshaker" src="/images/kitchen/strokruka.webp" alt="">' +
       '<div class="kitturns" id="kitcount">0 puistet</div>';
     var shaker = document.getElementById("kitshaker"),
-      bowl = document.getElementById("kitbowl"),
+      bowl = document.getElementById("kitpuistatarget"),
       dragging = false,
       moveTicks = 0,
       pours = 0,
@@ -10651,15 +10660,28 @@
       MIN_TURNS = 0.4,
       MAX_TURNS = 3;
     spoon.style.touchAction = "none";
-    /* sleven kretsar alltid precis vid skålens kant, oavsett hur nära/långt bort fingret
-       faktiskt är - samma knep som en klockvisare, den "hoppar" aldrig ut ur sitt spår. */
+    /* buggrapport: "slevens botten sitter fast i skålen, sen snurrar den 360 runt" - den
+       cirkel som ritades var skedens EGEN MITTPUNKT, inte skedens huvud. Sleven är 110px
+       lång (SPOON_HALF=55) men cirkelns radie var bara ~47px (bowl.width*0.36) - alltså
+       MINDRE än halva skedens längd, så huvudet for förbi skålens mittpunkt och ut på andra
+       sidan istället för att stanna inne i skålen, medan bara skaftet svepte runt i en vid
+       cirkel. Omloppsradien sätts nu till HEAD_RADIUS (var huvudet ska röra sig, nära mitten)
+       + SPOON_HALF, så det är HUVUDET som kretsar nära mitten och skaftet som alltid pekar
+       utåt över kanten - som när man faktiskt rör om.
+       En RAK cirkel överskred ändå skålens överkant/nederkant, eftersom skålen är bredare än
+       den är hög (en rund skål sedd snett uppifrån ser ut som en oval, inte en cirkel) - en
+       ellips (radX bredare, radY lägre) istället för en cirkel håller sleven innanför skålens
+       faktiska, ovala form i alla riktningar. */
+    var SPOON_HALF = 55,
+      HEAD_RADIUS = 18;
     function bowlGeo() {
       var br = bowl.getBoundingClientRect(),
         sr = stage.getBoundingClientRect();
       return {
         cx: br.left + br.width / 2,
         cy: br.top + br.height / 2,
-        rad: br.width * 0.36,
+        radX: SPOON_HALF + HEAD_RADIUS,
+        radY: SPOON_HALF * 0.3 + HEAD_RADIUS,
         sLeft: sr.left,
         sTop: sr.top,
       };
@@ -10670,11 +10692,15 @@
     }
     function placeSpoon(angle) {
       var g = bowlGeo(),
-        deg = (angle * 180) / Math.PI + 270; /* sleven pekar alltid in mot skålens mitt, se
-           kommentar i kitchenSetupSega ovan - rätt bara om bilden själv är ritad pekandes rakt
-           upp (skaft nedåt, lusikas-huvud uppåt) i sin viloposition. */
-      spoon.style.left = g.cx + g.rad * Math.cos(angle) - g.sLeft - 12 + "px";
-      spoon.style.top = g.cy + g.rad * Math.sin(angle) - g.sTop - 55 + "px";
+        px = g.radX * Math.cos(angle),
+        py = g.radY * Math.sin(angle),
+        /* riktningen FRÅN skedens plats MOT skålens mitt - sleven pekar alltid dit, rätt bara
+           om bilden själv är ritad pekandes rakt upp (skaft nedåt, lusikas-huvud uppåt) i sin
+           viloposition. Måste räknas ut per axel (inte bara angle+270 som förut) nu när
+           omloppet är en ellips (radX ≠ radY) istället för en cirkel. */
+        deg = (Math.atan2(-px, py) * 180) / Math.PI;
+      spoon.style.left = g.cx + px - g.sLeft - 12 + "px";
+      spoon.style.top = g.cy + py - g.sTop - 55 + "px";
       spoon.style.transform = "rotate(" + deg + "deg)";
     }
     placeSpoon(-Math.PI / 2); /* vilovinkel uppe på kanten, så det syns att den går att greppa */
@@ -10839,6 +10865,7 @@
       'px">' +
       '<div class="kitturns" id="kitcount">0%</div>';
     var brush = document.getElementById("kitbrush"),
+      spread = document.getElementById("kitspread"),
       fill = document.getElementById("kitspreadfill"),
       dragging = false,
       lastX = 0,
@@ -10862,16 +10889,28 @@
     });
     brush.addEventListener("pointermove", function (e) {
       if (!dragging) return;
+      var r = stage.getBoundingClientRect();
+      var p = kitClampPos(stage, brush, e.clientX - r.left - toolW / 2, e.clientY - r.top - toolH / 2);
+      brush.style.left = p.left + "px";
+      brush.style.top = p.top + "px";
+      /* buggrapport: "bred ut smör känns buggigt" - rörelse räknades tidigare ÖVERALLT på
+         skärmen, inte bara när redskapet faktiskt var över bre-ut-ytan. Kändes osammanhängande
+         - procenten kunde stiga fast man höll kniven långt borta. Räknar nu bara rörelse som
+         sker nära ytan (kitNear), precis som puista bara räknar träffar nära skålen. */
+      var br2 = brush.getBoundingClientRect(),
+        bcx = br2.left + br2.width / 2,
+        bcy = br2.top + br2.height / 2;
+      if (!kitNear(spread, bcx, bcy, 20)) {
+        lastX = e.clientX;
+        lastY = e.clientY;
+        return;
+      }
       total += Math.abs(e.clientX - lastX) + Math.abs(e.clientY - lastY);
       lastX = e.clientX;
       lastY = e.clientY;
       var frac = Math.min(1, total / MIN_PX);
       document.getElementById("kitcount").textContent = Math.round(frac * 100) + "%";
       fill.style.opacity = frac;
-      var r = stage.getBoundingClientRect();
-      var p = kitClampPos(stage, brush, e.clientX - r.left - toolW / 2, e.clientY - r.top - toolH / 2);
-      brush.style.left = p.left + "px";
-      brush.style.top = p.top + "px";
       if (total >= MIN_PX) showContinue();
     });
     brush.addEventListener("pointerup", function () {
@@ -10968,6 +11007,7 @@
      så det inte bara hoppar rakt till en eldflamma. */
   function kitchenSetupKupseta() {
     var stage = document.getElementById("kitstage");
+    stage.classList.add("kit-oven");
     stage.innerHTML =
       '<img class="kitoven" src="/images/kitchen/ugn.webp" alt="">' + '<div class="kitslide" id="kitslide">🥨</div>';
     var slide = document.getElementById("kitslide");
@@ -10978,6 +11018,7 @@
   }
   function kitchenStartBake() {
     var stage = document.getElementById("kitstage");
+    stage.classList.add("kit-oven");
     stage.innerHTML =
       '<img class="kitoven" src="/images/kitchen/ugn.webp" alt="">' +
       '<div class="kitheatbar"><div class="kitheatfill" id="kitheatfill"></div></div>' +

@@ -4474,9 +4474,17 @@ body {
 .kitoven {
   display: block;
   margin: 0 auto;
-  width: 130px;
-  height: 102px;
+  width: 220px;
+  height: 173px;
   object-fit: contain;
+}
+
+/* buggrapport: man såg köksbakgrundens EGEN inbyggda ugn samtidigt som ugns-bilden i
+   förgrunden - två olika ugnar på en gång, förvirrande. Under kupseta (gräddning) byts
+   kökbakgrunden ut mot en enfärgad mörk yta - "in i ugnen", bara den ugnen syns. */
+.kitstage.kit-oven {
+  background-image: none;
+  background-color: #140e0a;
 }
 
 .kitheatbar {
