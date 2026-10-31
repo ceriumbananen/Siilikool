@@ -10579,14 +10579,19 @@
      rulli) istället för skålen som det strös på/mot. */
   function kitchenSetupPuista(step) {
     var stage = document.getElementById("kitstage"),
-      onDough = step && step.target === "dough";
+      target = step && step.target,
+      targetHtml =
+        target === "dough"
+          ? '<img class="kitdoughflat" id="kitpuistatarget" src="/images/kitchen/deg.webp" alt="" style="transform:translateX(-50%) scaleX(1.7) scaleY(0.65)">'
+          : target === "buns"
+            ? '<img class="kitbowl" id="kitpuistatarget" src="/images/kitchen/kuklid.webp" alt="" style="width:170px;height:85px">'
+            : '<img class="kitbowl" id="kitpuistatarget" src="/images/kitchen/skal.webp" alt="">',
+      targetWord = target === "dough" ? "degen" : target === "buns" ? "bullarna" : "skålen";
     stage.innerHTML =
       '<div class="kithint">Dra strökrukan över ' +
-      (onDough ? "degen" : "skålen") +
+      targetWord +
       "</div>" +
-      (onDough
-        ? '<img class="kitdoughflat" id="kitpuistatarget" src="/images/kitchen/deg.webp" alt="" style="transform:translateX(-50%) scaleX(1.7) scaleY(0.65)">'
-        : '<img class="kitbowl" id="kitpuistatarget" src="/images/kitchen/skal.webp" alt="">') +
+      targetHtml +
       '<img class="kitshaker" id="kitshaker" src="/images/kitchen/strokruka.webp" alt="">' +
       '<div class="kitturns" id="kitcount">0 puistet</div>';
     var shaker = document.getElementById("kitshaker"),
@@ -10920,12 +10925,19 @@
   /* loika: upprepade tryck. För få hack lämnar degen som en stor klump (en egen rolig
      "sõlm"-rätt) istället för fina bitar - motsatt typ av överdrift mot sega ovan, så de två
      gesterna inte känns likadana. */
+  /* buggrapport: "Lõika ribadeks" (skär i remsor) var bara tryck direkt på degen, utan något
+     redskap alls - borde vara en degskrapa som faktiskt delar degen. Degskrapan är nu ett eget
+     element ovanför degen som "hackar till" (kitChop) i takt med varje tryck, istället för att
+     bara trycka på degen med fingret. */
   function kitchenSetupLoika() {
     var stage = document.getElementById("kitstage");
     stage.innerHTML =
-      '<div class="kitdough" id="kitdough"><img class="kitdoughimg" src="/images/kitchen/deg.webp" alt="">' +
+      '<div class="kitdough" id="kitdough">' +
+      '<img class="kitscraper" id="kitscraper" src="/images/kitchen/degskrapa.webp" alt="">' +
+      '<img class="kitdoughimg" src="/images/kitchen/deg.webp" alt="">' +
       '<div class="kitcount" id="kitcount">0 hack</div></div>';
     var dough = document.getElementById("kitdough"),
+      scraper = document.getElementById("kitscraper"),
       count = 0,
       MIN_CHOPS = 3;
     function showContinue() {
@@ -10942,6 +10954,9 @@
       dough.classList.remove("kit-pop");
       void dough.offsetWidth;
       dough.classList.add("kit-pop");
+      scraper.classList.remove("kit-chop");
+      void scraper.offsetWidth;
+      scraper.classList.add("kit-chop");
       tone(300 + count * 20, 0.05, 0);
       showContinue();
     });
@@ -10957,7 +10972,8 @@
   function kitchenSetupVormi() {
     var stage = document.getElementById("kitstage");
     stage.innerHTML =
-      '<div class="kithint">Dra degen till knuten</div><div class="kitknot" id="kitknot">🥨</div><div class="kiting" id="kitrope">🥖</div>';
+      '<div class="kithint">Dra degen till knuten</div><div class="kitknot" id="kitknot">🥨</div>' +
+      '<img class="kiting" id="kitrope" src="/images/kitchen/taignarull.webp" alt="" style="width:70px;height:26px">';
     var rope = document.getElementById("kitrope"),
       knot = document.getElementById("kitknot"),
       dragging = false,

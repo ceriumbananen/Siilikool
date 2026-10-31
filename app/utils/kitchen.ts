@@ -36,10 +36,11 @@ export type KitchenStep = {
   /** bara maari: vilket redskap som visas - en smörkniv (dra ut smör) eller en pensel (pensla
    * med ägg), se kitchenSetupMaari (app.js). Saknas den används penseln som standard. */
   tool?: "voi" | "muna";
-  /** bara puista: vad man strör PÅ - "bowl" (standard, strö i skålen) eller "dough" (strö på
-   * den redan utkavlade/bredda degen - ingen skål finns kvar i det skedet av receptet, så en
-   * skål där hade sett fel ut). Saknas = "bowl". Se kitchenSetupPuista (app.js). */
-  target?: "bowl" | "dough";
+  /** bara puista: vad man strör PÅ - "bowl" (standard, strö i skålen), "dough" (strö på den
+   * redan utkavlade/bredda degen - ingen skål finns kvar i det skedet av receptet) eller
+   * "buns" (strö på färdigformade, penslade bullar på en plåt, t.ex. pärlsocker). Saknas =
+   * "bowl". Se kitchenSetupPuista (app.js). */
+  target?: "bowl" | "dough" | "buns";
 };
 
 export type KitchenOutcome = {
@@ -198,7 +199,7 @@ export const KITCHEN_RECIPES: KitchenRecipe[] = [
       { verb: "loika", et: "Lõika ribadeks", sv: "Skär i remsor" },
       { verb: "vormi", et: "Vormi ribad sõlmedeks", sv: "Knyt remsorna till knutar" },
       { verb: "maari", et: "Määri munaga", sv: "Pensla med ägg", tool: "muna" },
-      { verb: "puista", et: "Puista pärlsuhkrut", sv: "Strö på pärlsocker", target: "dough" },
+      { verb: "puista", et: "Puista pärlsuhkrut", sv: "Strö på pärlsocker", target: "buns" },
       { verb: "kupseta", et: "Küpseta ahjus", sv: "Grädda i ugnen" },
     ],
     perfect: {

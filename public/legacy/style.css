@@ -4471,6 +4471,39 @@ body {
   object-fit: contain;
 }
 
+/* loika: degskrapan "hackar till" i takt med varje tryck (kitChop), istället för att bara
+   trycka direkt på degen utan något redskap. Rör inte vid pekhändelser själv - degen under
+   tar fortfarande emot trycken, skrapan är bara den visuella responsen. */
+.kitscraper {
+  position: absolute;
+  top: -28px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 90px;
+  height: 47px;
+  object-fit: contain;
+  pointer-events: none;
+}
+
+.kitscraper.kit-chop {
+  animation: kitChop 0.25s ease;
+}
+
+@keyframes kitChop {
+  0% {
+    translate: 0 0;
+    rotate: 0deg;
+  }
+  40% {
+    translate: 0 16px;
+    rotate: -10deg;
+  }
+  100% {
+    translate: 0 0;
+    rotate: 0deg;
+  }
+}
+
 .kitoven {
   display: block;
   margin: 0 auto;
