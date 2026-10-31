@@ -10612,8 +10612,12 @@
             ? '<img class="kitbowl" id="kitpuistatarget" src="/images/kitchen/kuklid.webp" alt="" style="width:170px;height:85px">'
             : '<img class="kitbowl" id="kitpuistatarget" src="/images/kitchen/skal.webp" alt="">',
       targetWord = target === "dough" ? "degen" : target === "buns" ? "bullarna" : "skålen";
+    /* spelkänsla: hjälptexten sa bara "dra över X", inget om att man måste FORTSÄTTA röra den
+       där (annars faller inga korn alls) - ett barn som drar den dit och sen håller stilla,
+       som man gör i sõtku, ser inget hända och tror att det är trasigt. Säger nu uttryckligen
+       att man ska skaka den. */
     stage.innerHTML =
-      '<div class="kithint">Dra strökrukan över ' +
+      '<div class="kithint">Dra och skaka strökrukan över ' +
       targetWord +
       "</div>" +
       targetHtml +
@@ -10776,6 +10780,11 @@
       pressing = false,
       MIN_MS = 1200,
       raf;
+    /* .kitdough delas med loika (korta tryck) där "manipulation" duger - ett HÅLLET tryck på
+       över en sekund är känsligare för att webbläsaren tolkar det som en panorering/scroll-
+       gest, precis det touch-action:none (som alla andra redskap i köket redan har) finns
+       till för att förhindra. */
+    dough.style.touchAction = "none";
     function showContinue() {
       var c = document.getElementById("kitcontinue");
       if (c.firstChild) return;
@@ -10791,10 +10800,18 @@
       countEl.textContent = ((total + (Date.now() - pressStart)) / 1000).toFixed(1) + " s";
       raf = requestAnimationFrame(tick);
     }
-    dough.addEventListener("pointerdown", function () {
+    /* spelkänsla/konsekvens: sõtku var det ENDA momentet utan setPointerCapture, och förlitade
+       sig på pointerleave för att avsluta trycket - degen KRYMPER synligt (kit-squish, scaleY
+       0.8) medan man håller, så en hand som darrar det minsta nära kanten (normalt för ett
+       barns finger under över en sekund) kunde hamna utanför den nu mindre rutan och avbryta
+       trycket i förtid, helt ologiskt (man höll ju fortfarande kvar fingret på degen). Fångar
+       pekaren precis som alla andra redskap i köket, så rörelse utanför inte spelar någon
+       roll, och lyssnar på pointercancel också (saknades helt). */
+    dough.addEventListener("pointerdown", function (e) {
       pressing = true;
       pressStart = Date.now();
       dough.classList.add("kit-squish");
+      dough.setPointerCapture(e.pointerId);
       tick();
     });
     function endPress() {
@@ -10807,7 +10824,7 @@
       if (total >= MIN_MS) showContinue();
     }
     dough.addEventListener("pointerup", endPress);
-    dough.addEventListener("pointerleave", endPress);
+    dough.addEventListener("pointercancel", endPress);
   }
   /* puhkamine: inget att göra - en kort, odömande väntestund medan degen jäser. Ingen
      gradering, ingen gest, bara en liten paus med en rolig "puffar upp"-animation innan man
@@ -10891,14 +10908,41 @@
      över ytan - ackumulerad rörelse i VILKEN RIKTNING SOM HELST (till skillnad från rullis
      bara sidled), en täckningsgrad fylls i som en genomskinlig gyllene yta istället för en
      siffra, så det känns som att bre ut något snarare än att mäta en sträcka. */
+  /* spelkänsla: ytan man brer ut på var en abstrakt streckad ruta, helt frikopplad från degen
+     man precis kavlat ut (eller bullarna man precis knutit) - kändes ologiskt/urkopplat från
+     resten av receptet. Visar nu den FAKTISKA degen (smör, platt som efter rulli) eller
+     bullarna på plåt (ägg, samma bild som pärlsocker-steget använder) som ytan - täcknings-
+     glansen tonar nu in ÖVANPÅ maten istället för på en tom låda. */
   function kitchenSetupMaari(step) {
     var stage = document.getElementById("kitstage"),
       isVoi = step && step.tool === "voi",
       toolSrc = isVoi ? "/images/kitchen/voikniv.webp" : "/images/kitchen/pensel.webp",
       toolW = 160,
-      toolH = isVoi ? 29 : 49;
+      toolH = isVoi ? 29 : 49,
+      surfaceSrc = isVoi ? "/images/kitchen/deg.webp" : "/images/kitchen/kuklid.webp",
+      surfaceW = isVoi ? 110 : 170,
+      surfaceH = isVoi ? 80 : 85,
+      /* skalningen (degen "redan utkavlad") sitter på HELA ramen, inte bara bilden, så att
+         glansen (som klipps mot samma bild som mask, se nedan) skalas med - annars hamnade
+         masken och den synliga, skalade degen på olika ställen. */
+      spreadTransform = isVoi ? "translateX(-50%) scaleX(1.7) scaleY(0.65)" : "translateX(-50%)";
     stage.innerHTML =
-      '<div class="kitspread" id="kitspread"><div class="kitspreadfill" id="kitspreadfill"></div></div>' +
+      '<div class="kitspread" id="kitspread" style="width:' +
+      surfaceW +
+      "px;height:" +
+      surfaceH +
+      "px;transform:" +
+      spreadTransform +
+      '">' +
+      '<img class="kitspreadimg" src="' +
+      surfaceSrc +
+      '" alt="" style="width:' +
+      surfaceW +
+      "px;height:" +
+      surfaceH +
+      'px">' +
+      '<div class="kitspreadfill" id="kitspreadfill"></div>' +
+      "</div>" +
       '<img class="kitbrush" id="kitbrush" src="' +
       toolSrc +
       '" alt="" style="width:' +
@@ -10916,6 +10960,17 @@
       total = 0,
       MIN_PX = 320;
     brush.style.touchAction = "none";
+    /* spelkänsla: en rektangulär guldplatta ovanpå den runda degen/bullarna såg fel ut vid hög
+       opacitet - maskar glansen mot SAMMA bild som ytan, så den bara syns där maten faktiskt
+       har pixlar (degens/bullarnas egen form), inte hela den fyrkantiga bildrutan. */
+    fill.style.webkitMaskImage = "url(" + surfaceSrc + ")";
+    fill.style.maskImage = "url(" + surfaceSrc + ")";
+    fill.style.webkitMaskSize = "contain";
+    fill.style.maskSize = "contain";
+    fill.style.webkitMaskRepeat = "no-repeat";
+    fill.style.maskRepeat = "no-repeat";
+    fill.style.webkitMaskPosition = "center";
+    fill.style.maskPosition = "center";
     function showContinue() {
       var c = document.getElementById("kitcontinue");
       if (c.firstChild) return;
@@ -11090,16 +11145,21 @@
     var stage = document.getElementById("kitstage");
     stage.classList.add("kit-oven");
     stage.innerHTML =
-      '<img class="kitoven" src="/images/kitchen/ugn.webp" alt="">' +
+      '<img class="kitoven" id="kitoven" src="/images/kitchen/ugn.webp" alt="">' +
       '<div class="kitheatbar"><div class="kitheatfill" id="kitheatfill"></div></div>' +
       '<button class="btn green big wide" id="kittake" style="margin-top:12px">Ta ut! 🍽️</button>';
     var fill = document.getElementById("kitheatfill"),
+      oven = document.getElementById("kitoven"),
       t0 = Date.now(),
       DURATION = 6000,
       raf;
+    /* spelkänsla: en stapel som fylls känns avkopplad från "gräddning" - ugnen själv glöder
+       nu lite starkare ju längre den gräddat, så det faktiskt ser ut som att något händer i
+       ugnen, inte bara en abstrakt tidslinje. */
     function tick() {
       var p = Math.min(1, (Date.now() - t0) / DURATION);
       fill.style.width = p * 100 + "%";
+      oven.style.filter = "brightness(" + (1 + p * 0.35) + ") saturate(" + (1 + p * 0.3) + ")";
       if (p < 1) raf = requestAnimationFrame(tick);
     }
     raf = requestAnimationFrame(tick);

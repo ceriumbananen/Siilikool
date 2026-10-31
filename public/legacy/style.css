@@ -4350,6 +4350,15 @@ body {
   justify-content: center;
 }
 
+/* spelkänsla: en vanlig <img> är dragbar av BLOTT webbläsaren som standard - ett drag som
+   råkar börja på t.ex. degen bakom en gest (inte exakt på verktyget) startade webbläsarens
+   egen "dra bilden"-spökbild (en halvgenomskinlig blåton som följer muspekaren) istället för
+   eller utöver appens egen dra-logik. Stänger av det för alla bilder i köket på en gång. */
+.kitstage img {
+  -webkit-user-drag: none;
+  user-select: none;
+}
+
 /* hjälptext/räknare ligger nu ovanpå ett fotorealistiskt kök istället för en enfärgad
    bakgrund - en liten mörk pill bakom texten håller den läsbar oavsett vad som råkar synas
    bakom den, samma knep som .riverlabel (Paadisõit) använder för flasktexten. */
@@ -4704,23 +4713,27 @@ body {
 }
 
 /* määri (bre ut/pensla): en täckningsyta som gradvis tonar in i takt med svepandet, inte en
-   siffra - känns mer som att bre ut något än att mäta en sträcka. */
+   siffra - känns mer som att bre ut något än att mäta en sträcka.
+   Spelkänsla: ytan var tidigare en abstrakt streckad låda, helt frikopplad från degen man
+   precis kavlat ut (eller bullarna man precis knutit) - .kitspread är nu bara en
+   positioneringsram runt den FAKTISKA maten (.kitspreadimg, satt i JS beroende på tool),
+   med glansen ovanpå den istället för på en tom låda. */
 .kitspread {
   position: absolute;
   left: 50%;
   bottom: 30px;
   transform: translateX(-50%);
-  width: 140px;
-  height: 70px;
-  border-radius: 10px;
-  background: var(--card);
-  border: 2px dashed var(--line);
-  overflow: hidden;
+  width: fit-content;
+}
+
+.kitspreadimg {
+  display: block;
+  object-fit: contain;
 }
 
 .kitspreadfill {
-  width: 100%;
-  height: 100%;
+  position: absolute;
+  inset: 0;
   background: var(--honey);
   opacity: 0;
 }
