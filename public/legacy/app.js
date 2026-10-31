@@ -10464,6 +10464,15 @@
       top: Math.max(extraH, Math.min(stage.clientHeight - h - extraH, top)),
     };
   }
+  /* buggrapport: "inte lyckats en enda gång köra igenom hela bakspelet" - träfftestet mot
+     skålens/knutens EXAKTA synliga kant var för snålt för verklig fingerprecision (särskilt
+     för barn), även efter fixet som testar ikonens egen position istället för fingrets. En
+     "nästan där" känns som en miss varje gång. kitNear ger alla släpp-mål en generös osynlig
+     marginal runt den synliga bilden - lätt att lyckas, aldrig fel att sikta lite bredvid. */
+  function kitNear(targetEl, x, y, pad) {
+    var r = targetEl.getBoundingClientRect();
+    return x >= r.left - pad && x <= r.right + pad && y >= r.top - pad && y <= r.bottom + pad;
+  }
   /* vala: dra ingrediensen till skålen. Ingen gradering - missar man skålen får man bara
      försöka igen, det finns inget "fel" sätt att till slut få den dit. */
   function kitchenSetupVala(step) {
@@ -10495,9 +10504,10 @@
     ing.addEventListener("pointermove", function (e) {
       if (!dragging) return;
       var r = stage.getBoundingClientRect();
-      /* ritas en bit OVANFÖR fingret, inte rakt under - annars skymmer fingret precis det man
-         ska styra, särskilt kännbart på touch där man inte har en liten musmarkör att se runt. */
-      var p = kitClampPos(stage, ing, e.clientX - r.left - 24, e.clientY - r.top - 56);
+      /* ritas en liten bit OVANFÖR fingret, inte rakt under - annars skymmer fingret precis
+         det man ska styra - men bara en liten lyft nu (var 24/56, kändes som att ikonen inte
+         alls följde fingret och gjorde den svår att sikta med). */
+      var p = kitClampPos(stage, ing, e.clientX - r.left - 16, e.clientY - r.top - 30);
       ing.style.left = p.left + "px";
       ing.style.top = p.top + "px";
     });
@@ -10505,17 +10515,27 @@
       if (!dragging) return;
       dragging = false;
       ing.classList.remove("kit-dragging");
-      var br = bowl.getBoundingClientRect();
-      /* träffen testas mot var INGREDIENSEN syns på skärmen, inte var fingret släpps - den
-         ritas ju medvetet en bit ovanför fingret (se pointermove ovan), så att testa fingrets
-         egen position missar ofta skålen fast ingrediensen visuellt ligger mitt i den. */
+      /* träffen testas mot var INGREDIENSEN syns, inte var fingret släpps (se pointermove),
+         och med en generös osynlig marginal (kitNear) runt skålen - ett barns finger är inte
+         pixelprecist, och "nästan i skålen" ska räcka. */
       var ir = ing.getBoundingClientRect(),
         icx = ir.left + ir.width / 2,
         icy = ir.top + ir.height / 2;
-      var hit = icx >= br.left && icx <= br.right && icy >= br.top && icy <= br.bottom;
+      var hit = kitNear(bowl, icx, icy, 36);
       if (hit) {
         bowl.classList.add("kit-pop");
         sndOk();
+        if (step.ingredient && step.ingredient.pour) {
+          /* vätska: krymp och tona bort MOT skålens mitt istället för att bara bli liggande
+             ovanpå den - annars ser det ut som man lade hela mjölkkannan i skålen, inte som
+             att man hällde mjölken i den. */
+          var br2 = bowl.getBoundingClientRect(),
+            dx = br2.left + br2.width / 2 - icx,
+            dy = br2.top + br2.height / 2 - icy;
+          ing.style.transition = "transform 0.3s ease-in, opacity 0.3s ease-in";
+          ing.style.transform = "translate(" + dx + "px," + dy + "px) scale(0.2)";
+          ing.style.opacity = "0";
+        }
         setTimeout(function () {
           kitchenAdvance(false);
         }, 350);
@@ -10567,10 +10587,6 @@
       pours = 0,
       MIN_POURS = 8;
     shaker.style.touchAction = "none";
-    function within(el, x, y) {
-      var r = el.getBoundingClientRect();
-      return x >= r.left && x <= r.right && y >= r.top && y <= r.bottom;
-    }
     function showContinue() {
       var c = document.getElementById("kitcontinue");
       if (c.firstChild) return;
@@ -10587,16 +10603,18 @@
     shaker.addEventListener("pointermove", function (e) {
       if (!dragging) return;
       var r = stage.getBoundingClientRect();
-      var p = kitClampPos(stage, shaker, e.clientX - r.left - 30, e.clientY - r.top - 62);
+      var p = kitClampPos(stage, shaker, e.clientX - r.left - 20, e.clientY - r.top - 38);
       shaker.style.left = p.left + "px";
       shaker.style.top = p.top + "px";
       /* testar var krukan SYNS, inte var fingret är - krukan ritas en bit ovanför/vid sidan
          av fingret (se ovan), så att testa fingrets råa position missar skålen nästan alltid
-         även när krukan visuellt hänger rakt över den. Samma bugg som vala hade. */
+         även när krukan visuellt hänger rakt över den. Samma bugg som vala hade. Generös
+         marginal (kitNear) - "nästan över skålen" ska räcka, annars är det nästan omöjligt
+         att hålla träffen i flera rörelser i rad. */
       var sr = shaker.getBoundingClientRect(),
         scx = sr.left + sr.width / 2,
         scy = sr.top + sr.height / 2;
-      if (!within(bowl, scx, scy)) return;
+      if (!kitNear(bowl, scx, scy, 30)) return;
       /* räknar bara var annan träff så det inte regnar korn absurt snabbt bara för att
          pointermove avfyras ofta - samma andetag som sega/rulli/määri räknar rörelse. */
       moveTicks++;
@@ -10919,7 +10937,7 @@
     rope.addEventListener("pointermove", function (e) {
       if (!dragging) return;
       var r = stage.getBoundingClientRect();
-      var p = kitClampPos(stage, rope, e.clientX - r.left - 24, e.clientY - r.top - 56);
+      var p = kitClampPos(stage, rope, e.clientX - r.left - 16, e.clientY - r.top - 30);
       rope.style.left = p.left + "px";
       rope.style.top = p.top + "px";
     });
@@ -10927,12 +10945,12 @@
       if (!dragging) return;
       dragging = false;
       rope.classList.remove("kit-dragging");
-      var kr = knot.getBoundingClientRect();
-      /* samma fix som vala/puista - testar var degen SYNS, inte var fingret släpps. */
+      /* samma fix som vala/puista - testar var degen SYNS, inte var fingret släpps, med
+         generös marginal (kitNear) runt knuten. */
       var rr = rope.getBoundingClientRect(),
         rcx = rr.left + rr.width / 2,
         rcy = rr.top + rr.height / 2;
-      var hit = rcx >= kr.left && rcx <= kr.right && rcy >= kr.top && rcy <= kr.bottom;
+      var hit = kitNear(knot, rcx, rcy, 30);
       if (hit) {
         knot.classList.add("kit-pop");
         sndOk();
