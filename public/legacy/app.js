@@ -10469,9 +10469,14 @@
      för barn), även efter fixet som testar ikonens egen position istället för fingrets. En
      "nästan där" känns som en miss varje gång. kitNear ger alla släpp-mål en generös osynlig
      marginal runt den synliga bilden - lätt att lyckas, aldrig fel att sikta lite bredvid. */
-  function kitNear(targetEl, x, y, pad) {
+  function kitNear(targetEl, x, y, pad, padTop) {
+    /* buggrapport: "vill kunna hälla lite längre upp över skålen att det aktiveras lite
+       tidigare" - man häller ju uppifrån i verkligheten, så marginalen OVANFÖR målet får
+       gärna vara mycket större än runt om - padTop (om satt) används istället för pad uppåt. */
     var r = targetEl.getBoundingClientRect();
-    return x >= r.left - pad && x <= r.right + pad && y >= r.top - pad && y <= r.bottom + pad;
+    return (
+      x >= r.left - pad && x <= r.right + pad && y >= r.top - (padTop == null ? pad : padTop) && y <= r.bottom + pad
+    );
   }
   /* vala: dra ingrediensen till skålen. Ingen gradering - missar man skålen får man bara
      försöka igen, det finns inget "fel" sätt att till slut få den dit. */
@@ -10525,20 +10530,25 @@
       if (hit) {
         bowl.classList.add("kit-pop");
         sndOk();
+        var advanceDelay = 350;
         if (step.ingredient && step.ingredient.pour) {
-          /* vätska: krymp och tona bort MOT skålens mitt istället för att bara bli liggande
-             ovanpå den - annars ser det ut som man lade hela mjölkkannan i skålen, inte som
-             att man hällde mjölken i den. */
+          /* buggrapport (x2): såg fortfarande ut som att man lade hela mjölkkannan i skålen -
+             krymp-mot-mitten-effekten var för snabb (0.3s) och drunknade i skålens egen
+             kit-pop-studs samtidigt, så den hann knappt synas innan skärmen bytte. Längre,
+             tydligare rörelse (0.5s) + kannan tippar ÄNNU mer under tiden (som att den töms)
+             + skärmbytet väntar tills hela animationen faktiskt setts klart. */
           var br2 = bowl.getBoundingClientRect(),
             dx = br2.left + br2.width / 2 - icx,
             dy = br2.top + br2.height / 2 - icy;
-          ing.style.transition = "transform 0.3s ease-in, opacity 0.3s ease-in";
-          ing.style.transform = "translate(" + dx + "px," + dy + "px) scale(0.2)";
+          ing.style.transition = "transform 0.5s ease-in, opacity 0.5s ease-in, rotate 0.5s ease-in";
+          ing.style.transform = "translate(" + dx + "px," + dy + "px) scale(0.15)";
+          ing.style.rotate = "-80deg";
           ing.style.opacity = "0";
+          advanceDelay = 550;
         }
         setTimeout(function () {
           kitchenAdvance(false);
-        }, 350);
+        }, advanceDelay);
       } else {
         reset();
       }
@@ -10547,7 +10557,10 @@
   /* liten fall-animation för puista (strö) - några korn som faller från strökrukan ner mot
      skålen, en i taget per tryck. Rena DOM-noder som städar sig själva, inget state att hålla
      reda på mellan tryck. */
-  function kitchenSprinkleFx(stage, from) {
+  /* buggrapport: kornen var alltid gula (--honey) oavsett vad som faktiskt strös - socker/salt/
+     pärlsocker är vita, kanel/kardemon är bruna. color (valfri) sätter kornens färg per steg,
+     se KitchenStep.grainColor (kitchen.ts) och kitchenSetupPuista nedan. */
+  function kitchenSprinkleFx(stage, from, color) {
     var sr = from.getBoundingClientRect(),
       r = stage.getBoundingClientRect(),
       n = 4,
@@ -10555,6 +10568,7 @@
     for (i = 0; i < n; i++) {
       var dot = document.createElement("div");
       dot.className = "kitgrain";
+      if (color) dot.style.background = color;
       dot.style.left = sr.left - r.left + sr.width / 2 + (Math.random() * 24 - 12) + "px";
       dot.style.top = sr.top - r.top + sr.height - 10 + "px";
       dot.style.animationDelay = i * 45 + "ms";
@@ -10628,7 +10642,7 @@
       var sr = shaker.getBoundingClientRect(),
         scx = sr.left + sr.width / 2,
         scy = sr.top + sr.height / 2;
-      if (!kitNear(bowl, scx, scy, 30)) return;
+      if (!kitNear(bowl, scx, scy, 30, 90)) return;
       /* räknar bara var annan träff så det inte regnar korn absurt snabbt bara för att
          pointermove avfyras ofta - samma andetag som sega/rulli/määri räknar rörelse. */
       moveTicks++;
@@ -10638,7 +10652,7 @@
       shaker.classList.remove("kit-shake");
       void shaker.offsetWidth;
       shaker.classList.add("kit-shake");
-      kitchenSprinkleFx(stage, shaker);
+      kitchenSprinkleFx(stage, shaker, step.grainColor === "brown" ? "#8a5a2b" : "#f6f1e3");
       tone(620 + pours * 10, 0.04, 0);
       if (pours >= MIN_POURS) showContinue();
     });
@@ -10665,50 +10679,41 @@
       MIN_TURNS = 0.4,
       MAX_TURNS = 3;
     spoon.style.touchAction = "none";
-    /* buggrapport: "slevens botten sitter fast i skålen, sen snurrar den 360 runt" - den
-       cirkel som ritades var skedens EGEN MITTPUNKT, inte skedens huvud. Sleven är 110px
-       lång (SPOON_HALF=55) men cirkelns radie var bara ~47px (bowl.width*0.36) - alltså
-       MINDRE än halva skedens längd, så huvudet for förbi skålens mittpunkt och ut på andra
-       sidan istället för att stanna inne i skålen, medan bara skaftet svepte runt i en vid
-       cirkel. Omloppsradien sätts nu till HEAD_RADIUS (var huvudet ska röra sig, nära mitten)
-       + SPOON_HALF, så det är HUVUDET som kretsar nära mitten och skaftet som alltid pekar
-       utåt över kanten - som när man faktiskt rör om.
-       En RAK cirkel överskred ändå skålens överkant/nederkant, eftersom skålen är bredare än
-       den är hög (en rund skål sedd snett uppifrån ser ut som en oval, inte en cirkel) - en
-       ellips (radX bredare, radY lägre) istället för en cirkel håller sleven innanför skålens
-       faktiska, ovala form i alla riktningar. */
-    var SPOON_HALF = 55,
-      HEAD_RADIUS = 18;
-    function bowlGeo() {
-      var br = bowl.getBoundingClientRect(),
-        sr = stage.getBoundingClientRect();
-      return {
-        cx: br.left + br.width / 2,
-        cy: br.top + br.height / 2,
-        radX: SPOON_HALF + HEAD_RADIUS,
-        radY: SPOON_HALF * 0.3 + HEAD_RADIUS,
-        sLeft: sr.left,
-        sTop: sr.top,
-      };
+    /* buggrapport (upprepad, x2): sleven kändes konstig oavsett hur omloppsellipsen justerades
+       - grundbugg var att sleven INTE följde fingret, bara VINKELN från fingret till skålens
+       mitt; avståndet ignorerades helt och sleven tvingades till en fast osynlig bana. Det
+       kändes därför inte som att man styrde skeden själv, bara som att man vred på ett rattnav
+       någon annanstans. Sleven följer nu fingret rakt av (klämt innanför rutan, precis som
+       alla andra redskap i köket), och roterar så att huvudet alltid pekar mot skålens mitt
+       FRÅN DÄR DEN FAKTISKT ÄR - som en kompassnål som alltid pekar mot målet oavsett var man
+       råkar hålla den, istället för att själv förflytta sig dit. */
+    function bowlCenter() {
+      var br = bowl.getBoundingClientRect();
+      return { cx: br.left + br.width / 2, cy: br.top + br.height / 2 };
     }
     function angleFor(e) {
-      var g = bowlGeo();
-      return Math.atan2(e.clientY - g.cy, e.clientX - g.cx);
+      var c = bowlCenter();
+      return Math.atan2(e.clientY - c.cy, e.clientX - c.cx);
     }
-    function placeSpoon(angle) {
-      var g = bowlGeo(),
-        px = g.radX * Math.cos(angle),
-        py = g.radY * Math.sin(angle),
-        /* riktningen FRÅN skedens plats MOT skålens mitt - sleven pekar alltid dit, rätt bara
-           om bilden själv är ritad pekandes rakt upp (skaft nedåt, lusikas-huvud uppåt) i sin
-           viloposition. Måste räknas ut per axel (inte bara angle+270 som förut) nu när
-           omloppet är en ellips (radX ≠ radY) istället för en cirkel. */
+    function placeSpoon(e) {
+      var r = stage.getBoundingClientRect(),
+        p = kitClampPos(stage, spoon, e.clientX - r.left - 12, e.clientY - r.top - 55);
+      spoon.style.left = p.left + "px";
+      spoon.style.top = p.top + "px";
+      var sr = spoon.getBoundingClientRect(),
+        c = bowlCenter(),
+        px = sr.left + sr.width / 2 - c.cx,
+        py = sr.top + sr.height / 2 - c.cy,
+        /* riktningen FRÅN skedens FAKTISKA plats MOT skålens mitt - rätt bara om bilden själv
+           är ritad pekandes rakt upp (skaft nedåt, lusikas-huvud uppåt) i sin viloposition. */
         deg = (Math.atan2(-px, py) * 180) / Math.PI;
-      spoon.style.left = g.cx + px - g.sLeft - 12 + "px";
-      spoon.style.top = g.cy + py - g.sTop - 55 + "px";
       spoon.style.transform = "rotate(" + deg + "deg)";
     }
-    placeSpoon(-Math.PI / 2); /* vilovinkel uppe på kanten, så det syns att den går att greppa */
+    (function () {
+      /* vilopositionen: uppe vid skålens kant, så det syns att den går att greppa */
+      var c = bowlCenter();
+      placeSpoon({ clientX: c.cx, clientY: c.cy - 60 });
+    })();
     function showContinue() {
       var c = document.getElementById("kitcontinue");
       if (c.firstChild) return;
@@ -10730,7 +10735,7 @@
       if (d < -Math.PI) d += 2 * Math.PI;
       total += Math.abs(d);
       lastAngle = a;
-      placeSpoon(a);
+      placeSpoon(e);
       document.getElementById("kitturns").textContent = (total / (2 * Math.PI)).toFixed(1) + " varv";
       if (total / (2 * Math.PI) >= MIN_TURNS) showContinue();
     });
@@ -10835,14 +10840,25 @@
     });
     pin.addEventListener("pointermove", function (e) {
       if (!dragging) return;
+      var r = stage.getBoundingClientRect();
+      var p = kitClampPos(stage, pin, e.clientX - r.left - 65, 0);
+      pin.style.left = p.left + "px";
+      /* buggrapport: "du rullar kaveln vid sidan, borde bara räknas på degen" - rörelse
+         räknades tidigare var som helst i rutan, inte bara när kaveln faktiskt var över degen.
+         Räknar nu bara när kaveln är nära degen (kitNear), som määri mot bre-ut-ytan - degens
+         egen bredd växer under tiden (scaleX), så träffytan växer naturligt med den. */
+      var pr = pin.getBoundingClientRect(),
+        pcx = pr.left + pr.width / 2,
+        pcy = pr.top + pr.height / 2;
+      if (!kitNear(flat, pcx, pcy, 25)) {
+        lastX = e.clientX;
+        return;
+      }
       total += Math.abs(e.clientX - lastX);
       lastX = e.clientX;
       var frac = Math.min(1, total / MIN_PX);
       document.getElementById("kitcount").textContent = Math.round(frac * 100) + "%";
       flat.style.transform = "scaleX(" + (1 + frac * 0.7) + ") scaleY(" + (1 - frac * 0.35) + ")";
-      var r = stage.getBoundingClientRect();
-      var p = kitClampPos(stage, pin, e.clientX - r.left - 65, 0);
-      pin.style.left = p.left + "px";
       if (total >= MIN_PX) showContinue();
     });
     pin.addEventListener("pointerup", function () {

@@ -4483,6 +4483,9 @@ body {
   height: 47px;
   object-fit: contain;
   pointer-events: none;
+  /* buggrapport: "snurra lite på bilden så att brödskrapans egg är mot degen, mer som en
+     kniv" - skrapan var ritad liggande med eggen diagonalt, inte neråt mot degen. */
+  rotate: -20deg;
 }
 
 .kitscraper.kit-chop {
@@ -4492,15 +4495,15 @@ body {
 @keyframes kitChop {
   0% {
     translate: 0 0;
-    rotate: 0deg;
+    rotate: -20deg;
   }
   40% {
     translate: 0 16px;
-    rotate: -10deg;
+    rotate: -30deg;
   }
   100% {
     translate: 0 0;
-    rotate: 0deg;
+    rotate: -20deg;
   }
 }
 

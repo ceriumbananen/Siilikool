@@ -41,6 +41,9 @@ export type KitchenStep = {
    * "buns" (strö på färdigformade, penslade bullar på en plåt, t.ex. pärlsocker). Saknas =
    * "bowl". Se kitchenSetupPuista (app.js). */
   target?: "bowl" | "dough" | "buns";
+  /** bara puista: färg på de fallande kornen - "white" (socker/salt/pärlsocker, standard)
+   * eller "brown" (kanel/kardemumma). Saknas = "white". */
+  grainColor?: "white" | "brown";
 };
 
 export type KitchenOutcome = {
@@ -184,7 +187,7 @@ export const KITCHEN_RECIPES: KitchenRecipe[] = [
         sv: "Knäck i ägget",
         ingredient: { em: "🥚", et: "muna", sv: "ägg", img: "/images/kitchen/muna.webp" },
       },
-      { verb: "puista", et: "Puista sisse kardemon", sv: "Strö i kardemumman" },
+      { verb: "puista", et: "Puista sisse kardemon", sv: "Strö i kardemumman", grainColor: "brown" },
       { verb: "sega", et: "Sega ühtlaseks taignaks", sv: "Rör ihop till en jämn smet" },
       { verb: "sotku", et: "Sõtku sisse või ja jahu", sv: "Knåda in smöret och mjölet" },
       { verb: "puhkamine", et: "Lase taignal kerkida", sv: "Låt degen jäsa" },
@@ -195,6 +198,7 @@ export const KITCHEN_RECIPES: KitchenRecipe[] = [
         et: "Puista peale suhkur, kaneel ja kardemon",
         sv: "Strö på socker, kanel och kardemumma",
         target: "dough",
+        grainColor: "brown",
       },
       { verb: "loika", et: "Lõika ribadeks", sv: "Skär i remsor" },
       { verb: "vormi", et: "Vormi ribad sõlmedeks", sv: "Knyt remsorna till knutar" },
