@@ -189,7 +189,23 @@ export const KITCHEN_RECIPES: KitchenRecipe[] = [
       },
       { verb: "puista", et: "Puista sisse kardemon", sv: "Strö i kardemumman", grainColor: "brown" },
       { verb: "sega", et: "Sega ühtlaseks taignaks", sv: "Rör ihop till en jämn smet" },
-      { verb: "sotku", et: "Sõtku sisse või ja jahu", sv: "Knåda in smöret och mjölet" },
+      /* buggrapport: "ingenstans finns kanske viktigaste ingrediensen med... Mjöl" - või och
+         jahu nämndes bara i TEXTEN till knåda-steget, utan någon egen bild eller handling,
+         trots att mjöl (660 g) är den STÖRSTA ingrediensen i hela receptet. Två egna vala-steg
+         (precis som mjölk/ägg) innan knådningen, så båda faktiskt "läggs i" på riktigt. */
+      {
+        verb: "vala",
+        et: "Pane sisse või",
+        sv: "Lägg i smöret",
+        ingredient: { em: "🧈", et: "või", sv: "smör" },
+      },
+      {
+        verb: "vala",
+        et: "Vala sisse jahu",
+        sv: "Häll i mjölet",
+        ingredient: { em: "🌾", et: "jahu", sv: "mjöl", pour: true },
+      },
+      { verb: "sotku", et: "Sõtku taigen ühtlaseks", sv: "Knåda degen jämn" },
       { verb: "puhkamine", et: "Lase taignal kerkida", sv: "Låt degen jäsa" },
       { verb: "rulli", et: "Rulli taigen lahti", sv: "Kavla ut degen" },
       { verb: "maari", et: "Määri peale või", sv: "Bred ut smöret", tool: "voi" },
