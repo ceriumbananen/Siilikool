@@ -10516,6 +10516,17 @@
       ing.style.left = p.left + "px";
       ing.style.top = p.top + "px";
     });
+    /* buggrapport: "fastnar hela tiden" - om en pekarenhet avbryter draget (pointercancel)
+       istället för att avsluta det normalt (pointerup) utan den här lyssnaren förblir
+       dragging=true för alltid och ingrediensen sitter kvar exakt där den avbröts, omöjlig
+       att få tag i igen (setPointerCapture håller kvar fångsten). Byter ut mot ett enkelt
+       återställ, precis som ett missat släpp. */
+    ing.addEventListener("pointercancel", function () {
+      if (!dragging) return;
+      dragging = false;
+      ing.classList.remove("kit-dragging");
+      reset();
+    });
     ing.addEventListener("pointerup", function (e) {
       if (!dragging) return;
       dragging = false;
@@ -10660,6 +10671,11 @@
       dragging = false;
       shaker.classList.remove("kit-dragging");
     });
+    /* se buggrapport-kommentaren i kitchenSetupVala om pointercancel - samma fix här. */
+    shaker.addEventListener("pointercancel", function () {
+      dragging = false;
+      shaker.classList.remove("kit-dragging");
+    });
   }
   /* sega: cirkelrörelse i skålen (sveper total vinkel runt skålens mittpunkt, oavsett
      medurs/moturs). Ett barn som tycker cirklandet är kul och fortsätter väldigt länge får en
@@ -10740,6 +10756,9 @@
       if (total / (2 * Math.PI) >= MIN_TURNS) showContinue();
     });
     spoon.addEventListener("pointerup", function () {
+      down = false;
+    });
+    spoon.addEventListener("pointercancel", function () {
       down = false;
     });
   }
@@ -10864,6 +10883,9 @@
     pin.addEventListener("pointerup", function () {
       dragging = false;
     });
+    pin.addEventListener("pointercancel", function () {
+      dragging = false;
+    });
   }
   /* määri: svep ett verktyg (bred ut smör eller pensla ägg - samma gest, olika steg-text)
      över ytan - ackumulerad rörelse i VILKEN RIKTNING SOM HELST (till skillnad från rullis
@@ -10937,6 +10959,9 @@
     brush.addEventListener("pointerup", function () {
       dragging = false;
     });
+    brush.addEventListener("pointercancel", function () {
+      dragging = false;
+    });
   }
   /* loika: upprepade tryck. För få hack lämnar degen som en stor klump (en egen rolig
      "sõlm"-rätt) istället för fina bitar - motsatt typ av överdrift mot sega ovan, så de två
@@ -10989,7 +11014,12 @@
     var stage = document.getElementById("kitstage");
     stage.innerHTML =
       '<div class="kithint">Dra degen till knuten</div><div class="kitknot" id="kitknot">🥨</div>' +
-      '<img class="kiting" id="kitrope" src="/images/kitchen/taignarull.webp" alt="" style="width:70px;height:26px">';
+      /* buggrapport: "fastnar hela tiden upp i högra hörnet, lyckades inte dra degen till
+         kringlan" - .kiting:s standardposition (top/left:20px) ligger rakt ovanpå hyllans
+         bråte i kökbakgrunden, samma plats som gjorde smörkniven näst intill osynlig innan
+         den flyttades. Degsträngen är dessutom ljus/mjölig, ännu lättare att missa mot
+         träfärgen där. Flyttad till en lugnare del av bakgrunden, närmare knuten också. */
+      '<img class="kiting" id="kitrope" src="/images/kitchen/taignarull.webp" alt="" style="width:70px;height:26px;top:auto;bottom:140px;left:16px">';
     var rope = document.getElementById("kitrope"),
       knot = document.getElementById("kitknot"),
       dragging = false,
@@ -11011,6 +11041,14 @@
       var p = kitClampPos(stage, rope, e.clientX - r.left - 16, e.clientY - r.top - 30);
       rope.style.left = p.left + "px";
       rope.style.top = p.top + "px";
+    });
+    /* se buggrapport-kommentaren i kitchenSetupVala om pointercancel - samma fix här, och
+       just detta steg var det som rapporterades "fastna" (se även ompositioneringen ovan). */
+    rope.addEventListener("pointercancel", function () {
+      if (!dragging) return;
+      dragging = false;
+      rope.classList.remove("kit-dragging");
+      reset();
     });
     rope.addEventListener("pointerup", function (e) {
       if (!dragging) return;
