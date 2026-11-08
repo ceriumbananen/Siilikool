@@ -10801,7 +10801,14 @@
       dragging = false,
       moveTicks = 0,
       pours = 0,
-      MIN_POURS = 8;
+      MIN_POURS = 8,
+      /* buggrapport: "jag är redan uppe i 473!" - till skillnad från sega/loika/kupseta har
+         puista aldrig haft ett tak, så ett barn som skakar ivrigt länge bara fortsätter räkna
+         uppåt för evigt. Samma barns NÄSTA buggrapport (några minuter senare, samma
+         Chromebook) var att bakgrunden "laggar & glitchar" - varje puist spawnar fyra
+         kitgrain-element (kitchenSprinkleFx), så hundratals puist på kort tid är exakt den
+         sortens ohämmade DOM-skapande som gör det. Ett tak löser båda rapporterna på en gång. */
+      MAX_POURS = 24;
     shaker.style.touchAction = "none";
     function showContinue() {
       var c = document.getElementById("kitcontinue");
@@ -10831,6 +10838,7 @@
         scx = sr.left + sr.width / 2,
         scy = sr.top + sr.height / 2;
       if (!kitNear(bowl, scx, scy, 30, 90)) return;
+      if (pours >= MAX_POURS) return;
       /* räknar bara var annan träff så det inte regnar korn absurt snabbt bara för att
          pointermove avfyras ofta - samma andetag som sega/rulli/määri räknar rörelse. */
       moveTicks++;
@@ -10842,6 +10850,7 @@
       shaker.classList.add("kit-shake");
       kitchenSprinkleFx(stage, shaker, step.grainColor === "brown" ? "#8a5a2b" : "#f6f1e3");
       tone(620 + pours * 10, 0.04, 0);
+      if (pours === MAX_POURS) kitReady(stage, bowl);
       if (pours >= MIN_POURS) showContinue();
     });
     shaker.addEventListener("pointerup", function () {
