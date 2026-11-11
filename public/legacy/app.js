@@ -11655,7 +11655,12 @@
       /* buggrapport: bottom var ett fast px-värde, samma typ av bugg som .kitbowl m.fl. hade i
          style.css (se den kommentaren på .kitstage) - fel vid andra fönsterbredder än den som
          råkade testas. Procent av bänken istället, så den alltid hamnar på samma ställe. */
-      '<img class="kiting" id="kitrope" src="/images/kitchen/taignarull.webp" alt="" style="width:70px;height:26px;top:auto;bottom:31.8%;left:16px">';
+      /* buggrapport: "puttar på smöret (degen)" - left:16px lade degsträngen rakt ovanpå den
+         rutiga kökshandduken i den nya bakgrunden (kokscen.webp), nästan osynlig mot handdukens
+         egen ljusa färg trots skuggan (.kiting). Barnet såg en svårtolkad ljus klick och trodde
+         det var smör. Flyttad bort från handduken, till den tomma bänkytan mellan handduken och
+         kringel-målet, samma lugna princip som bugg-kommentaren ovan redan syftade på. */
+      '<img class="kiting" id="kitrope" src="/images/kitchen/taignarull.webp" alt="" style="width:70px;height:26px;top:auto;bottom:31.8%;left:150px">';
     var rope = document.getElementById("kitrope"),
       knot = document.getElementById("kitknot"),
       dragging = false,
