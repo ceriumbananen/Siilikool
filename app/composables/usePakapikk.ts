@@ -51,6 +51,7 @@ function writeTest(v: PakTest | null) {
 
 /** Testläget för Päkapiku kirjad (föräldradelen). */
 export function usePakTest() {
+  pakTest.value = readTest();
   return {
     test: readonly(pakTest),
     /** Starta (eller byt datum i) testet. Hittade testbrev behålls om testet redan är igång. */
@@ -68,6 +69,8 @@ export function usePakTest() {
 }
 
 export function usePakapikk() {
+  /* testläget kan ha slagits på eller av i Admin (legacy/app.js) sedan förra gången */
+  pakTest.value = readTest();
   const profile = useProfileStore();
   const s = profile.state;
   const voice = useSiiriVoice();

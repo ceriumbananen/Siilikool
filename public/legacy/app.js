@@ -4505,6 +4505,39 @@
       '<button class="btn ghost" data-a="voice">Testa rösten</button>' +
       '<button class="btn ghost" data-a="selftest">🔍 Kör självtest</button>' +
       '</div><p class="qsub" id="adminlog" style="text-align:left;margin-top:8px">&nbsp;</p></div>';
+    /* Päkapiku kirjad (tomtenissens brev, app/composables/usePakapikk.ts): ett låtsasdatum för
+       rummet på den här enheten. Samma testläge som kortet under Familjen → Konto - inget sparas
+       i spelet, och rummet visar en testrad med "Stäng av". */
+    var pakTest = null;
+    try {
+      pakTest = JSON.parse(localStorage.getItem("siiri-pak-test") || "null");
+    } catch (e) {}
+    var pakY = new Date().getFullYear();
+    html +=
+      '<div class="card"><p class="q" style="text-align:left">🧦 Päkapiku kirjad</p>' +
+      '<p class="qsub" style="text-align:left">Tomtenissens brev i rummet. Välj ett låtsasdatum – bara den här enheten, inget sparas i spelet.' +
+      (pakTest && pakTest.date ? " <b>Testläget är på: " + esc(pakTest.date) + ".</b>" : "") +
+      '</p><div class="row" style="justify-content:flex-start">' +
+      '<button class="btn ghost" data-a="pak" data-d="' +
+      pakY +
+      '-11-26">26 nov · tom toffel</button>' +
+      '<button class="btn ghost" data-a="pak" data-d="' +
+      pakY +
+      '-12-01">1 dec · en lapp</button>' +
+      '<button class="btn ghost" data-a="pak" data-d="' +
+      pakY +
+      '-12-10">10 dec · två lappar</button>' +
+      '<button class="btn ghost" data-a="pak" data-d="' +
+      pakY +
+      '-12-17">17 dec · tre lappar</button>' +
+      '<button class="btn ghost" data-a="pak" data-d="' +
+      pakY +
+      '-12-24">24 dec · julafton</button>' +
+      (pakTest
+        ? '<button class="btn ghost" data-a="pakreset">↺ Börja om</button>' +
+          '<button class="btn ghost" data-a="pakoff">Stäng av testläget</button>'
+        : "") +
+      "</div></div>";
     html +=
       '<div class="card"><p class="q" style="text-align:left">Farligt</p><div class="row" style="justify-content:flex-start">' +
       '<button class="btn ghost" data-a="wipeword">Nollställ ordminnet</button>' +
@@ -4568,6 +4601,24 @@
             for (j = 0; j < THEMES.length; j++) S.best[THEMES[j].id] = 3;
             S.tripDone = TRIP.length;
             S.tripP = {};
+          } else if (a === "pak" || a === "pakreset" || a === "pakoff") {
+            try {
+              if (a === "pakoff") localStorage.removeItem("siiri-pak-test");
+              else
+                localStorage.setItem(
+                  "siiri-pak-test",
+                  JSON.stringify({
+                    date: a === "pak" ? el.getAttribute("data-d") : pakTest.date,
+                    found: a === "pak" && pakTest && pakTest.found ? pakTest.found : [],
+                  }),
+                );
+            } catch (e) {}
+            /* rummet läser testläget varje gång det öppnas (usePakapikk) */
+            if (a === "pakoff") {
+              adminScreen();
+              log("Testläget för Päkapiku kirjad är avstängt.");
+            } else location.href = "/room";
+            return;
           } else if (a === "bag") {
             S.bagday = null;
             save();
