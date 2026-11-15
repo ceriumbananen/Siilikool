@@ -2,9 +2,23 @@
 /* Päkapiku kirjad: lappens instruktion medan man letar. Ligger direkt under rummet i stället
    för i det, så att den aldrig täcker något man ska leta bakom (flaggan, gardinerna). */
 const pak = usePakapikk();
+const { test, stop } = usePakTest();
+const testDay = computed(() =>
+  test.value
+    ? new Date(`${test.value.date}T12:00:00`).toLocaleDateString("sv-SE", { day: "numeric", month: "long" })
+    : "",
+);
 </script>
 
 <template>
+  <!-- testläget (Familjen → Konto): synligt så att ingen glömmer att det är på -->
+  <div v-if="test && !pak.searching.value" class="pak-test-bar" role="status">
+    <span
+      >🧪 Testläge: rummet tror att det är <b>{{ testDay }}</b
+      >. Inget sparas.</span
+    >
+    <button class="pak-test-bar__off" @click="stop">Stäng av</button>
+  </div>
   <div v-if="pak.searching.value && pak.target.value" class="pak-banner">
     <button class="pak-banner__say" aria-label="Läs upp igen" @click="pak.sayLine(pak.target.value.ask.et)">
       <span aria-hidden="true">📜</span>
@@ -75,6 +89,37 @@ const pak = usePakapikk();
     font-size: 1.125rem;
     cursor: pointer;
     box-shadow: $shadow-2;
+    @include focus-visible;
+  }
+}
+
+.pak-test-bar {
+  display: flex;
+  align-items: center;
+  gap: $spacing-2;
+  margin: $spacing-2 0;
+  padding: 0.5rem 0.75rem;
+  border-radius: $radius-md;
+  border: $border-width dashed var(--honey);
+  background: color-mix(in srgb, var(--honey) 14%, var(--card));
+  color: var(--ink);
+  font-size: $font-size-sm;
+  line-height: 1.4;
+
+  span {
+    flex: 1;
+  }
+
+  &__off {
+    flex: none;
+    border: $border-width solid var(--line);
+    border-radius: $radius-pill;
+    background: var(--card);
+    color: var(--ink);
+    font: inherit;
+    font-weight: 700;
+    padding: 0.25rem 0.75rem;
+    cursor: pointer;
     @include focus-visible;
   }
 }

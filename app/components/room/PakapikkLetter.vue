@@ -27,6 +27,9 @@ const hatItem = computed(() => SHOP.find(it => it.id === PAK_FINAL_ITEM));
           {{ hatItem?.em }} Nissen lämnade också en <b>{{ hatItem?.sv.toLowerCase() }}</b> till Siiri! Den finns under
           Kläder.
         </p>
+        <p v-if="pak.testing.value" class="pak-letter__hat">
+          🧪 Testläge – inga stjärnor{{ pak.current.value!.day === PAK_DAYS ? " och ingen tomteluva" : "" }} sparas.
+        </p>
         <p v-if="pak.reward.value?.stars" class="pak-letter__stars">+{{ pak.reward.value.stars }} ⭐</p>
         <p class="pak-letter__next">
           <template v-if="pak.waiting.value">Det ligger ett brev till i toffeln ✉️</template>

@@ -417,6 +417,7 @@ function deleteAccount() {
         </div>
         <p v-if="err && errAt === 'account'" class="err" role="alert">{{ err }}</p>
       </div>
+      <ParentPakTestCard v-if="flik === 'konto'" />
     </template>
 
     <!-- fel som inte hör till ett visst kort (t.ex. när familjen hämtas) -->

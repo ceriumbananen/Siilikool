@@ -22,6 +22,51 @@ let pendingXp = 0;
 let missTimer: ReturnType<typeof setTimeout> | undefined;
 let peekTimer: ReturnType<typeof setTimeout> | undefined;
 
+/* ---------- testläget ----------
+   En vuxen kan prova leken före december (Familjen → Konto → "Testa Päkapiku kirjad"): ett
+   låtsasdatum som bara gäller den här enheten. Inget sparas i spelet - hittade brev hamnar i
+   testets egen lista, och inga stjärnor, XP eller tomteluva delas ut. Ligger i localStorage,
+   inte i spelarens sparfil, så det synkas aldrig till barnens enheter. */
+const TEST_KEY = "siiri-pak-test";
+type PakTest = { date: string; found: number[] };
+function readTest(): PakTest | null {
+  try {
+    const v = JSON.parse(localStorage.getItem(TEST_KEY) || "null");
+    if (!v || typeof v.date !== "string" || isNaN(new Date(`${v.date}T12:00:00`).getTime())) return null;
+    return { date: v.date, found: Array.isArray(v.found) ? v.found.filter((n: unknown) => typeof n === "number") : [] };
+  } catch {
+    return null;
+  }
+}
+const pakTest = ref<PakTest | null>(typeof window === "undefined" ? null : readTest());
+function writeTest(v: PakTest | null) {
+  pakTest.value = v;
+  try {
+    if (v) localStorage.setItem(TEST_KEY, JSON.stringify(v));
+    else localStorage.removeItem(TEST_KEY);
+  } catch {
+    /* privat läge o.d. - testet gäller då bara tills sidan laddas om */
+  }
+}
+
+/** Testläget för Päkapiku kirjad (föräldradelen). */
+export function usePakTest() {
+  return {
+    test: readonly(pakTest),
+    /** Starta (eller byt datum i) testet. Hittade testbrev behålls om testet redan är igång. */
+    start(date: string) {
+      writeTest({ date, found: pakTest.value?.found || [] });
+    },
+    /** Glöm testets hittade brev, så att alla väntar igen. */
+    reset() {
+      if (pakTest.value) writeTest({ ...pakTest.value, found: [] });
+    },
+    stop() {
+      writeTest(null);
+    },
+  };
+}
+
 export function usePakapikk() {
   const profile = useProfileStore();
   const s = profile.state;
@@ -31,15 +76,17 @@ export function usePakapikk() {
   const { addXp } = useRewards();
   const route = useRoute();
 
-  /* ?pakdate=2026-12-07 provar ett annat datum - bara under utveckling */
+  /* testläget (se usePakTest) eller ?pakdate=2026-12-07 under utveckling provar ett annat datum */
+  const testing = computed(() => !!pakTest.value);
   const now = computed(() => {
-    const q = import.meta.dev ? String(route.query.pakdate || "") : "";
+    const q = (import.meta.dev && String(route.query.pakdate || "")) || pakTest.value?.date || "";
     const d = q ? new Date(`${q}T12:00:00`) : new Date();
     return isNaN(d.getTime()) ? new Date() : d;
   });
   const phase = computed(() => pakPhase(now.value));
   const foundKeys = computed(() => new Set((s.pakFound as string[] | undefined) || []));
-  const isFound = (d: number) => foundKeys.value.has(pakKey(phase.value.year, d));
+  const isFound = (d: number) =>
+    pakTest.value ? pakTest.value.found.includes(d) : foundKeys.value.has(pakKey(phase.value.year, d));
   /** Det äldsta brevet som väntar i toffeln, eller 0. */
   const waiting = computed(() => {
     for (let d = 1; d <= phase.value.open; d++) if (!isFound(d)) return d;
@@ -159,7 +206,10 @@ export function usePakapikk() {
     const key = pakKey(phase.value.year, c.day);
     let stars = 0,
       hat = false;
-    if (!list.includes(key)) {
+    if (pakTest.value) {
+      /* testläget: bara testets egen lista, inget i spelet */
+      if (!pakTest.value.found.includes(c.day)) writeTest({ ...pakTest.value, found: [...pakTest.value.found, c.day] });
+    } else if (!list.includes(key)) {
       s.pakFound = [...list, key];
       stars = Math.round((8 + 4 * c.steps.length) * starMult(s.xp || 0));
       s.stars = (s.stars || 0) + stars;
@@ -197,6 +247,7 @@ export function usePakapikk() {
     miss: readonly(miss),
     reward: readonly(reward),
     showSv,
+    testing,
     phase,
     waiting,
     waitingCount,
