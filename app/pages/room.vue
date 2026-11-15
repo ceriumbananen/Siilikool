@@ -237,11 +237,18 @@ function touchFurnSpot(id: FurnSpotId, el: Element) {
   tone(260, 0.08, 0);
   tone(160, 0.16, 0.05);
   voice.sayWord(item.et);
+  /* växten flyttar med möbeln till höger (plantAnchor i room-svg.ts) - bubblan också */
+  let { x, y } = spot;
+  if (id === "roomplant") {
+    const a = plantAnchor(furnOf("right", room.value, furnOwnedIds.value));
+    x = a.tx / 4;
+    y = ((a.ty - 34 * a.s) / 270) * 100;
+  }
   roomSaid.value = {
     et: item.et,
     sv: `${item.sv[0]!.toUpperCase()}${item.sv.slice(1)}!`,
-    x: spot.x,
-    y: spot.y,
+    x,
+    y,
     dir: spot.dir,
   };
   clearTimeout(roomSaidTimer);

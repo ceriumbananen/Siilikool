@@ -251,6 +251,25 @@ function fPlant(id: string | null) {
   }
   return "";
 }
+/** Var växten står beroende på möbeln till höger. Växterna ritas alla kring samma golvpunkt
+ * (ca x366, nederkant y246 - se fPlant/fPlantExtra), och samma hörn används av de flesta
+ * höger-möblerna. Buggrapport: krukväxten svävade framför bokhyllan i stället för att stå på
+ * den. Har möbeln en ovansida (bokhyllan, byrån) ställs växten där, lite mindre; är den i
+ * vägen utan ovansida (leksakskorgen, kanteln) flyttas växten till golvet till vänster om den.
+ * Vedkorgen (standard) står ovanför och bakom växten, så där är allt som förut.
+ * tx/ty = där växtens nederkant/mitt hamnar, s = skala. */
+export function plantAnchor(right: string | null): { tx: number; ty: number; s: number } {
+  if (right === "g-shelf") return { tx: 357, ty: 219, s: 0.72 };
+  if (right === "g-dress") return { tx: 366, ty: 176, s: 0.72 };
+  if (right === "g-toys" || right === "g-kannel") return { tx: 300, ty: 248, s: 1 };
+  return { tx: 366, ty: 246, s: 1 };
+}
+function placePlant(svg: string, right: string | null) {
+  if (!svg) return "";
+  const a = plantAnchor(right);
+  if (a.tx === 366 && a.ty === 246 && a.s === 1) return svg;
+  return `<g transform="translate(${a.tx},${a.ty}) scale(${a.s}) translate(-366,-246)">${svg}</g>`;
+}
 function fWallExtra(_id: string | null) {
   /* trä-väggens panelritning behövs inte längre - w-wood är nu en illustrerad bild
      (wall-wood.webp, se fWall ovan) med snickeri-detaljerna redan inmålade. */
@@ -708,7 +727,7 @@ function roomSVGInner() {
     wrapTap(
       "roomplant",
       "Tryck på växten",
-      "<g>" + (fPlantExtra(ctx.furnOf("plant")) || fPlant(ctx.furnOf("plant"))) + "</g>",
+      "<g>" + placePlant(fPlantExtra(ctx.furnOf("plant")) || fPlant(ctx.furnOf("plant")), ctx.furnOf("right")) + "</g>",
     ) +
     fPet(ctx.furnOf("pet")) +
     '<rect width="400" height="270" fill="url(#g-warm)" style="pointer-events:none"/><rect width="400" height="270" fill="url(#g-vign)" style="pointer-events:none"/>' +
