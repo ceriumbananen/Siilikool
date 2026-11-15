@@ -28,6 +28,17 @@
    den kommer från tone(), som hör till ljudmotorn i app.js och inte är laddad här. */
 
 const profile = useProfileStore();
+/* estniskt läge är under uppbyggnad - rutan syns bara där det slagits på i Admin (samma
+   flagga som språkvalet vid första start, LANG_BETA_KEY i public/legacy/app.js) eller för en
+   spelare som redan är i estniskt läge */
+const langBeta = ref(false);
+onMounted(() => {
+  try {
+    langBeta.value = localStorage.getItem("siiri-lang-beta") === "1";
+  } catch {
+    /* privat läge o.d. */
+  }
+});
 /* byter språkriktning (S.home, se app/utils/lang.ts) - spelets gamla motor läser valet när den
    startar, så sidan laddas om på startsidan */
 function setHome(home: "sv" | "et") {
@@ -365,7 +376,7 @@ function tapSettingsTitle() {
       </UiAppCard>
 
       <!-- språkriktningen (app/utils/lang.ts): vilket språk barnet pratar och vilket det lär sig -->
-      <UiAppCard class="profile-page__section">
+      <UiAppCard v-if="langBeta || profile.state.home === 'et'" class="profile-page__section">
         <h2>Keel · Språk</h2>
         <div class="profile-page__langs">
           <button

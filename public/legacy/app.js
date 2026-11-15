@@ -828,6 +828,17 @@
   function isEt() {
     return S.home === "et";
   }
+  /* Estniskt läge är under uppbyggnad: språkvalet vid första start syns bara på enheter där
+     det slagits på i Admin ("🇪🇪 Estniskt läge"). En spelare som redan valt estniska behåller
+     det. Tas bort när läget är klart och granskat. */
+  var LANG_BETA_KEY = "siiri-lang-beta";
+  function langBeta() {
+    try {
+      return localStorage.getItem(LANG_BETA_KEY) === "1";
+    } catch (e) {
+      return false;
+    }
+  }
   /** Texten på språket barnet LÄR SIG (estniska normalt, svenska i estniskt läge). */
   function tgt(o) {
     return o ? (isEt() ? o.sv : o.et) : "";
@@ -4709,6 +4720,21 @@
           '<button class="btn ghost" data-a="pakoff">Stäng av testläget</button>'
         : "") +
       "</div></div>";
+    /* Estniskt läge (beta): språkvalet vid första start och under Profil, bara på den här enheten */
+    var lb = langBeta();
+    html +=
+      '<div class="card"><p class="q" style="text-align:left">🇪🇪 Estniskt läge (beta)</p>' +
+      '<p class="qsub" style="text-align:left">Ett estniskt barn lär sig svenska. När det är på visas språkvalet för nya spelare och under Profil – bara på den här enheten.' +
+      (lb ? " <b>Påslaget.</b>" : "") +
+      (isEt() ? " Den här spelaren är i estniskt läge." : "") +
+      '</p><div class="row" style="justify-content:flex-start">' +
+      (lb
+        ? '<button class="btn ghost" data-a="langoff">Stäng av</button>'
+        : '<button class="btn ghost" data-a="langon">Slå på</button>') +
+      (isEt()
+        ? '<button class="btn ghost" data-a="langsv">Byt spelaren till svenska</button>'
+        : '<button class="btn ghost" data-a="langet">Byt spelaren till estniska</button>') +
+      "</div></div>";
     html +=
       '<div class="card"><p class="q" style="text-align:left">Farligt</p><div class="row" style="justify-content:flex-start">' +
       '<button class="btn ghost" data-a="wipeword">Nollställ ordminnet</button>' +
@@ -4772,6 +4798,19 @@
             for (j = 0; j < THEMES.length; j++) S.best[THEMES[j].id] = 3;
             S.tripDone = TRIP.length;
             S.tripP = {};
+          } else if (a === "langon" || a === "langoff") {
+            try {
+              if (a === "langon") localStorage.setItem(LANG_BETA_KEY, "1");
+              else localStorage.removeItem(LANG_BETA_KEY);
+            } catch (e) {}
+            adminScreen();
+            return;
+          } else if (a === "langet" || a === "langsv") {
+            S.home = a === "langet" ? "et" : "sv";
+            S.homePicked = 1;
+            save();
+            location.href = "/";
+            return;
           } else if (a === "pak" || a === "pakreset" || a === "pakoff") {
             try {
               if (a === "pakoff") localStorage.removeItem("siiri-pak-test");
@@ -15427,7 +15466,7 @@
   setTimeout(nightOwl, 1000);
   if (!S.setupdone) {
     btnBack.hidden = true;
-    if (!S.homePicked) langScreen();
+    if (!S.homePicked && langBeta()) langScreen();
     else setupScreen(true);
   } else {
     /* Nuxt-sidor som flyttats ut ur app.js (t.ex. app/pages/profile.vue) har knappar som
