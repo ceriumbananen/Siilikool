@@ -19,14 +19,18 @@ function box(d: PakDrop, vw: number, vh: number) {
 
 /* nissen (public/images/room/pak-elf.webp, 520x562): kanten han lutar sig mot ligger 82,35 %
    ner i bilden - under den syns bara vanten som hänger över kanten */
-const ELF_RATIO = 562 / 520,
-  ELF_EDGE = 0.8235;
+/* den liggande tomten (pak-elf-rug.webp, 600x510): mattkanten ligger över hans rygg, 40 % ner */
+const ELF_POSES = {
+  edge: { src: "/images/room/pak-elf.webp", ratio: 562 / 520, edge: 0.8235 },
+  rug: { src: "/images/room/pak-elf-rug.webp", ratio: 510 / 600, edge: 0.403 },
+};
 const peekBox = ref<{
   left: number;
   top: number;
   width: number;
   behind: boolean;
   bubble: "center" | "start" | "end" | "side";
+  pose: "edge" | "rug";
 } | null>(null);
 /* var nissen tittar fram, i procent av scenen (rummet är 400x270 enheter). Vid Siiri finns
    ingen fast kant - hon skalar inte med rummet - så där räknas den fram ur hennes faktiska
@@ -36,6 +40,8 @@ watch(
   m => {
     if (m !== "peek" || !pak.target.value) return;
     let { x, edge, w } = pak.target.value.peek;
+    const pose = pak.target.value.peek.pose || "edge";
+    const P = ELF_POSES[pose];
     let behind = false;
     if (pak.target.value.id === "siiri") {
       const siiri = document.querySelector(".room-page__flip");
@@ -50,12 +56,12 @@ watch(
         behind = true;
       }
     }
-    const h = w * ELF_RATIO;
-    const top = ((edge - h * ELF_EDGE) / 270) * 100;
+    const h = w * P.ratio;
+    const top = ((edge - h * P.edge) / 270) * 100;
     /* pratbubblan ska inte hamna utanför rummet: vid överkanten (flaggan) åt sidan, vid
        sidokanterna (gardinen) inåt i stället för centrerad */
     const bubble = top < 14 ? "side" : x < 70 ? "start" : x > 330 ? "end" : "center";
-    peekBox.value = { left: ((x - w / 2) / 400) * 100, top, width: (w / 400) * 100, behind, bubble };
+    peekBox.value = { left: ((x - w / 2) / 400) * 100, top, width: (w / 400) * 100, behind, bubble, pose };
   },
 );
 
@@ -174,11 +180,15 @@ function tap(id: PakTargetId, e: MouseEvent, rect: [number, number, number, numb
     <div
       v-if="pak.mode.value === 'peek' && peekBox"
       class="pak-peek"
-      :class="[`pak-peek--bubble-${peekBox.bubble}`, { 'pak-peek--behind': peekBox.behind }]"
+      :class="[
+        `pak-peek--bubble-${peekBox.bubble}`,
+        `pak-peek--${peekBox.pose}`,
+        { 'pak-peek--behind': peekBox.behind },
+      ]"
       :style="{ left: `${peekBox.left}%`, top: `${peekBox.top}%`, width: `${peekBox.width}%` }"
     >
       <div class="pak-peek__clip">
-        <img class="pak-peek__elf" src="/images/room/pak-elf.webp" alt="" />
+        <img class="pak-peek__elf" :src="ELF_POSES[peekBox.pose].src" alt="" />
       </div>
       <div class="pak-peek__bubble">
         <b lang="et">{{ pak.target.value.at.et }}</b>
@@ -301,6 +311,16 @@ function tap(id: PakTargetId, e: MouseEvent, rect: [number, number, number, numb
   /* bakom Siiri (room.vue ger henne z-index 2) */
   &--behind {
     z-index: 1;
+  }
+
+  /* den liggande tomten: kryper fram (nedåt, mot oss) under mattkanten */
+  &--rug &__clip {
+    aspect-ratio: 600 / 510;
+    animation-name: pak-peek-clip-rug;
+  }
+
+  &--rug &__elf {
+    animation-name: pak-peek-crawl;
   }
 
   &__clip {
@@ -444,6 +464,43 @@ function tap(id: PakTargetId, e: MouseEvent, rect: [number, number, number, numb
   86%,
   100% {
     clip-path: inset(-50% -50% 17.65% -50%);
+  }
+}
+
+@keyframes pak-peek-clip-rug {
+  0%,
+  19% {
+    clip-path: inset(40.3% -50% -50% -50%);
+  }
+  20%,
+  85% {
+    clip-path: inset(-50% -50% -50% -50%);
+  }
+  86%,
+  100% {
+    clip-path: inset(40.3% -50% -50% -50%);
+  }
+}
+
+@keyframes pak-peek-crawl {
+  0% {
+    transform: translateY(-60%);
+  }
+  20% {
+    transform: translateY(0);
+  }
+  32% {
+    transform: translateY(0) rotate(-2deg);
+  }
+  44% {
+    transform: translateY(0) rotate(2deg);
+  }
+  56%,
+  86% {
+    transform: translateY(0) rotate(0);
+  }
+  100% {
+    transform: translateY(-60%);
   }
 }
 

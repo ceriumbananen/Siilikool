@@ -25,7 +25,9 @@ export type PakTarget = {
   peek: PakPeek;
 };
 
-export type PakPeek = { x: number; edge: number; w: number };
+/** pose "rug": den liggande tomten som kryper fram under mattan (pak-elf-rug.webp), annars den
+ * som tittar upp bakom en kant (pak-elf.webp). */
+export type PakPeek = { x: number; edge: number; w: number; pose?: "rug" };
 
 export const PAK_TARGETS: Record<PakTargetId, PakTarget> = {
   vaip: {
@@ -33,7 +35,7 @@ export const PAK_TARGETS: Record<PakTargetId, PakTarget> = {
     ask: { et: "Vaata vaiba alla!", sv: "Titta under mattan!" },
     at: { et: "Vaiba all!", sv: "Under mattan!" },
     rects: [[15, 77, 43, 13]],
-    peek: { x: 92, edge: 250, w: 36 } /* mattans framkant - tills det finns en liggande pose */,
+    peek: { x: 100, edge: 235, w: 56, pose: "rug" } /* kryper fram under mattans vänstra framkant */,
   },
   kardin: {
     id: "kardin",
