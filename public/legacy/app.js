@@ -644,10 +644,14 @@
     if (el) {
       el.className = "feedback " + (ok ? "ok" : "no");
       el.innerHTML =
-        esc(p.et) + ' <span style="font-weight:500;color:var(--muted);font-size:var(--fs-sm)">' + esc(p.sv) + "</span>";
+        esc(tgt(p)) +
+        ' <span style="font-weight:500;color:var(--muted);font-size:var(--fs-sm)">' +
+        esc(nat(p)) +
+        "</span>";
     }
-    if (ok && (combo >= 3 || Math.random() < 0.45)) queuePraise(p.et);
-    else if (!ok && Math.random() < 0.5) queuePraise(p.et);
+    /* berömmet sägs på språket barnet lär sig (estniskt läge: Sofie säger "Bra jobbat!") */
+    if (ok && (combo >= 3 || Math.random() < 0.45)) queuePraise(tgt(p));
+    else if (!ok && Math.random() < 0.5) queuePraise(tgt(p));
     return p;
   }
   /* berömmet sägs efter det rätta ordet när svaret visas (showAnswer), annars ensamt –
@@ -691,10 +695,10 @@
      Samma gränser som nightOwl() (21-04) för "Head ööd", så sen kväll hänger ihop med den. */
   function greetingNow() {
     var hh = new Date().getHours();
-    if (hh >= 5 && hh < 11) return { et: "Tere hommikust" };
-    if (hh >= 11 && hh < 17) return { et: "Tere päevast" };
-    if (hh >= 17 && hh < 21) return { et: "Tere õhtust" };
-    return { et: "Head ööd" };
+    if (hh >= 5 && hh < 11) return { et: "Tere hommikust", sv: "God morgon" };
+    if (hh >= 11 && hh < 17) return { et: "Tere päevast", sv: "Hej" };
+    if (hh >= 17 && hh < 21) return { et: "Tere õhtust", sv: "God kväll" };
+    return { et: "Head ööd", sv: "God natt" };
   }
   function holidayNow() {
     var t = new Date(),
@@ -813,6 +817,33 @@
   var S = STORE.state;
   function save() {
     STORE.save();
+  }
+  /* ============ SPRÅKRIKTNING ============
+     S.home = barnets eget språk. "sv" (standard): ett svensktalande barn lär sig estniska.
+     "et": ett estniskt barn lär sig svenska - då vänds allt: ordet man lär sig är det svenska,
+     förklaringar och knappar på estniska, Siiri läser upp svenska (Azure-rösten Sofie, se
+     tools/generate_audio_sv.py) och mikrofonen lyssnar efter svenska. Ordens data är redan
+     par ({ et, sv }), så tgt()/nat() väljer rätt sida; L() är för fast text i gränssnittet.
+     Samma hjälpare för Vue-sidorna finns i app/utils/lang.ts. */
+  function isEt() {
+    return S.home === "et";
+  }
+  /** Texten på språket barnet LÄR SIG (estniska normalt, svenska i estniskt läge). */
+  function tgt(o) {
+    return o ? (isEt() ? o.sv : o.et) : "";
+  }
+  /** Texten på barnets EGET språk (förklaringen, översättningen). */
+  function nat(o) {
+    return o ? (isEt() ? o.et : o.sv) : "";
+  }
+  /** Fast gränssnittstext: svensk version normalt, estnisk i estniskt läge. (Heter LT, inte L -
+   * L är lektionens tillstånd längre ner i filen.) */
+  function LT(sv, et) {
+    return isEt() ? et : sv;
+  }
+  /** lang-attributet för text på språket barnet lär sig. */
+  function tgtLang() {
+    return isEt() ? "sv" : "et";
   }
   /* ---------- automatisk reservkopia ---------- */
   function autoBackup(why) {
@@ -1321,10 +1352,15 @@
 
   /* --- ljuddelar: hämtas först när de behövs --- */
   window.AUDIO_PARTS = window.AUDIO_PARTS || { loaded: {}, pending: {} };
+  /* svenska klipp (estniskt läge, delar "sv/...") hålls i egna banker - samma stavning kan
+     finnas på båda språken (kaktus, hotell, kino ...) och ska då läsas av rätt röst */
+  BANKS.sv = BANKS.sv || {};
+  BANKS.svSlow = BANKS.svSlow || {};
   window.addAudio = function (part, data) {
-    var k;
-    if (data.normal) for (k in data.normal) BANKS.normal[k] = data.normal[k];
-    if (data.slow) for (k in data.slow) BANKS.slow[k] = data.slow[k];
+    var k,
+      sv = part.indexOf("sv/") === 0;
+    if (data.normal) for (k in data.normal) (sv ? BANKS.sv : BANKS.normal)[k] = data.normal[k];
+    if (data.slow) for (k in data.slow) (sv ? BANKS.svSlow : BANKS.slow)[k] = data.slow[k];
     if (data.names) for (k in data.names) BANKS.names[k] = data.names[k];
     precacheClips(data);
     window.AUDIO_PARTS.loaded[part] = 1;
@@ -1441,6 +1477,7 @@
   }
   var voices = [],
     etVoice = null,
+    svVoice = null,
     voiceSource = "inbyggd";
   var FEM = /anu|liisi|külli|kylli|kadri|mari|eva|naine|female|woman|zira|hazel/i;
   var MAS = /kert|tõnu|tonu|meelis|mihkel|mees|male\b|man\b|david|mark/i;
@@ -1451,7 +1488,17 @@
       voices = [];
     }
     etVoice = pickEstonian();
+    svVoice = pickSwedish();
     voiceSource = etVoice ? "system" : "inbyggd";
+  }
+  /* enhetens svenska systemröst - reserv i estniskt läge för text som saknar Sofie-klipp */
+  function pickSwedish() {
+    var sv = [];
+    for (var i = 0; i < voices.length; i++) {
+      if (voices[i].lang && voices[i].lang.toLowerCase().indexOf("sv") === 0) sv.push(voices[i]);
+    }
+    for (i = 0; i < sv.length; i++) if (/alva|klara|sofie|hillevi|female/i.test(sv[i].name)) return sv[i];
+    return sv[0] || null;
   }
   function pickEstonian() {
     var et = [],
@@ -1686,9 +1733,60 @@
   }
   /* sagan läses av en egen svensk berättarröst – Siiri talar bara estniska */
   function stopStory() {}
+  /* ---------- svenska (estniskt läge) ----------
+     Sofie-klippen (tools/generate_audio_sv.py): public/audio/sv/index.json säger vilken del
+     (public/audio/sv/<del>.js) en text ligger i. Indexet hämtas en gång, första gången det
+     behövs. Saknas klippet läses texten av enhetens svenska systemröst. */
+  var SV_INDEX = null,
+    svIndexLoading = null;
+  function svIndex(cb) {
+    if (SV_INDEX) return cb(SV_INDEX);
+    if (!svIndexLoading) {
+      svIndexLoading = [];
+      fetch("audio/sv/index.json")
+        .then(function (r) {
+          return r.ok ? r.json() : {};
+        })
+        .catch(function () {
+          return {};
+        })
+        .then(function (j) {
+          SV_INDEX = j || {};
+          var q = svIndexLoading;
+          svIndexLoading = null;
+          for (var i = 0; i < q.length; i++) q[i](SV_INDEX);
+        });
+    }
+    svIndexLoading.push(cb);
+  }
+  function speakSv(text, slow) {
+    svIndex(function (ix) {
+      var part = ix[text];
+      if (part && !window.AUDIO_PARTS.loaded["sv/" + part]) {
+        loadPart("sv/" + part, function () {
+          speakSv(text, slow);
+        });
+        return;
+      }
+      stopSpeak();
+      var src = (slow && BANKS.svSlow[text]) || BANKS.sv[text];
+      if (src) {
+        qlist = [];
+        playSrc(src, slow && !BANKS.svSlow[text] ? 0.72 : 1);
+        return;
+      }
+      /* finns texten bara på estniska (Siiris egna estniska repliker) läser Mari den */
+      if (bank()[text] || partFor(text)) return speakEt(text, slow);
+      speakSystemVoice(text, slow, svVoice);
+    });
+  }
   function speak(text, slow) {
     lastSpokenText = text;
     if (!S.sound) return;
+    if (isEt()) return speakSv(text, slow);
+    speakEt(text, slow);
+  }
+  function speakEt(text, slow) {
     var part = partFor(text);
     if (part) {
       loadPart(part, function () {
@@ -1729,12 +1827,13 @@
   }
   /* sista utväg: enhetens egen estniska systemröst (om den har någon), klart sämre än Mari
      men bättre än tystnad - för text som varken är förinspelad eller går att hämta live. */
-  function speakSystemVoice(text, slow) {
-    if (!etVoice) return;
+  function speakSystemVoice(text, slow, voice) {
+    voice = voice || etVoice;
+    if (!voice) return;
     try {
       var u = new SpeechSynthesisUtterance(text);
-      u.voice = etVoice;
-      u.lang = etVoice.lang;
+      u.voice = voice;
+      u.lang = voice.lang;
       u.rate = slow ? 0.62 : 0.78;
       u.pitch = 1.1;
       u.onstart = function () {
@@ -1908,7 +2007,11 @@
       onEnd && onEnd();
       return;
     }
-    r.lang = retried ? navigator.language || "en-US" : micLang;
+    r.lang = retried
+      ? navigator.language || "en-US"
+      : isEt()
+        ? "sv-SE"
+        : micLang; /* estniskt läge: lyssna efter svenska */
     r.interimResults = false;
     r.maxAlternatives = 5;
     r.continuous = false;
@@ -1961,7 +2064,7 @@
   function loose(s) {
     return norm(s)
       .replace(/õ/g, "o")
-      .replace(/ä/g, "a")
+      .replace(/[äå]/g, "a") /* å: svenska i estniskt läge */
       .replace(/ö/g, "o")
       .replace(/ü/g, "u")
       .replace(/š/g, "s")
@@ -4001,22 +4104,26 @@
       '<div class="hero"><div class="herorow">' +
       siilSVG("small") +
       '<div style="flex:1"><h1>' +
-      esc(gr.et) +
+      esc(tgt(gr)) +
       (S.name ? ", " + esc(S.name) : "") +
       "!" +
       "</h1>" +
       '<button class="seasonbar" type="button">' +
       (hol ? hol.em : se.em) +
-      ' <b lang="et">' +
-      esc(hol ? hol.et : se.et) +
+      ' <b lang="' +
+      tgtLang() +
+      '">' +
+      esc(hol ? (isEt() ? hol.tr : hol.et) : tgt(se)) +
       "</b>" +
       "<span>" +
-      (hol ? esc(hol.sv) : esc(se.word.et) + " = " + esc(se.word.sv)) +
+      (hol ? esc(isEt() ? hol.et : hol.sv) : esc(tgt(se.word)) + " = " + esc(nat(se.word))) +
       "</span></button>" +
-      '<button class="bubble" id="hello">🔊 Tere' +
+      '<button class="bubble" id="hello">🔊 ' +
+      LT("Tere", "Hej") +
       (S.name ? ", " + esc(S.name) : "") +
       "!" +
-      "<small>Hej" +
+      "<small>" +
+      LT("Hej", "Tere") +
       (S.name ? ", " + esc(S.name) : "") +
       "</small></button></div></div></div>";
 
@@ -4026,33 +4133,45 @@
     html +=
       '<button class="playbtn" id="play"><span class="pem">▶️</span>' +
       "<span><b>" +
-      esc(UI.play.et) +
+      esc(tgt(UI.play)) +
       "</b><span>" +
-      esc(UI.play.sv) +
+      esc(nat(UI.play)) +
       "</span>" +
       "<small>" +
-      (n.kind === "theme" ? esc(n.t.em + " " + n.t.et + " · " + n.t.sv) : esc(n.et + " · " + n.sv)) +
+      (n.kind === "theme" ? esc(n.t.em + " " + tgt(n.t) + " · " + nat(n.t)) : esc(tgt(n) + " · " + nat(n))) +
       "</small></span></button>" +
-      '<button class="btn ghost wide" id="playalt" style="margin-top:6px">🔀 Eller: ' +
+      '<button class="btn ghost wide" id="playalt" style="margin-top:6px">' +
+      LT("🔀 Eller: ", "🔀 Või: ") +
       altMode.em +
       " " +
-      esc(altMode.et) +
+      esc(tgt(altMode)) +
       " · " +
-      esc(altMode.sv) +
+      esc(nat(altMode)) +
       "</button>";
 
     if (!S.correct || S.correct < 3) {
       html +=
-        '<div class="emptytip"><span class="arrow">☝️</span><span><b>Börja här!</b>' +
-        "<span>Tryck på den gröna knappen — Siiri visar vägen. Allt du klarar ger stjärnor att handla för på marknaden!</span></span></div>";
+        '<div class="emptytip"><span class="arrow">☝️</span><span><b>' +
+        LT("Börja här!", "Alusta siit!") +
+        "</b>" +
+        "<span>" +
+        LT(
+          "Tryck på den gröna knappen — Siiri visar vägen. Allt du klarar ger stjärnor att handla för på marknaden!",
+          "Vajuta rohelist nuppu — Siiri näitab teed. Kõige eest, mis sa ära teed, saad tähti, millega laadal poodelda!",
+        ) +
+        "</span></span></div>";
     }
 
     /* efter första rundan: nu är det dags att göra Siilikool till sitt eget (en sak i taget) */
     var untouched = (!S.avatar || S.avatar === "🦔") && (S.color || "skog") === "skog";
     if (!S.picked && untouched && (S.lessons || 0) >= 1 && (S.lessons || 0) < 6) {
       html +=
-        '<button class="stbox wide pickme" id="pickme"><b>🎨 Välj din figur och färg</b>' +
-        "<small>Gör appen till din egen</small></button>";
+        '<button class="stbox wide pickme" id="pickme"><b>' +
+        LT("🎨 Välj din figur och färg", "🎨 Vali oma tegelane ja värv") +
+        "</b>" +
+        "<small>" +
+        LT("Gör appen till din egen", "Tee rakendus enda omaks") +
+        "</small></button>";
     }
 
     /* dagens överraskning */
@@ -4060,10 +4179,11 @@
       html +=
         '<button class="bagbtn" id="bag"><span class="bem">🎁</span>' +
         "<span><b>" +
-        esc(UI.bag.et) +
+        esc(tgt(UI.bag)) +
         "</b><span>" +
-        esc(UI.bag.sv) +
-        " – öppna dagens påse!</span></span></button>";
+        esc(nat(UI.bag)) +
+        LT(" – öppna dagens påse!", " – ava tänane kott!") +
+        "</span></span></button>";
     }
 
     /* resan – direkt under den gröna knappen, det är spelets stora mål */
@@ -4072,32 +4192,43 @@
       allDone = tripDone() >= TRIP.length;
     html +=
       '<div class="tripcard">' +
-      '<p class="tripkick"><span class="tripflag">🎶</span> Laulupidu · Siiri reser genom Estlands ' +
+      '<p class="tripkick"><span class="tripflag">🎶</span> ' +
+      LT("Laulupidu · Siiri reser genom Estlands ", "Laulupidu · Siiri reisib läbi Eesti ") +
       TRIP.length +
-      " orter</p>" +
+      LT(" orter", " paiga") +
+      "</p>" +
       '<button class="tripgo" id="tripbtn">' +
       '<span class="tripem">' +
       TRIP[trn - 1].em +
       "</span>" +
       '<span class="triptx">' +
-      '<b><span lang="et">' +
-      esc(UI.trip.et) +
+      '<b><span lang="' +
+      tgtLang() +
+      '">' +
+      esc(tgt(UI.trip)) +
       '</span> · <span lang="et">' +
       esc(TRIP[trn - 1].et) +
       "</span></b>" +
       "<small>" +
-      (allDone ? "hela resan klar!" : "ort " + trn + " av " + TRIP.length) +
+      (allDone
+        ? LT("hela resan klar!", "kogu reis on tehtud!")
+        : LT("ort " + trn + " av " + TRIP.length, "paik " + trn + " / " + TRIP.length)) +
       "</small>" +
       '<span class="tripbar"><i style="width:' +
       Math.round((tripDone() / TRIP.length) * 100) +
       '%"></i></span>' +
       '<span class="triplines">' +
       tripDone() +
-      " av " +
+      LT(" av ", " / ") +
       TRIP.length +
-      " orter</span>" +
+      LT(" orter", " paika") +
       "</span>" +
-      '<span class="tripcta"><span class="tripgobtn">Mine ▸</span><small>gå dit</small></span>' +
+      "</span>" +
+      '<span class="tripcta"><span class="tripgobtn">' +
+      LT("Mine ▸", "Gå ▸") +
+      "</span><small>" +
+      LT("gå dit", "mine sinna") +
+      "</small></span>" +
       "</button>" +
       (allDone
         ? ""
@@ -4108,7 +4239,8 @@
           "</span>" +
           "<span>" +
           tdone +
-          ' av 3 uppdrag klara i <span lang="et">' +
+          LT(" av 3 uppdrag klara i ", " / 3 ülesannet tehtud: ") +
+          '<span lang="et">' +
           esc(TRIP[trn - 1].et) +
           "</span></span></div>") +
       "</div>";
@@ -4123,13 +4255,14 @@
         '<button class="stbox wide school" id="schoolbtn">' +
         "<b>📝 " +
         esc(sc.name) +
-        " · ▶️ Öva läxorden</b>" +
+        LT(" · ▶️ Öva läxorden", " · ▶️ Harjuta kodusõnu") +
+        "</b>" +
         "<small>" +
         schoolDone() +
-        " av " +
+        LT(" av ", " / ") +
         sc.words.length +
-        " sitter" +
-        (d > 0 ? " · " + d + " dagar kvar" : " · sista dagen") +
+        LT(" sitter", " selge") +
+        (d > 0 ? LT(" · " + d + " dagar kvar", " · " + d + " päeva jäänud") : LT(" · sista dagen", " · viimane päev")) +
         "</small>" +
         '<span class="qbar"><i style="width:' +
         pct +
@@ -4141,21 +4274,27 @@
       '<button class="stbox wide" id="questbtn"><b>' +
       p.q.em +
       " " +
-      (p.done ? "Klart!" : p.v + " / " + p.q.goal) +
+      (p.done ? LT("Klart!", "Tehtud!") : p.v + " / " + p.q.goal) +
       "</b>" +
       "<small>" +
-      esc(p.q.sv) +
+      esc(isEt() ? p.q.et || p.q.sv : p.q.sv) +
       "</small>" +
       '<span class="qbar"><i style="width:' +
       Math.round((p.v / p.q.goal) * 100) +
       '%"></i></span></button>' +
       (p.done
         ? ""
-        : '<button class="btn ghost wide" id="questswap" style="margin-top:6px">🔀 Välj ett eget mål för idag</button>');
+        : '<button class="btn ghost wide" id="questswap" style="margin-top:6px">' +
+          LT("🔀 Välj ett eget mål för idag", "🔀 Vali tänaseks oma eesmärk") +
+          "</button>");
 
     /* lekar: fyra i taget (lagom att välja bland), resten bakom en knapp – nyheter markeras */
     var showMode = S.allModes ? MODES.length : 4;
-    html += '<h2 class="sec">Mängud <span class="secsv">Lekar</span></h2>' + '<div class="modes">';
+    html +=
+      '<h2 class="sec">' +
+      LT('Mängud <span class="secsv">Lekar</span>', 'Lekar <span class="secsv">Mängud</span>') +
+      "</h2>" +
+      '<div class="modes">';
     var newLeft = 2; /* märket betyder inget om allt är nytt */
     for (i = 0; i < showMode; i++) {
       var md = MODES[i],
@@ -4168,22 +4307,29 @@
         '" data-go="' +
         md.k +
         '">' +
-        (isNew ? '<span class="newtag">Ny!</span>' : "") +
+        (isNew ? '<span class="newtag">' + LT("Ny!", "Uus!") + "</span>" : "") +
         '<span class="grp">' +
-        ({ gör: "GÖR", öva: "ÖVA", tävla: "TÄVLA" }[md.grp] || "") +
+        (isEt()
+          ? { gör: "TEE", öva: "HARJUTA", tävla: "VÕISTLE" }[md.grp]
+          : { gör: "GÖR", öva: "ÖVA", tävla: "TÄVLA" }[md.grp]) +
         "</span>" +
         '<span class="em">' +
         md.em +
-        '</span><b lang="et">' +
-        md.et +
+        /* estniskt läge: lekens svenska namn stort (det man lär sig), det estniska under */
+        '</span><b lang="' +
+        tgtLang() +
+        '">' +
+        tgt(md) +
         "</b><span>" +
-        md.sv +
+        nat(md) +
         "</span></button>";
     }
     html += "</div>";
     html +=
       '<button class="morebtn" id="moremodes">' +
-      (S.allModes ? "Visa färre lekar" : "Visa alla " + MODES.length + " lekar") +
+      (S.allModes
+        ? LT("Visa färre lekar", "Näita vähem mänge")
+        : LT("Visa alla " + MODES.length + " lekar", "Näita kõiki " + MODES.length + " mängu")) +
       "</button>";
 
     /* teman */
@@ -4192,9 +4338,9 @@
     var visible = showAll ? lim : Math.min(lim, 4);
     html +=
       '<h2 class="sec">' +
-      esc(UI.themes.et) +
+      esc(tgt(UI.themes)) +
       ' <span class="secsv">' +
-      esc(UI.themes.sv) +
+      esc(nat(UI.themes)) +
       '</span></h2><div class="grid">';
     for (i = 0; i < THEMES.length; i++) {
       t = THEMES[i];
@@ -4211,16 +4357,19 @@
         '<span class="em">' +
         (locked ? "🔒" : t.em) +
         "</span>" +
-        '<span class="et" lang="et">' +
-        esc(t.et) +
+        '<span class="et" lang="' +
+        tgtLang() +
+        '">' +
+        esc(tgt(t)) +
         '</span><span class="sv">' +
-        esc(t.sv) +
+        esc(nat(t)) +
         " · " +
         t.words.length +
-        " ord</span>" +
+        LT(" ord", " sõna") +
+        "</span>" +
         '<span class="stars">' +
         (locked
-          ? "<small>klara fler teman</small>"
+          ? "<small>" + LT("klara fler teman", "lõpeta rohkem teemasid") + "</small>"
           : starStr(bs) +
             " " +
             (function () {
@@ -4233,13 +4382,19 @@
     if (lim > 4)
       html +=
         '<button class="morebtn" id="more">' +
-        (showAll ? "Visa färre teman" : "Visa alla " + Math.min(THEMES.length, lim) + " öppna teman") +
+        (showAll
+          ? LT("Visa färre teman", "Näita vähem teemasid")
+          : LT(
+              "Visa alla " + Math.min(THEMES.length, lim) + " öppna teman",
+              "Näita kõiki " + Math.min(THEMES.length, lim) + " avatud teemat",
+            )) +
         "</button>";
 
     app.innerHTML = html;
     document.getElementById("play").onclick = startNext;
     document.getElementById("hello").onclick = function () {
-      if (S.name) speakTo("tere");
+      if (isEt()) speak("Hej" + (S.name ? ", " + S.name : "") + "!");
+      else if (S.name) speakTo("tere");
       else speak("Tere! Mina olen Siiri.");
       mood("cheer");
     };
@@ -4879,6 +5034,41 @@
       "</span>"
     );
   }
+  /* Allra första skärmen för en ny spelare: vilket språk barnet pratar. Ett estniskt barn
+     får hela appen vänd (lär sig svenska), se SPRÅKRIKTNING. Kan ändras senare under Profil. */
+  function langScreen() {
+    screen = "lang";
+    setNav("");
+    showTop(false);
+    btnBack.hidden = true;
+    app.innerHTML =
+      '<div class="card" style="text-align:center">' +
+      '<div class="center">' +
+      siilSVG("small") +
+      "</div>" +
+      '<p class="q">Tere! Hej!</p>' +
+      '<div class="langpick">' +
+      '<button class="langbtn" data-home="sv"><span class="lflag">🇸🇪</span>' +
+      "<b>Jag pratar svenska</b><small>Jag vill lära mig estniska</small></button>" +
+      '<button class="langbtn" data-home="et"><span class="lflag">🇪🇪</span>' +
+      '<b lang="et">Ma räägin eesti keelt</b><small lang="et">Ma tahan õppida rootsi keelt</small></button>' +
+      "</div></div>";
+    var bs = app.querySelectorAll("[data-home]");
+    for (var i = 0; i < bs.length; i++) {
+      (function (el) {
+        el.onclick = function () {
+          S.home = el.getAttribute("data-home");
+          S.homePicked = 1;
+          save();
+          tone(660, 0.08, 0);
+          tone(880, 0.1, 0.08);
+          go(function () {
+            setupScreen(true);
+          }, true);
+        };
+      })(bs[i]);
+    }
+  }
   function setupScreen(first) {
     screen = "setup";
     setNav(first ? "" : "me");
@@ -4891,11 +5081,17 @@
       siilSVG("small") +
       "</div>" +
       '<p class="q">' +
-      (first ? "Tere! Vad heter du?" : "Ändra din profil") +
+      (first ? LT("Tere! Vad heter du?", "Hej! Mis su nimi on?") : LT("Ändra din profil", "Muuda oma profiili")) +
       "</p>" +
-      '<p class="qsub">Då kan Siiri säga hej till dig med namn.</p>' +
-      '<label class="sr-only" for="nm">Ditt namn</label>' +
-      '<input class="type" id="nm" maxlength="14" autocomplete="given-name" placeholder="ditt namn" value="' +
+      '<p class="qsub">' +
+      LT("Då kan Siiri säga hej till dig med namn.", "Siis saab Siiri sind nimepidi tervitada.") +
+      "</p>" +
+      '<label class="sr-only" for="nm">' +
+      LT("Ditt namn", "Sinu nimi") +
+      "</label>" +
+      '<input class="type" id="nm" maxlength="14" autocomplete="given-name" placeholder="' +
+      LT("ditt namn", "sinu nimi") +
+      '" value="' +
       esc(S.name || "") +
       '">';
     /* första gången: bara namnet, sedan rakt in i spelet. Figur, svårighet och färg väljs
@@ -4972,11 +5168,20 @@
     html +=
       (first ? "" : "</div>") +
       '<button class="btn green big wide" id="ok" style="margin-top:18px">' +
-      (first ? "Nu kör vi! 🎈" : "Spara") +
+      (first ? LT("Nu kör vi! 🎈", "Läheme! 🎈") : LT("Spara", "Salvesta")) +
       "</button>" +
-      (first ? '<button class="btn ghost wide" id="skip" style="margin-top:8px">Hoppa över</button>' : "") +
+      (first
+        ? '<button class="btn ghost wide" id="skip" style="margin-top:8px">' +
+          LT("Hoppa över", "Jäta vahele") +
+          "</button>"
+        : "") +
       (first && cloudOn()
-        ? '<p class="qsub" style="margin-top:10px">Utan konto sparas spelet bara på den här enheten.</p>'
+        ? '<p class="qsub" style="margin-top:10px">' +
+          LT(
+            "Utan konto sparas spelet bara på den här enheten.",
+            "Ilma kontota salvestatakse mäng ainult selles seadmes.",
+          ) +
+          "</p>"
         : "") +
       "</div>";
     app.innerHTML = html;
@@ -12561,20 +12766,25 @@
     return (
       '<div class="wordrow"><span class="em">' +
       wIcon(w) +
-      '</span><span class="t"><b>' +
-      esc(w.et) +
+      '</span><span class="t"><b lang="' +
+      tgtLang() +
+      '">' +
+      esc(tgt(w)) +
       "</b>" +
       "<span>" +
-      esc(w.sv) +
-      " · uttal: " +
-      esc(w.hint || "") +
+      esc(nat(w)) +
+      (isEt() || !w.hint ? "" : " · uttal: " + esc(w.hint)) +
       "</span></span>" +
       '<button class="speakbtn sm" data-say="' +
-      esc(w.et) +
-      '" aria-label="Hör ordet">🔊</button>' +
+      esc(tgt(w)) +
+      '" aria-label="' +
+      LT("Hör ordet", "Kuula sõna") +
+      '">🔊</button>' +
       '<button class="speakbtn sm" data-slow="' +
-      esc(w.et) +
-      '" aria-label="Hör ordet långsamt">🐢</button></div>'
+      esc(tgt(w)) +
+      '" aria-label="' +
+      LT("Hör ordet långsamt", "Kuula sõna aeglaselt") +
+      '">🐢</button></div>'
     );
   }
   function listScreen() {
@@ -12585,13 +12795,19 @@
     if (S.listOpen === undefined) S.listOpen = "";
     var q = (S.listQ || "").trim().toLowerCase();
     var html =
-      '<div class="zone words"><span class="zem">📖</span><span><b>Sõnastik</b>' +
-      "<span>Ordlistan — 🔊 hör ordet, 🐢 hör det långsamt</span></span></div>" +
+      '<div class="zone words"><span class="zem">📖</span><span><b>' +
+      LT("Sõnastik", "Ordlistan") +
+      "</b>" +
+      "<span>" +
+      LT("Ordlistan — 🔊 hör ordet, 🐢 hör det långsamt", "Sõnastik — 🔊 kuula sõna, 🐢 kuula aeglaselt") +
+      "</span></span></div>" +
       '<div class="searchbar"><span>🔎</span>' +
-      '<input id="wq" type="search" placeholder="Sök på svenska eller estniska" value="' +
+      '<input id="wq" type="search" placeholder="' +
+      LT("Sök på svenska eller estniska", "Otsi eesti või rootsi keeles") +
+      '" value="' +
       esc(S.listQ || "") +
       '" autocomplete="off">' +
-      (q ? '<button class="btn small ghost" id="wqclear">Rensa</button>' : "") +
+      (q ? '<button class="btn small ghost" id="wqclear">' + LT("Rensa", "Tühjenda") + "</button>" : "") +
       "</div>";
 
     if (q) {
@@ -12608,11 +12824,21 @@
           hits.push(w);
         }
       }
-      html += '<div class="card"><div class="listhead">' + hits.length + " träffar</div>";
-      if (!hits.length) html += '<p class="qsub">Inget ord matchar. Prova en annan del av ordet.</p>';
+      html += '<div class="card"><div class="listhead">' + hits.length + LT(" träffar", " vastet") + "</div>";
+      if (!hits.length)
+        html +=
+          '<p class="qsub">' +
+          LT("Inget ord matchar. Prova en annan del av ordet.", "Ükski sõna ei sobi. Proovi sõna teist osa.") +
+          "</p>";
       for (i = 0; i < hits.length && i < 80; i++) html += wordRow(hits[i]);
       if (hits.length > 80)
-        html += '<p class="qsub">… och ' + (hits.length - 80) + " till. Skriv mer för att hitta rätt.</p>";
+        html +=
+          '<p class="qsub">' +
+          LT(
+            "… och " + (hits.length - 80) + " till. Skriv mer för att hitta rätt.",
+            "… ja veel " + (hits.length - 80) + ". Kirjuta rohkem, et õige leida.",
+          ) +
+          "</p>";
       html += "</div>";
     } else {
       var tw = tripWords();
@@ -12621,8 +12847,9 @@
         html +=
           '<div class="card"><button class="listhead btn-plain" data-open="trip">' +
           "<span>🗺️ " +
-          esc(UI.trip.et) +
-          " <small>ord från resan · " +
+          esc(tgt(UI.trip)) +
+          " <small>" +
+          LT("ord från resan · ", "sõnad reisilt · ") +
           tw.length +
           "</small></span>" +
           '<span class="caret">' +
@@ -12642,15 +12869,16 @@
           "<span>" +
           t.em +
           " " +
-          esc(t.et) +
+          esc(tgt(t)) +
           (mm.medal ? " " + masteryEm(mm.medal) : "") +
           " <small>" +
-          esc(t.sv) +
+          esc(nat(t)) +
           " · " +
           mm.strong +
           "/" +
           mm.total +
-          " sitter</small></span>" +
+          LT(" sitter", " selge") +
+          "</small></span>" +
           '<span class="caret">' +
           (op ? "▾" : "▸") +
           "</span></button>";
@@ -12786,40 +13014,50 @@
       w = list[L.learnIdx],
       pn = personalNote(t, w);
     var html =
-      '<div class="qsub">Lär dig först · ' +
+      '<div class="qsub">' +
+      LT("Lär dig först · ", "Õpi kõigepealt · ") +
       (L.learnIdx + 1) +
-      " av " +
+      LT(" av ", " / ") +
       list.length +
-      (list.length < t.words.length ? ' <span style="color:var(--moss)">(bara orden som behöver övas)</span>' : "") +
+      (list.length < t.words.length
+        ? ' <span style="color:var(--moss)">' +
+          LT("(bara orden som behöver övas)", "(ainult sõnad, mida tuleb harjutada)") +
+          "</span>"
+        : "") +
       "</div>" +
       '<div class="card">' +
-      promptHtml(w, w.et, "et") +
+      promptHtml(w, tgt(w), tgtLang()) +
       '<div class="trans">' +
-      esc(w.sv) +
+      esc(nat(w)) +
       "</div>" +
       (pn ? '<div class="center" style="margin-top:4px"><span class="badge">✨ ' + esc(pn) + "</span></div>" : "") +
-      '<div class="hint">säg så här: ' +
-      esc(w.hint) +
-      "</div>" +
-      '<div class="center"><button class="speakbtn" id="say" aria-label="Hör ordet igen">🔊</button>' +
-      '<button class="speakbtn sm" id="slow" aria-label="Hör ordet långsamt">🐢</button></div>' +
+      /* uttalshjälpen (hint) är skriven för svenska läsare av estniska ord - inte i estniskt läge */
+      (isEt() || !w.hint ? "" : '<div class="hint">säg så här: ' + esc(w.hint) + "</div>") +
+      '<div class="center"><button class="speakbtn" id="say" aria-label="' +
+      LT("Hör ordet igen", "Kuula sõna uuesti") +
+      '">🔊</button>' +
+      '<button class="speakbtn sm" id="slow" aria-label="' +
+      LT("Hör ordet långsamt", "Kuula sõna aeglaselt") +
+      '">🐢</button></div>' +
       '<button class="btn wide big" id="next">' +
-      (L.learnIdx < list.length - 1 ? "Nästa ord →" : "Nu kör vi! 🎈") +
+      (L.learnIdx < list.length - 1 ? LT("Nästa ord →", "Järgmine sõna →") : LT("Nu kör vi! 🎈", "Läheme! 🎈")) +
       "</button>" +
       (list.length > 2
-        ? '<button class="btn ghost wide" id="skiplearn" style="margin-top:8px">⏩ Hoppa till frågorna</button>'
+        ? '<button class="btn ghost wide" id="skiplearn" style="margin-top:8px">' +
+          LT("⏩ Hoppa till frågorna", "⏩ Hüppa küsimuste juurde") +
+          "</button>"
         : "") +
       "</div>" +
       '<div class="center">' +
       siilSVG("small") +
       "</div>";
     app.innerHTML = html;
-    speak(w.et);
+    speak(tgt(w));
     document.getElementById("say").onclick = function () {
-      speak(w.et);
+      speak(tgt(w));
     };
     document.getElementById("slow").onclick = function () {
-      speak(w.et, true);
+      speak(tgt(w), true);
     };
     var sk = document.getElementById("skiplearn");
     if (sk)
@@ -13134,8 +13372,13 @@
   /* svensk undertext, eller en diskret plats där den brukade stå */
   function transHtml(w, size) {
     /* utan bild är svenskan det enda som visar vilket ord som menas */
-    if (wordSolid(w) && hasPic(w)) return '<div class="trans faded">utan svenska nu · du kan det här</div>';
-    return '<div class="trans" style="font-size:' + size + 'px">' + esc(w.sv) + "</div>";
+    if (wordSolid(w) && hasPic(w))
+      return (
+        '<div class="trans faded">' +
+        LT("utan svenska nu · du kan det här", "ilma eesti keeleta · sa oskad seda") +
+        "</div>"
+      );
+    return '<div class="trans" style="font-size:' + size + 'px">' + esc(nat(w)) + "</div>";
   }
   /* ledordet och bilden sida vid sida: bilden hjälper till, men ordet är det man läser.
        Utan säker bild står ordet ensamt. */
@@ -13318,19 +13561,30 @@
     var h = '<div class="ansbox ' + (good ? "good" : "bad") + '"><div class="anspanel">';
     if (w) {
       h +=
-        '<div class="answrap"><span class="answord" lang="et">' +
-        esc(w.et) +
+        '<div class="answrap"><span class="answord" lang="' +
+        tgtLang() +
+        '">' +
+        esc(tgt(w)) +
         "</span>" +
-        '<button class="speakbtn sm" id="ansay" aria-label="Hör ordet">🔊</button>' +
-        '<button class="speakbtn sm" id="anslow" aria-label="Hör ordet långsamt">🐢</button></div>' +
-        '<div class="anssv"><span lang="et">' +
-        esc(w.et) +
+        '<button class="speakbtn sm" id="ansay" aria-label="' +
+        LT("Hör ordet", "Kuula sõna") +
+        '">🔊</button>' +
+        '<button class="speakbtn sm" id="anslow" aria-label="' +
+        LT("Hör ordet långsamt", "Kuula sõna aeglaselt") +
+        '">🐢</button></div>' +
+        '<div class="anssv"><span lang="' +
+        tgtLang() +
+        '">' +
+        esc(tgt(w)) +
         "</span> = " +
-        esc(w.sv) +
+        esc(nat(w)) +
         "</div>";
     }
-    if (again) h += '<div class="ansagain">🔁 Vi tar det igen snart</div>';
-    h += '</div><button class="btn green wide nextbtn" id="goon">Edasi · Nästa →</button></div>';
+    if (again) h += '<div class="ansagain">' + LT("🔁 Vi tar det igen snart", "🔁 Kordame seda varsti") + "</div>";
+    h +=
+      '</div><button class="btn green wide nextbtn" id="goon">' +
+      LT("Edasi · Nästa →", "Nästa · Edasi →") +
+      "</button></div>";
     slot.innerHTML = h;
     /* berömmet (eller "ingen fara") hamnar överst i samma panel som ordet */
     var panel = slot.querySelector(".anspanel");
@@ -13338,12 +13592,12 @@
     var b = document.getElementById("ansay");
     if (b && w)
       b.onclick = function () {
-        speak(w.et);
+        speak(tgt(w));
       };
     b = document.getElementById("anslow");
     if (b && w)
       b.onclick = function () {
-        speak(w.et, true);
+        speak(tgt(w), true);
       };
     b = document.getElementById("goon");
     if (b) b.onclick = goNext;
@@ -13352,8 +13606,9 @@
       var after = pendingPraise;
       pendingPraise = null;
       setTimeout(function () {
-        if (after) speakSeq([w.et, after]);
-        else speak(w.et);
+        /* i estniskt läge är berömmet estniskt men ordet svenskt - två olika röster, i följd */
+        if (after && !isEt()) speakSeq([w.et, after]);
+        else speak(tgt(w));
       }, 200);
     }
     try {
@@ -13382,17 +13637,23 @@
       '<div class="card' +
       (r.gold ? " golden" : "") +
       '"><p class="q">' +
-      (pics ? "Vilken bild hör du?" : "Vilket ord hör du?") +
-      '</p><p class="qsub">Tryck på högtalaren och lyssna noga.</p>' +
-      '<div class="center"><button class="speakbtn" id="say" aria-label="Spela upp ordet">🔊</button></div><div class="opts">';
+      (pics
+        ? LT("Vilken bild hör du?", "Millist pilti sa kuuled?")
+        : LT("Vilket ord hör du?", "Millist sõna sa kuuled?")) +
+      '</p><p class="qsub">' +
+      LT("Tryck på högtalaren och lyssna noga.", "Vajuta kõlarit ja kuula hoolega.") +
+      "</p>" +
+      '<div class="center"><button class="speakbtn" id="say" aria-label="' +
+      LT("Spela upp ordet", "Mängi sõna") +
+      '">🔊</button></div><div class="opts">';
     for (i = 0; i < opts.length; i++) {
       html +=
         '<button class="opt" data-et="' +
         esc(opts[i].et) +
         '">' +
         (pics
-          ? '<span class="oem">' + wIcon(opts[i]) + "</span><small>" + esc(opts[i].sv) + "</small>"
-          : "<b>" + esc(opts[i].sv) + "</b>") +
+          ? '<span class="oem">' + wIcon(opts[i]) + "</span><small>" + esc(nat(opts[i])) + "</small>"
+          : "<b>" + esc(nat(opts[i])) + "</b>") +
         "</button>";
     }
     html +=
@@ -13400,9 +13661,9 @@
       siilSVG("small") +
       "</div>";
     app.innerHTML = html;
-    speak(r.w.et);
+    speak(tgt(r.w));
     document.getElementById("say").onclick = function () {
-      speak(r.w.et);
+      speak(tgt(r.w));
     };
     var btns = app.querySelectorAll(".opt");
     for (i = 0; i < btns.length; i++) {
@@ -13440,8 +13701,10 @@
       meterHtml() +
       '<div class="card' +
       (r.gold ? " golden" : "") +
-      '"><p class="q">Mis see on? · Vad heter det?</p>' +
-      promptHtml(r.w, r.w.sv) +
+      '"><p class="q">' +
+      LT("Mis see on? · Vad heter det?", "Vad heter det? · Mis see on?") +
+      "</p>" +
+      promptHtml(r.w, nat(r.w)) +
       '<div class="opts' +
       (withPics ? "" : " txt") +
       '">';
@@ -13449,10 +13712,18 @@
       html +=
         '<button class="opt" data-et="' +
         esc(opts[i].et) +
-        '" lang="et">' +
+        '" lang="' +
+        tgtLang() +
+        '">' +
         (withPics && hasPic(opts[i])
-          ? '<span class="oem">' + wIcon(opts[i]) + '</span><small lang="et">' + esc(opts[i].et) + "</small>"
-          : esc(opts[i].et)) +
+          ? '<span class="oem">' +
+            wIcon(opts[i]) +
+            '</span><small lang="' +
+            tgtLang() +
+            '">' +
+            esc(tgt(opts[i])) +
+            "</small>"
+          : esc(tgt(opts[i]))) +
         "</button>";
     }
     html +=
@@ -13508,23 +13779,26 @@
   function typoHint(got, want) {
     var g = norm(got || ""),
       w = norm(want || "");
-    if (!g) return "Skriv ordet först.";
-    if (g === w) return "Rätt!";
+    if (!g) return LT("Skriv ordet först.", "Kirjuta kõigepealt sõna.");
+    if (g === w) return LT("Rätt!", "Õige!");
     if (w.indexOf(g) === 0) {
       var d = w.length - g.length;
-      return d === 1 ? "Nästan! En bokstav saknas i slutet." : "Nästan! Det fattas " + d + " bokstäver i slutet.";
+      return d === 1
+        ? LT("Nästan! En bokstav saknas i slutet.", "Peaaegu! Lõpust puudub üks täht.")
+        : LT("Nästan! Det fattas " + d + " bokstäver i slutet.", "Peaaegu! Lõpust puudub " + d + " tähte.");
     }
-    if (g.indexOf(w) === 0) return "Nästan! En bokstav för mycket i slutet.";
+    if (g.indexOf(w) === 0)
+      return LT("Nästan! En bokstav för mycket i slutet.", "Peaaegu! Lõpus on üks täht liiga palju.");
     var dist = lev(g, w);
-    if (dist === 1) return "Nästan! En bokstav är fel.";
-    if (dist === 2) return "Nära! Två bokstäver är fel.";
-    return "Inte riktigt – prova en gång till.";
+    if (dist === 1) return LT("Nästan! En bokstav är fel.", "Peaaegu! Üks täht on vale.");
+    if (dist === 2) return LT("Nära! Två bokstäver är fel.", "Lähedal! Kaks tähte on valed.");
+    return LT("Inte riktigt – prova en gång till.", "Mitte päris – proovi veel kord.");
   }
   /* visar vilka bokstäver som satt rätt */
   function letterDiff(got, want) {
     var g = got || "",
       w = want || "",
-      s = '<span class="ldiff" lang="et">',
+      s = '<span class="ldiff" lang="' + tgtLang() + '">',
       i;
     for (i = 0; i < g.length; i++) {
       var right = i < w.length && norm(g.charAt(i)) === norm(w.charAt(i));
@@ -13543,7 +13817,9 @@
     while (p < g.length && p < wl.length && g.charAt(p) === wl.charAt(p)) p++;
     while (q < g.length - p && q < wl.length - p && g.charAt(g.length - 1 - q) === wl.charAt(wl.length - 1 - q)) q++;
     return (
-      '<span class="ldiff" lang="et"><span class="okch">' +
+      '<span class="ldiff" lang="' +
+      tgtLang() +
+      '"><span class="okch">' +
       esc(w.slice(0, p)) +
       "</span>" +
       '<span class="badch">' +
@@ -13562,14 +13838,28 @@
       meterHtml() +
       '<div class="card' +
       (r.gold ? " golden" : "") +
-      '"><p class="q">Kirjuta eesti keeles · Skriv på estniska</p>' +
-      promptHtml(r.w, r.w.sv) +
-      '<div class="center qtools"><button class="speakbtn sm" id="say" aria-label="Hör ordet">🔊</button>' +
-      (diff().peek ? '<button class="btn ghost" id="peek">💡 Första bokstaven</button>' : "") +
+      '"><p class="q">' +
+      LT("Kirjuta eesti keeles · Skriv på estniska", "Skriv på svenska · Kirjuta rootsi keeles") +
+      "</p>" +
+      promptHtml(r.w, nat(r.w)) +
+      '<div class="center qtools"><button class="speakbtn sm" id="say" aria-label="' +
+      LT("Hör ordet", "Kuula sõna") +
+      '">🔊</button>' +
+      (diff().peek
+        ? '<button class="btn ghost" id="peek">' + LT("💡 Första bokstaven", "💡 Esimene täht") + "</button>"
+        : "") +
       "</div>" +
-      '<input class="type" id="inp" lang="et" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="skriv här" inputmode="text">' +
-      '<div class="qctl" id="qctl"><p class="keyslabel">Estniska bokstäver</p><div class="keys" id="keys"></div>' +
-      '<button class="btn wide" id="ok">Valmis! · Klart</button>' +
+      '<input class="type" id="inp" lang="' +
+      tgtLang() +
+      '" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="' +
+      LT("skriv här", "kirjuta siia") +
+      '" inputmode="text">' +
+      '<div class="qctl" id="qctl"><p class="keyslabel">' +
+      LT("Estniska bokstäver", "Rootsi tähed") +
+      '</p><div class="keys" id="keys"></div>' +
+      '<button class="btn wide" id="ok">' +
+      LT("Valmis! · Klart", "Klart! · Valmis") +
+      "</button>" +
       '<div class="feedback" id="fb"></div></div><div class="ansslot" id="ansslot"></div></div><div class="center">' +
       siilSVG("small") +
       "</div>";
@@ -13577,7 +13867,7 @@
     var inp = document.getElementById("inp"),
       fb = document.getElementById("fb"),
       tries = 0;
-    var special = ["ä", "ö", "ü", "õ", "š", "ž"],
+    var special = isEt() ? ["å", "ä", "ö"] : ["ä", "ö", "ü", "õ", "š", "ž"],
       keys = document.getElementById("keys"),
       i;
     for (i = 0; i < special.length; i++) {
@@ -13593,13 +13883,14 @@
         keys.appendChild(b);
       })(special[i]);
     }
+    var want = tgt(r.w); /* ordet barnet ska skriva */
     document.getElementById("say").onclick = function () {
-      speak(r.w.et);
+      speak(want);
     };
     var pk = document.getElementById("peek");
     if (pk)
       pk.onclick = function () {
-        if (!inp.value) inp.value = r.w.et.charAt(0);
+        if (!inp.value) inp.value = want.charAt(0);
         inp.focus();
       };
     /* frågan kan bara besvaras en gång – förut gick Valmis att trycka igen och igen för nya poäng */
@@ -13615,16 +13906,19 @@
     function check() {
       if (done) return;
       var got = inp.value,
-        ok = norm(got) === norm(r.w.et),
+        ok = norm(got) === norm(want),
         closeTry = false,
         nearly = false;
       /* på Lätt räcker det nära nog, men rätt stavning visas alltid */
-      if (!ok && diff().id === "latt" && got && lev(norm(got), norm(r.w.et)) <= 1) ok = nearly = true;
-      if (!ok && loose(got) === loose(r.w.et)) {
+      if (!ok && diff().id === "latt" && got && lev(norm(got), norm(want)) <= 1) ok = nearly = true;
+      if (!ok && loose(got) === loose(want)) {
         tries++;
         inp.className = "type wrong";
         fb.className = "feedback no";
-        fb.innerHTML = "Nästan! Kolla prickarna och krokarna.<br>" + letterDiff(got, r.w.et);
+        fb.innerHTML =
+          LT("Nästan! Kolla prickarna och krokarna.", "Peaaegu! Vaata täppe ja ringe.") +
+          "<br>" +
+          letterDiff(got, want);
         setTimeout(function () {
           inp.className = "type";
         }, 600);
@@ -13636,7 +13930,10 @@
         inp.className = "type right";
         inp.disabled = true;
         fb.className = "feedback ok";
-        fb.innerHTML = "Nästan perfekt! Så här stavas det:<br>" + wantDiff(got, r.w.et);
+        fb.innerHTML =
+          LT("Nästan perfekt! Så här stavas det:", "Peaaegu täiuslik! Nii kirjutatakse:") +
+          "<br>" +
+          wantDiff(got, want);
         finish(true);
       } else if (ok) {
         inp.className = "type right";
@@ -13648,14 +13945,14 @@
         inp.className = "type wrong";
         inp.disabled = true;
         fb.className = "feedback no";
-        fb.innerHTML = typoHint(got, r.w.et);
+        fb.innerHTML = typoHint(got, want);
         finish(false);
       } else {
         tries++;
         if (tries < 2) {
           inp.className = "type wrong";
           fb.className = "feedback no";
-          fb.innerHTML = typoHint(got, r.w.et) + "<br>" + letterDiff(got, r.w.et);
+          fb.innerHTML = typoHint(got, want) + "<br>" + letterDiff(got, want);
           setTimeout(function () {
             inp.className = "type";
           }, 600);
@@ -13663,7 +13960,7 @@
           inp.className = "type wrong";
           inp.disabled = true;
           fb.className = "feedback no";
-          fb.innerHTML = typoHint(got, r.w.et);
+          fb.innerHTML = typoHint(got, want);
           finish(false);
         }
       }
@@ -13687,18 +13984,32 @@
       meterHtml() +
       '<div class="card' +
       (r.gold ? " golden" : "") +
-      '"><p class="q">Ütle valjusti! · Säg ordet högt!</p><p class="qsub">Tryck på mikrofonen och säg ordet.</p>' +
-      promptHtml(r.w, r.w.et, "et") +
+      '"><p class="q">' +
+      LT("Ütle valjusti! · Säg ordet högt!", "Säg ordet högt! · Ütle valjusti!") +
+      '</p><p class="qsub">' +
+      LT("Tryck på mikrofonen och säg ordet.", "Vajuta mikrofoni ja ütle sõna.") +
+      "</p>" +
+      promptHtml(r.w, tgt(r.w), tgtLang()) +
       '<div class="trans">' +
-      esc(r.w.sv) +
+      esc(nat(r.w)) +
       "</div>" +
-      (diff().hint ? '<div class="hint">säg så här: ' + esc(r.w.hint) + "</div>" : "") +
-      '<div class="center"><button class="speakbtn sm" id="say" aria-label="Hör ordet först">🔊</button>' +
-      '<button class="mic" id="mic" aria-label="Spela in din röst">🎤</button>' +
-      '<button class="speakbtn sm" id="slow" aria-label="Hör ordet långsamt">🐢</button></div>' +
+      (diff().hint && !isEt() && r.w.hint ? '<div class="hint">säg så här: ' + esc(r.w.hint) + "</div>" : "") +
+      '<div class="center"><button class="speakbtn sm" id="say" aria-label="' +
+      LT("Hör ordet först", "Kuula sõna enne") +
+      '">🔊</button>' +
+      '<button class="mic" id="mic" aria-label="' +
+      LT("Spela in din röst", "Salvesta oma hääl") +
+      '">🎤</button>' +
+      '<button class="speakbtn sm" id="slow" aria-label="' +
+      LT("Hör ordet långsamt", "Kuula sõna aeglaselt") +
+      '">🐢</button></div>' +
       '<div class="heard" id="heard"></div>' +
-      '<div class="row"><button class="btn ghost" id="saidit">🗣️ Jag sa det högt!</button>' +
-      '<button class="btn ghost" id="skip">Hoppa över</button></div>' +
+      '<div class="row"><button class="btn ghost" id="saidit">' +
+      LT("🗣️ Jag sa det högt!", "🗣️ Ma ütlesin selle valjusti!") +
+      "</button>" +
+      '<button class="btn ghost" id="skip">' +
+      LT("Hoppa över", "Jäta vahele") +
+      "</button></div>" +
       '<div class="feedback" id="fb"></div><div class="ansslot" id="ansslot"></div></div><div class="center">' +
       siilSVG("small") +
       "</div>";
@@ -13709,20 +14020,20 @@
     var tries = 0,
       busy = false;
     document.getElementById("say").onclick = function () {
-      speak(r.w.et);
+      speak(tgt(r.w));
     };
     document.getElementById("slow").onclick = function () {
-      speak(r.w.et, true);
+      speak(tgt(r.w), true);
     };
     /* barnet kan ha sagt ordet perfekt – mikrofonen är inte domaren */
     document.getElementById("saidit").onclick = function () {
       fb.className = "feedback ok";
-      fb.textContent = "Tubli! · Duktigt!";
+      fb.textContent = LT("Tubli! · Duktigt!", "Duktigt! · Tubli!");
       answered(true, "speak");
     };
     document.getElementById("skip").onclick = function () {
       fb.className = "feedback";
-      fb.textContent = "Ingen fara – vi övar mer sen!";
+      fb.textContent = LT("Ingen fara – vi övar mer sen!", "Pole hullu – harjutame hiljem veel!");
       skipRound();
     };
     mic.onclick = function () {
@@ -13730,22 +14041,25 @@
       busy = true;
       stopSpeak();
       mic.classList.add("listening");
-      heard.textContent = "Jag lyssnar …";
+      heard.textContent = LT("Jag lyssnar …", "Ma kuulan …");
       listen(
         function (alts) {
-          heard.textContent = "Du sa: " + alts[0];
-          if (saidIt(alts, r.w.et)) {
+          heard.textContent = LT("Du sa: ", "Sa ütlesid: ") + alts[0];
+          if (saidIt(alts, tgt(r.w))) {
             praiseSay(L.combo + 1, true, fb);
             answered(true, "speak");
           } else {
             tries++;
             if (tries < 2) {
               fb.className = "feedback no";
-              fb.textContent = "Nästan! Lyssna en gång till och prova igen.";
-              speak(r.w.et);
+              fb.textContent = LT(
+                "Nästan! Lyssna en gång till och prova igen.",
+                "Peaaegu! Kuula veel kord ja proovi uuesti.",
+              );
+              speak(tgt(r.w));
             } else {
               fb.className = "feedback no";
-              fb.textContent = "Vi tar det igen nästa gång: " + r.w.et;
+              fb.textContent = LT("Vi tar det igen nästa gång: ", "Kordame seda järgmine kord: ") + tgt(r.w);
               answered(false);
             }
           }
@@ -13765,14 +14079,20 @@
     };
     if (!micOK) {
       heard.innerHTML =
-        '🎤 Mikrofonen är avstängd. Det gör inget – säg ordet högt och tryck <b>Jag sa det högt!</b><br><span style="font-size:12.5px">' +
+        LT(
+          "🎤 Mikrofonen är avstängd. Det gör inget – säg ordet högt och tryck <b>Jag sa det högt!</b>",
+          "🎤 Mikrofon on välja lülitatud. Pole hullu – ütle sõna valjusti ja vajuta <b>Ma ütlesin selle valjusti!</b>",
+        ) +
+        '<br><span style="font-size:12.5px">' +
         esc(micProblem("noSR")) +
         (inFrame ? " " + openTabHTML() : "") +
         "</span>";
     } else if (inFrame) {
       heard.innerHTML =
-        'Tryck på mikrofonen och säg ordet.<br><span style="font-size:12.5px">Händer inget? ' +
-        openTabHTML("Öppna i egen flik") +
+        LT("Tryck på mikrofonen och säg ordet.", "Vajuta mikrofoni ja ütle sõna.") +
+        '<br><span style="font-size:12.5px">' +
+        LT("Händer inget? ", "Midagi ei juhtu? ") +
+        openTabHTML(LT("Öppna i egen flik", "Ava eraldi vahelehel")) +
         "</span>";
     }
   }
@@ -14756,7 +15076,8 @@
   setTimeout(nightOwl, 1000);
   if (!S.setupdone) {
     btnBack.hidden = true;
-    setupScreen(true);
+    if (!S.homePicked) langScreen();
+    else setupScreen(true);
   } else {
     /* Nuxt-sidor som flyttats ut ur app.js (t.ex. app/pages/profile.vue) har knappar som
        leder in i skärmar som inte har egna URL:er än - de sparar vilken här innan de laddar

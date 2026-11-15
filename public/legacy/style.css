@@ -7983,3 +7983,42 @@ a.btn.wide {
 .legacy input.type:focus-visible {
   outline: none;
 }
+
+/* språkvalet vid första start (langScreen i app.js) */
+.langpick {
+  display: grid;
+  gap: 12px;
+  margin-top: 16px;
+}
+.langbtn {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-template-rows: auto auto;
+  column-gap: 14px;
+  align-items: center;
+  text-align: left;
+  padding: 14px 16px;
+  border-radius: 18px;
+  border: 3px solid var(--line);
+  background: var(--card);
+  color: var(--ink);
+  font: inherit;
+  cursor: pointer;
+  box-shadow: 0 4px 0 var(--line);
+}
+.langbtn:active {
+  transform: translateY(3px);
+  box-shadow: 0 1px 0 var(--line);
+}
+.langbtn .lflag {
+  grid-row: span 2;
+  font-size: 40px;
+  line-height: 1;
+}
+.langbtn b {
+  font-size: 19px;
+}
+.langbtn small {
+  color: var(--muted);
+  font-size: 14px;
+}

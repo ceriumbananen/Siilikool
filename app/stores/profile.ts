@@ -65,6 +65,8 @@ export function defaultSave(): SaveData {
     color: "skog",
     fur: "kreem",
     diff: "lagom",
+    /* barnets eget språk: "sv" lär sig estniska, "et" lär sig svenska (app/utils/lang.ts) */
+    home: "sv",
     mstyle: {},
     secrets: [],
     owned: [],

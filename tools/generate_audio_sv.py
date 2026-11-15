@@ -5,7 +5,7 @@ estniskt läge, där estniska barn lär sig svenska.
 Samma format som Mari-klippen (tools/generate_audio.py): mp3, 16 kHz, mono, 40 kbit/s, ca
 0,25 s tystnad före/efter, en vanlig och en långsam version. Klippen hamnar i
 public/audio/clips/sv/normal/ och .../sv/slow/, ljuddelen i public/audio/sv/<del>.js
-(formatet window.addAudio("sv-<del>", {normal, slow})) och vilken del varje text ligger i i
+(formatet window.addAudio("sv/<del>", {normal, slow})) och vilken del varje text ligger i i
 public/audio/sv/index.json. Texter som redan har ljud hoppas över, så det går att köra om.
 
 Azure-nyckeln läses från .env (gitignorerad, hamnar aldrig i appen):
@@ -126,7 +126,7 @@ def main():
         print("  %-28s %s" % (t, data["normal"][t]))
         # sparas efter varje text, så att ett avbrott inte kastar bort det som redan gjorts
         with open(partfile, "w", encoding="utf-8") as f:
-            f.write("window.addAudio(%s,%s);" % (json.dumps("sv-" + part), json.dumps(data, ensure_ascii=False)))
+            f.write("window.addAudio(%s,%s);" % (json.dumps("sv/" + part), json.dumps(data, ensure_ascii=False)))
         json.dump(index, open(index_path, "w", encoding="utf-8"), ensure_ascii=False, indent=0, sort_keys=True)
     print("Klart: public/%s och public/%s uppdaterade." % (partfile, index_path))
 
