@@ -39,6 +39,13 @@ function flip() {
   tone(720, 0.1, 0.07);
   pak.onSiiriFlip();
 }
+/* efter en lapp som sa "Pööra Siiri ümber!" vänds hon tillbaka när nissen tittat fram */
+watch(
+  () => pak.mode.value,
+  (_mode, old) => {
+    if (old === "peek" && turned.value) turned.value = false;
+  },
+);
 /* saker i rummet man kan trycka på: katten spinner, brasan, lampan, fönstret och katten
    säger var sitt ord (samma pop-bubbla-mönster, så de känns som en familj av reaktioner) */
 type RoomSpotId = "roomfire" | "roomlamp" | "roomwindow" | "roomwindow2" | "roompet";

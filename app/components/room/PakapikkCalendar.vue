@@ -74,6 +74,11 @@ function pick(d: number, state: string) {
     display: grid;
     grid-template-columns: repeat(6, 1fr);
     gap: 0.375rem;
+
+    /* surfplatta/dator: två rader om tolv i stället för stora rutor */
+    @media (min-width: 40rem) {
+      grid-template-columns: repeat(12, 1fr);
+    }
   }
 
   &__day {

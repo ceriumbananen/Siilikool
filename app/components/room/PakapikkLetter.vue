@@ -240,6 +240,49 @@ const hatItem = computed(() => SHOP.find(it => it.id === PAK_FINAL_ITEM));
   }
 }
 
+/* surfplatta/dator: ett större brev - 22rem blev ett frimärke mitt på en iPad-skärm */
+@media (min-width: 40rem) {
+  .pak-letter {
+    &__paper {
+      max-width: 30rem;
+      padding: $spacing-5 $spacing-5 $spacing-4;
+
+      &--note {
+        max-width: 24rem;
+      }
+    }
+
+    &__line {
+      padding: 0.4375rem 0;
+
+      b {
+        font-size: 1.5rem;
+      }
+
+      small {
+        font-size: $font-size-md;
+      }
+
+      &--ask b {
+        font-size: 1.875rem;
+      }
+
+      &--sign b {
+        font-size: $font-size-lg;
+      }
+    }
+
+    &__tool {
+      font-size: $font-size-md;
+      padding: 0.5rem 1rem;
+    }
+
+    &__gift span {
+      font-size: 6rem;
+    }
+  }
+}
+
 @keyframes pak-unfold {
   from {
     opacity: 0;

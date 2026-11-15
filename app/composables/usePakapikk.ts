@@ -16,6 +16,9 @@ const wrong = ref(0); /* fel tryck på den här lappen - efter två glimtar rät
 const showSv = ref(false);
 const miss = ref<{ x: number; y: number; n: number } | null>(null);
 const reward = ref<{ stars: number; hat: boolean } | null>(null);
+/* XP delas ut först när barnet stängt dagens sak - annars kan "Nytt märke"-rutan hamna
+   ovanpå (eller under) brevet */
+let pendingXp = 0;
 let missTimer: ReturnType<typeof setTimeout> | undefined;
 let peekTimer: ReturnType<typeof setTimeout> | undefined;
 
@@ -101,9 +104,14 @@ export function usePakapikk() {
   }
   function close() {
     clearTimeout(peekTimer);
+    voice.hush();
     mode.value = "idle";
     day.value = 0;
     reward.value = null;
+    if (pendingXp) {
+      addXp(pendingXp);
+      pendingXp = 0;
+    }
   }
 
   /** Ett tryck på en ruta i rummet under jakten. x/y = var (procent), för "Ei ole siin"-bubblan. */
@@ -161,7 +169,7 @@ export function usePakapikk() {
         hat = true;
       }
       profile.save();
-      addXp(10 + 5 * c.steps.length);
+      pendingXp = 10 + 5 * c.steps.length;
     }
     reward.value = { stars, hat };
     mode.value = "done";
