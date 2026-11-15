@@ -96,20 +96,25 @@ export const PAK_SOON: PakLine = { et: "Päkapikud tulevad varsti!", sv: "Tomten
 export const PAK_FINAL_WISH: PakLine = { et: "Häid jõule!", sv: "God jul!" };
 export const PAK_TOMORROW: PakLine = { et: "Homme tuleb uus kiri!", sv: "I morgon kommer ett nytt brev!" };
 
-/** em = emoji; img = en egen bild när ingen emoji stämmer (🍪 är en chokladkaka, 🌰 en kastanj). */
+/** em = emoji (reserv); img = den målade bilden i samma akvarellstil som rummet (public/images/room/pak-*.webp). */
 export type PakGift = { et: string; sv: string; em: string; img?: string };
 const GIFTS: PakGift[] = [
-  { et: "komm", sv: "godis", em: "🍬" },
+  { et: "komm", sv: "godis", em: "🍬", img: "/images/room/pak-komm.webp" },
   { et: "piparkook", sv: "pepparkaka", em: "🍪", img: "/images/room/pak-piparkook.webp" },
-  { et: "mandariin", sv: "mandarin", em: "🍊" },
+  { et: "mandariin", sv: "mandarin", em: "🍊", img: "/images/room/pak-mandariin.webp" },
   { et: "pähkel", sv: "nöt", em: "🌰", img: "/images/room/pak-pahkel.webp" } /* 🌰 är en kastanj */,
-  { et: "õun", sv: "äpple", em: "🍎" },
-  { et: "kelluke", sv: "bjällra", em: "🔔" },
-  { et: "küünal", sv: "ljus", em: "🕯️" },
-  { et: "sokk", sv: "strumpa", em: "🧦" },
-  { et: "täht", sv: "stjärna", em: "⭐" },
+  { et: "õun", sv: "äpple", em: "🍎", img: "/images/room/pak-oun.webp" },
+  { et: "kelluke", sv: "bjällra", em: "🔔", img: "/images/room/pak-kelluke.webp" },
+  { et: "küünal", sv: "ljus", em: "🕯️", img: "/images/room/pak-kuunal.webp" },
+  { et: "sokk", sv: "socka", em: "🧦", img: "/images/room/pak-sokk.webp" },
+  { et: "täht", sv: "stjärna", em: "⭐", img: "/images/room/pak-taht.webp" },
 ];
-export const PAK_FINAL_GIFT: PakGift = { et: "kingitus", sv: "julklapp", em: "🎁" };
+export const PAK_FINAL_GIFT: PakGift = {
+  et: "kingitus",
+  sv: "julklapp",
+  em: "🎁",
+  img: "/images/room/pak-kingitus.webp",
+};
 /** Julafton: nissens sista present är tomteluvan ur Laat (shop.ts, "joulum"). */
 export const PAK_FINAL_ITEM = "joulum";
 
