@@ -1,7 +1,6 @@
 /* Päkapiku kirjad (tomtenissens brev) - en estnisk adventstradition i Siiris rum. I Estland
-   ställer barnen en toffel (suss) på fönsterbrädan i december, och på natten lägger
-   päkapikud (tomtenissarna) en liten sak i den. Här ligger det i stället ett brev på enkel
-   estniska i toffeln, 1-24 december: brevet säger var nissen gömt dagens sak ("Vaata vaiba
+   lämnar päkapikud (tomtenissarna) små överraskningar till barnen varje natt i december.
+   Här lämnar Siiris nisse ett brev på enkel estniska i rummet, 1-24 december: brevet säger var nissen gömt dagens sak ("Vaata vaiba
    alla!"), barnet letar i rummet, och när det hittat rätt säger nissen var den låg med
    lägesorden från temat Var saker är ("Vaiba all!"). Senare i december blir det kedjor om två
    och tre lappar. Missade brev ligger kvar och väntar - ingen streak, ingen skuld.
@@ -194,14 +193,14 @@ export function pakPhrases(): string[] {
 }
 
 /* ---------- var brevet ligger ----------
-   Toffeln står alltid på vänstra fönsterbrädan (traditionen), men brevet lägger nissen på ett
-   nytt ställe varje dag - ibland i toffeln, ibland på hyllan, spiselkransen, golvet ...
+   Julstrumpan hänger alltid under vänstra fönsterbrädan, men brevet lägger nissen på ett
+   nytt ställe varje dag - ibland i strumpan, ibland på hyllan, spiselkransen, golvet ...
    Koordinaterna är rummets egna (viewBox 0 0 400 270 i room-svg.ts): x = mitten, y = där
    saken står (underkanten), w = bredd. Bara sådant som alltid finns i rummet. */
 export type PakDrop = { id: string; x: number; y: number; w: number };
-export const PAK_SLIPPER: PakDrop = { id: "suss", x: 42, y: 117, w: 36 };
+export const PAK_STOCKING: PakDrop = { id: "sokk", x: 44, y: 150, w: 25 };
 const DROPS: PakDrop[] = [
-  { id: "suss", x: 46, y: 109, w: 24 } /* i toffeln */,
+  { id: "sokk", x: 46, y: 124, w: 22 } /* i julstrumpan */,
   { id: "riiul", x: 356, y: 98.5, w: 26 } /* på översta hyllan */,
   { id: "vaip", x: 88, y: 244, w: 28 } /* på mattans vänstra kant */,
   { id: "aken2", x: 197, y: 117, w: 26 } /* på andra fönsterbrädan */,
@@ -215,7 +214,7 @@ export function pakDrop(day: number): PakDrop {
 
 /* ---------- kalendern ---------- */
 
-/** Vilken fas december-leken är i just nu: "soon" sista veckan i november (toffeln står
+/** Vilken fas december-leken är i just nu: "soon" sista veckan i november (julstrumpan hänger
  * redan på fönsterbrädan), "on" i december (brev 1 till dagens datum, högst 24), annars "off".
  * Breven går att hämta ut hela december, så den som missat dagar före jul hinner ikapp. */
 export function pakPhase(date: Date): { phase: "off" | "soon" | "on"; open: number; year: number } {

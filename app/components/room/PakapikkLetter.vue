@@ -32,8 +32,8 @@ const hatItem = computed(() => SHOP.find(it => it.id === PAK_FINAL_ITEM));
         </p>
         <p v-if="pak.reward.value?.stars" class="pak-letter__stars">+{{ pak.reward.value.stars }} ⭐</p>
         <p class="pak-letter__next">
-          <template v-if="pak.waiting.value">Det ligger ett brev till i toffeln ✉️</template>
-          <template v-else-if="pak.current.value!.day < PAK_DAYS">Nytt brev i toffeln i morgon!</template>
+          <template v-if="pak.waiting.value">Det väntar ett brev till i rummet ✉️</template>
+          <template v-else-if="pak.current.value!.day < PAK_DAYS">Nytt brev i rummet i morgon!</template>
           <template v-else>Häid jõule! God jul från nissen 🎄</template>
         </p>
         <UiAppButton variant="green" wide big @click="pak.close()">Aitäh! · Tack!</UiAppButton>

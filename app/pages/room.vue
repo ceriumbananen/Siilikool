@@ -30,7 +30,7 @@ const roomHtml = computed(() =>
 );
 const backHtml = computed(() => siiriBackSVG(fur.value, wear.value as Wear, owned.value));
 const turned = ref(false);
-/* Päkapiku kirjad (december): toffeln, jakten och brevet - app/composables/usePakapikk.ts */
+/* Päkapiku kirjad (december): julstrumpan, jakten och brevet - app/composables/usePakapikk.ts */
 const pak = usePakapikk();
 /* vänd på Siiri: CSS-flippen sköter animationen */
 function flip() {

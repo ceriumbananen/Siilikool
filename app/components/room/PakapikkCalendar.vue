@@ -22,8 +22,8 @@ function pick(d: number, state: string) {
   <UiAppCard v-if="pak.phase.value.phase === 'on'" class="pak-cal">
     <h2 class="pak-cal__title"><span lang="et">Päkapiku kirjad</span> · Tomtenissens brev</h2>
     <p class="pak-cal__sub">
-      I Estland ställer man en toffel i fönstret i december, och på natten lämnar tomtenissen något i den. Siiris nisse
-      skriver brev på estniska: läs, leta och hitta!
+      I Estland lämnar tomtenissarna, päkapikud, små överraskningar till barnen varje natt i december. Siiris nisse
+      gömmer ett brev på estniska i rummet varje dag: hitta brevet, läs och leta!
       <b>{{ foundCount }} av {{ PAK_DAYS }}</b>
     </p>
     <div class="pak-cal__grid">

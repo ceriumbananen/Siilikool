@@ -1,6 +1,6 @@
 <script setup lang="ts">
-/* Päkapiku kirjad i själva rummet (ligger inuti room.vue:s scen): toffeln med brevet på
-   fönsterbrädan, rutorna man letar i, "Ei ole siin" vid fel ställe och nissen som tittar fram
+/* Päkapiku kirjad i själva rummet (ligger inuti room.vue:s scen): julstrumpan under
+   fönsterbrädan och dagens brev, rutorna man letar i, "Ei ole siin" vid fel ställe och nissen som tittar fram
    vid rätt. Logiken i app/composables/usePakapikk.ts. */
 const pak = usePakapikk();
 
@@ -15,7 +15,7 @@ function box(d: PakDrop, vw: number, vh: number) {
 const targets = computed(() => Object.values(PAK_TARGETS).filter(t => t.rects.length));
 const hint = computed(() => pak.wrong.value >= 2);
 
-/* den tomma toffeln: nissen kommer snart / nytt brev i morgon / god jul */
+/* den tomma julstrumpan: nissen kommer snart / nytt brev i morgon / god jul */
 const soonSaid = ref(0);
 let soonTimer: ReturnType<typeof setTimeout> | undefined;
 function onSlipper() {
@@ -35,7 +35,7 @@ function tap(id: PakTargetId, e: MouseEvent, rect: [number, number, number, numb
 </script>
 
 <template>
-  <!-- toffeln och brevet, ritade i rummets egna koordinater (viewBox 0 0 400 270, samma
+  <!-- julstrumpan och brevet, ritade i rummets egna koordinater (viewBox 0 0 400 270, samma
        preserveAspectRatio som rummet i room-svg.ts) så att de alltid står på rätt ställe,
        oavsett skärmstorlek -->
   <svg
@@ -44,13 +44,13 @@ function tap(id: PakTargetId, e: MouseEvent, rect: [number, number, number, numb
     viewBox="0 0 400 270"
     preserveAspectRatio="xMidYMid slice"
   >
-    <!-- brevet i toffeln ritas bakom den, så att det sticker upp ur den -->
+    <!-- brevet i strumpan ritas bakom den, så att det sticker upp ur den -->
     <g
-      v-if="drop && drop.id === 'suss'"
+      v-if="drop && drop.id === 'sokk'"
       class="pak-item pak-item--mail"
       role="button"
       tabindex="0"
-      aria-label="Ett brev från tomtenissen ligger i toffeln"
+      aria-label="Ett brev från tomtenissen ligger i julstrumpan"
       @click.stop="pak.openWaiting()"
       @keydown.enter.prevent="pak.openWaiting()"
     >
@@ -62,27 +62,30 @@ function tap(id: PakTargetId, e: MouseEvent, rect: [number, number, number, numb
       class="pak-item"
       role="button"
       tabindex="0"
-      :aria-label="drop?.id === 'suss' ? 'Toffeln med brevet' : 'Toffeln på fönsterbrädan'"
+      :aria-label="drop?.id === 'sokk' ? 'Julstrumpan med brevet' : 'Julstrumpan under fönstret'"
       @click.stop="onSlipper"
       @keydown.enter.prevent="onSlipper"
     >
-      <svg v-bind="box(PAK_SLIPPER, 64, 26)" viewBox="0 18 64 26" overflow="visible">
+      <svg v-bind="box(PAK_STOCKING, 40, 56)" viewBox="0 0 40 56" overflow="visible">
+        <path d="M10 6 Q9 -1 15 1" fill="none" stroke="#7a1f1a" stroke-width="1.2" />
         <path
-          d="M4 32 Q4 22 17 22 L41 22 Q58 22 58 32 Q58 40 47 40 L13 40 Q4 40 4 32 Z"
+          d="M8 12 L28 12 L28 35 Q28 39 31 41 L35 44 Q41 48 37 53 Q33 57 26 53 L14 46 Q8 42 8 36 Z"
           fill="#b8322a"
           stroke="#7a1f1a"
-          stroke-width="1.5"
+          stroke-width="1.2"
         />
-        <ellipse cx="23" cy="24.5" rx="14" ry="3.6" fill="#6e1c17" />
-        <path d="M10 34 H52" stroke="#f3eadb" stroke-width="1.6" stroke-dasharray="3 3" />
-        <circle cx="47" cy="29" r="1.6" fill="#f3eadb" />
-        <circle cx="42" cy="29" r="1.6" fill="#e8c34a" />
-        <circle cx="52" cy="29" r="1.6" fill="#e8c34a" />
+        <path d="M31 41 L35 44 Q41 48 37 53 Q33 57 26 53 Z" fill="#f3eadb" stroke="#7a1f1a" stroke-width="1" />
+        <path d="M8 25 L12 21 L16 25 L20 21 L24 25 L28 21" fill="none" stroke="#e8c34a" stroke-width="1.6" />
+        <path d="M8 30 L28 30" stroke="#3f6b3a" stroke-width="1.6" />
+        <rect x="6" y="4" width="24" height="10" rx="3" fill="#fbf7ef" stroke="#d9cfbf" />
+        <circle cx="12" cy="9" r="1.2" fill="#c8352e" />
+        <circle cx="18" cy="9" r="1.2" fill="#3f6b3a" />
+        <circle cx="24" cy="9" r="1.2" fill="#c8352e" />
       </svg>
     </g>
     <!-- brevet någon annanstans i rummet -->
     <g
-      v-if="drop && drop.id !== 'suss'"
+      v-if="drop && drop.id !== 'sokk'"
       class="pak-item pak-item--mail"
       role="button"
       tabindex="0"

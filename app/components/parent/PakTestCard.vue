@@ -7,7 +7,7 @@ const { test, start, reset, stop } = usePakTest();
 
 const year = new Date().getFullYear();
 const QUICK = [
-  { date: `${year}-11-26`, label: "26 nov", hint: "tom toffel" },
+  { date: `${year}-11-26`, label: "26 nov", hint: "tom strumpa" },
   { date: `${year}-12-01`, label: "1 dec", hint: "en lapp" },
   { date: `${year}-12-10`, label: "10 dec", hint: "två lappar" },
   { date: `${year}-12-17`, label: "17 dec", hint: "tre lappar" },
@@ -31,7 +31,7 @@ const label = computed(() => {
   <div class="card">
     <h2 class="q">🧦 Testa Päkapiku kirjad</h2>
     <p class="qsub">
-      Tomtenissens brev syns i Siiris rum från 24 november (tom toffel) och 1–24 december (breven). Här kan du prova
+      Tomtenissens brev syns i Siiris rum från 24 november (tom julstrumpa) och 1–24 december (breven). Här kan du prova
       leken redan nu genom att låtsas att det är ett annat datum.
       <b>Bara på den här enheten, och inget sparas i spelet</b> – inga stjärnor, ingen tomteluva, inget i barnens
       framsteg.

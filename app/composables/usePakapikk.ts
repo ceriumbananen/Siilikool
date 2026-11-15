@@ -2,7 +2,7 @@
    mellan scenen i rummet (RoomPakapikkStage), brevet (RoomPakapikkLetter) och adventskalendern
    (RoomPakapikkCalendar), därför ligger tillståndet utanför funktionen: en jakt i taget.
 
-   Flödet för ett brev: toffeln på fönsterbrädan → brevet öppnas och läses upp ("letter") →
+   Flödet för ett brev: brevet i rummet (julstrumpan eller ett nytt ställe varje dag) → brevet öppnas och läses upp ("letter") →
    barnet letar i rummet ("search") → rätt ställe: nissen tittar fram och säger var saken låg
    ("peek") → nästa lapp ("note", tillbaka till "search") eller dagens sak ("done"). */
 
@@ -90,7 +90,7 @@ export function usePakapikk() {
   const foundKeys = computed(() => new Set((s.pakFound as string[] | undefined) || []));
   const isFound = (d: number) =>
     pakTest.value ? pakTest.value.found.includes(d) : foundKeys.value.has(pakKey(phase.value.year, d));
-  /** Det äldsta brevet som väntar i toffeln, eller 0. */
+  /** Det äldsta brevet som väntar, eller 0. */
   const waiting = computed(() => {
     for (let d = 1; d <= phase.value.open; d++) if (!isFound(d)) return d;
     return 0;
@@ -231,7 +231,7 @@ export function usePakapikk() {
     sayLines([c.gift.et]);
   }
 
-  /** Vad den tomma toffeln säger: sista veckan i november kommer nissen snart, i december
+  /** Vad den tomma julstrumpan säger: sista veckan i november kommer nissen snart, i december
    * kommer nästa brev i morgon, och efter julafton är det bara god jul. */
   const emptyLine = computed<PakLine>(() =>
     phase.value.phase === "soon" ? PAK_SOON : phase.value.open >= PAK_DAYS ? PAK_FINAL_WISH : PAK_TOMORROW,

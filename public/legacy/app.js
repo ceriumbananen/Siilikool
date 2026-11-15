@@ -4520,7 +4520,7 @@
       '</p><div class="row" style="justify-content:flex-start">' +
       '<button class="btn ghost" data-a="pak" data-d="' +
       pakY +
-      '-11-26">26 nov · tom toffel</button>' +
+      '-11-26">26 nov · tom strumpa</button>' +
       '<button class="btn ghost" data-a="pak" data-d="' +
       pakY +
       '-12-01">1 dec · en lapp</button>' +
