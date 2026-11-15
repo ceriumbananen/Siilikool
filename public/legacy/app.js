@@ -14423,13 +14423,13 @@
       pool = allWords();
     if (roll < 0.3) {
       var w = pool[(Math.random() * pool.length) | 0];
-      pendAdd("🧰", "Bonuskista: " + esc(w.et), esc(w.sv) + " · ett ord på köpet");
+      pendAdd("🧰", "Bonuskista: " + esc(tgt(w)), esc(nat(w)) + LT(" · ett ord på köpet", " · üks sõna lisaks"));
     } else {
       var base = [10, 15, 20, 25, 30, 40][(Math.random() * 6) | 0];
       earnStars(base);
       save();
       refreshTop();
-      pendAdd("🧰", "Bonuskista", "+" + base * starMult() + " stjärnor till marknaden");
+      pendAdd("🧰", "Bonuskista", "+" + base * starMult() + LT(" stjärnor till marknaden", " tähte laadale"));
     }
   }
   /* poäng + allt sparat state för den just avslutade rundan (S.best/S.perfect/S.bestRight/
@@ -14503,15 +14503,31 @@
     setTimeout(function () {
       dance(st >= 3);
     }, 350);
-    if (r.firstPerfect) celebrateFirst("💯", "Sinu esimene veatu tulemus!", "Ditt första felfria resultat!");
+    if (r.firstPerfect)
+      celebrateFirst(
+        "💯",
+        "Sinu esimene veatu tulemus!",
+        LT("Ditt första felfria resultat!", "Sinu esimene veatu tulemus!"),
+      );
     maybeChest();
     if (r.firstHardWin) {
       setTimeout(function () {
         var d = overlay(
-          '<div class="oc" style="border-color:var(--berry)"><p class="kicker">🔥 Svår nivå klarad!</p>' +
-            '<div style="font-size:64px">🐉</div><h3>Tre plagg låstes upp</h3>' +
-            "<p>Eldkrona, blixtar och drakvingar finns nu på marknaden — bara för den som spelar på svår.</p>" +
-            '<button class="btn big wide" id="hwok">Till garderoben</button></div>',
+          '<div class="oc" style="border-color:var(--berry)"><p class="kicker">' +
+            LT("🔥 Svår nivå klarad!", "🔥 Raske tase läbitud!") +
+            "</p>" +
+            '<div style="font-size:64px">🐉</div><h3>' +
+            LT("Tre plagg låstes upp", "Kolm riideeset avati") +
+            "</h3>" +
+            "<p>" +
+            LT(
+              "Eldkrona, blixtar och drakvingar finns nu på marknaden — bara för den som spelar på svår.",
+              "Tulekroon, välgud ja draakonitiivad on nüüd laadal — ainult neile, kes mängivad raskel tasemel.",
+            ) +
+            "</p>" +
+            '<button class="btn big wide" id="hwok">' +
+            LT("Till garderoben", "Riidekappi") +
+            "</button></div>",
         );
         burst(180);
         sndLvl();
@@ -14543,14 +14559,14 @@
         : st === 2
           ? "Tubli" + (S.name ? ", " + esc(S.name) : "") + "! Snyggt jobbat!"
           : st === 1
-            ? "Bra kämpat!"
-            : "Öva lite till – du fixar det!") +
+            ? LT("Bra kämpat!", "Hästi võideldud!")
+            : LT("Öva lite till – du fixar det!", "Harjuta veel natuke – sa saad hakkama!")) +
       "</p>" +
       '<p class="qsub">' +
       right +
-      " rätt av " +
+      LT(" rätt av ", " õiget / ") +
       total +
-      " · bästa kombo x" +
+      LT(" · bästa kombo x", " · parim seeria x") +
       (L.bestCombo || 0) +
       " · " +
       diff().em +
@@ -14561,7 +14577,7 @@
       siilSVG() +
       "</div>";
     if (newB.length) {
-      html += '<p class="q" style="margin-top:12px">Nytt märke!</p><div>';
+      html += '<p class="q" style="margin-top:12px">' + LT("Nytt märke!", "Uus märk!") + "</p><div>";
       for (var i = 0; i < newB.length; i++) {
         html += '<span class="badge">' + newB[i].em + " " + esc(newB[i].sv) + "</span>";
       }
@@ -14570,15 +14586,18 @@
     html += pendHtml();
     /* ord som inte satt förut men sitter nu */
     if (L.fixed && L.fixed.length) {
-      html += '<div class="fixedbox"><b>💪 Det här satt inte förut — nu sitter det!</b>';
+      html +=
+        '<div class="fixedbox"><b>' +
+        LT("💪 Det här satt inte förut — nu sitter det!", "💪 Seda sa enne ei osanud — nüüd oskad!") +
+        "</b>";
       for (var fq = 0; fq < L.fixed.length; fq++) {
         html +=
           '<span class="fw">' +
           esc(L.fixed[fq].em || "") +
           " " +
-          esc(L.fixed[fq].et) +
+          esc(tgt(L.fixed[fq])) +
           ' <span style="font-weight:400;color:var(--muted)">' +
-          esc(L.fixed[fq].sv) +
+          esc(nat(L.fixed[fq])) +
           "</span></span>";
       }
       html += "</div>";
@@ -14587,14 +14606,15 @@
       html +=
         '<p class="qsub">💪 ' +
         L.hardWon +
-        (L.hardWon === 1 ? " svårt ord" : " svåra ord") +
-        " gav dubbla stjärnor.</p>";
+        (L.hardWon === 1 ? LT(" svårt ord", " raske sõna") : LT(" svåra ord", " rasket sõna")) +
+        LT(" gav dubbla stjärnor.", " andsid topelttähed.") +
+        "</p>";
     var nx = nextUp();
     html +=
       '<button class="btn green big wide" id="nextup">▶️ ' +
-      esc(UI.next.et) +
+      esc(tgt(UI.next)) +
       '<span style="font-weight:500;font-size:14px;opacity:.9"> · ' +
-      (nx.kind === "theme" ? esc(nx.t.sv) : esc(nx.sv)) +
+      (nx.kind === "theme" ? esc(nat(nx.t)) : esc(nat(nx))) +
       "</span></button>" +
       (function () {
         var untried = ["duel", "mem", "rain", "sent", "talk"].filter(function (k) {
@@ -14602,23 +14622,25 @@
         });
         if (!untried.length) return "";
         var nm = {
-          duel: "⚔️ Duell mot ett djur",
+          duel: LT("⚔️ Duell mot ett djur", "⚔️ Duell loomaga"),
           mem: "🃏 Memory",
           rain: "🌧️ Ordregnet",
           sent: "🧩 Bygg meningar",
-          talk: "💬 Prata med Siiri",
+          talk: LT("💬 Prata med Siiri", "💬 Räägi Siiriga"),
         }[untried[0]];
         return (
           '<button class="btn ghost wide" id="trynew" data-try="' +
           untried[0] +
-          '" style="margin-top:10px">Har du testat ' +
+          '" style="margin-top:10px">' +
+          LT("Har du testat ", "Kas oled proovinud: ") +
           nm +
           "?</button>"
         );
       })() +
       '<div class="row"><button class="btn ghost" id="again">' +
-      esc(UI.again.et) +
-      " · en gång till</button>" +
+      esc(tgt(UI.again)) +
+      LT(" · en gång till", " · veel kord") +
+      "</button>" +
       '<button class="btn ghost" id="home">Menüü · menyn</button></div></div>';
     app.innerHTML = html;
     mood("cheer");
@@ -14640,23 +14662,33 @@
       setTimeout(function () {
         var d = overlay(
           '<div class="oc"><p class="kicker">' +
-            (easier ? "Siiri undrar en sak" : "Siiri har en idé") +
+            (easier ? LT("Siiri undrar en sak", "Siiril on küsimus") : LT("Siiri har en idé", "Siiril on idee")) +
             "</p>" +
             '<div style="font-size:52px">' +
             (easier ? "🍃" : "🔥") +
             "</div>" +
             "<h3>" +
-            (easier ? "Ska vi ta det lite lugnare?" : "Vill du prova svårare?") +
+            (easier
+              ? LT("Ska vi ta det lite lugnare?", "Kas võtame natuke rahulikumalt?")
+              : LT("Vill du prova svårare?", "Kas tahad proovida raskemat?")) +
             "</h3>" +
             "<p>" +
             (easier
-              ? "Du får fler bilder som hjälp och färre svarsalternativ. Du kan byta tillbaka när du vill."
-              : "Du klarade flera omgångar utan ett enda fel. På svår nivå finns egna plagg och hemligheter.") +
+              ? LT(
+                  "Du får fler bilder som hjälp och färre svarsalternativ. Du kan byta tillbaka när du vill.",
+                  "Saad rohkem pilte abiks ja vähem vastusevariante. Võid alati tagasi vahetada.",
+                )
+              : LT(
+                  "Du klarade flera omgångar utan ett enda fel. På svår nivå finns egna plagg och hemligheter.",
+                  "Said mitu vooru ilma ühegi veata. Raskel tasemel on omad riided ja saladused.",
+                )) +
             "</p>" +
             '<button class="btn green big wide" id="dyes">' +
-            (easier ? "🍃 Byt till Lätt" : "🔥 Byt till Svår") +
+            (easier ? LT("🍃 Byt till Lätt", "🍃 Vaheta kergele") : LT("🔥 Byt till Svår", "🔥 Vaheta raskele")) +
             "</button>" +
-            '<button class="btn ghost wide" id="dno" style="margin-top:8px">Nej tack, det går bra</button></div>',
+            '<button class="btn ghost wide" id="dno" style="margin-top:8px">' +
+            LT("Nej tack, det går bra", "Ei aitäh, kõik on hästi") +
+            "</button></div>",
         );
         d.querySelector("#dyes").onclick = function () {
           S.diff = easier ? "latt" : "svar";

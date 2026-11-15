@@ -28,6 +28,15 @@
    den kommer från tone(), som hör till ljudmotorn i app.js och inte är laddad här. */
 
 const profile = useProfileStore();
+/* byter språkriktning (S.home, se app/utils/lang.ts) - spelets gamla motor läser valet när den
+   startar, så sidan laddas om på startsidan */
+function setHome(home: "sv" | "et") {
+  if ((profile.state.home === "et" ? "et" : "sv") === home) return;
+  profile.state.home = home;
+  profile.state.homePicked = 1;
+  profile.save();
+  location.href = "/";
+}
 const cloud = useCloudStore();
 const { busy: playBusy, err: playErr, run: runPlay } = useBusy();
 
@@ -355,6 +364,29 @@ function tapSettingsTitle() {
         </template>
       </UiAppCard>
 
+      <!-- språkriktningen (app/utils/lang.ts): vilket språk barnet pratar och vilket det lär sig -->
+      <UiAppCard class="profile-page__section">
+        <h2>Keel · Språk</h2>
+        <div class="profile-page__langs">
+          <button
+            class="profile-page__lang"
+            :class="{ 'profile-page__lang--on': profile.state.home !== 'et' }"
+            @click="setHome('sv')"
+          >
+            <span aria-hidden="true">🇸🇪</span><b>Jag pratar svenska</b><small>och lär mig estniska</small>
+          </button>
+          <button
+            class="profile-page__lang"
+            :class="{ 'profile-page__lang--on': profile.state.home === 'et' }"
+            @click="setHome('et')"
+          >
+            <span aria-hidden="true">🇪🇪</span><b lang="et">Ma räägin eesti keelt</b
+            ><small lang="et">ja õpin rootsi keelt</small>
+          </button>
+        </div>
+        <p>Det du redan lärt dig och dina stjärnor finns kvar när du byter.</p>
+      </UiAppCard>
+
       <UiAppCard class="profile-page__section">
         <h2 class="profile-page__secret-tap" @click="tapSettingsTitle">Seaded · Inställningar</h2>
         <div class="profile-page__row">
@@ -419,6 +451,42 @@ function tapSettingsTitle() {
 </template>
 
 <style lang="scss" scoped>
+.profile-page__langs {
+  display: grid;
+  gap: $spacing-2;
+  margin-bottom: $spacing-2;
+}
+
+.profile-page__lang {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  column-gap: $spacing-3;
+  align-items: center;
+  text-align: left;
+  padding: $spacing-2 $spacing-3;
+  border-radius: $radius-md;
+  border: $border-width solid var(--line);
+  background: var(--card);
+  color: var(--ink);
+  font: inherit;
+  cursor: pointer;
+  @include focus-visible;
+
+  span {
+    grid-row: span 2;
+    font-size: 2rem;
+  }
+
+  small {
+    color: var(--muted);
+  }
+
+  &--on {
+    border-color: var(--moss);
+    box-shadow: 0 0 0 0.125rem var(--moss);
+  }
+}
+
 // Bredd-begränsningen kommer från UiAppShell:s __content-omslag, inte härifrån.
 .profile-page {
   &__section {
