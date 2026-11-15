@@ -4,6 +4,14 @@
    vid rätt. Logiken i app/composables/usePakapikk.ts. */
 const pak = usePakapikk();
 
+/* dagens brev: var nissen lagt det (pakDrop) */
+const drop = computed(() => (pak.waiting.value ? pakDrop(pak.waiting.value) : null));
+/** x/y/bredd/höjd för en sak som står på (x, y) i rummet, w bred, med en bild i proportionerna vw:vh. */
+function box(d: PakDrop, vw: number, vh: number) {
+  const h = (d.w * vh) / vw;
+  return { x: d.x - d.w / 2, y: d.y - h, width: d.w, height: h };
+}
+
 const targets = computed(() => Object.values(PAK_TARGETS).filter(t => t.rects.length));
 const hint = computed(() => pak.wrong.value >= 2);
 
@@ -27,34 +35,83 @@ function tap(id: PakTargetId, e: MouseEvent, rect: [number, number, number, numb
 </script>
 
 <template>
-  <!-- toffeln: tom sista veckan i november, med brev i december -->
-  <button
+  <!-- toffeln och brevet, ritade i rummets egna koordinater (viewBox 0 0 400 270, samma
+       preserveAspectRatio som rummet i room-svg.ts) så att de alltid står på rätt ställe,
+       oavsett skärmstorlek -->
+  <svg
     v-if="pak.phase.value.phase !== 'off' && !pak.searching.value"
-    class="pak-slipper"
-    :class="{ 'pak-slipper--mail': pak.waiting.value }"
-    :aria-label="pak.waiting.value ? 'Ett brev från tomtenissen ligger i toffeln' : 'Toffeln på fönsterbrädan'"
-    @click.stop="onSlipper"
+    class="pak-layer"
+    viewBox="0 0 400 270"
+    preserveAspectRatio="xMidYMid slice"
   >
-    <svg viewBox="0 0 64 44" aria-hidden="true">
-      <g v-if="pak.waiting.value" class="pak-slipper__letter">
-        <rect x="20" y="1" width="28" height="20" rx="2" fill="#fffaf0" stroke="#b9a98f" stroke-width="1.5" />
-        <path d="M20 3 L34 13 L48 3" fill="none" stroke="#b9a98f" stroke-width="1.5" />
-        <circle cx="34" cy="13" r="3.4" fill="#c8352e" />
+    <!-- brevet i toffeln ritas bakom den, så att det sticker upp ur den -->
+    <g
+      v-if="drop && drop.id === 'suss'"
+      class="pak-item pak-item--mail"
+      role="button"
+      tabindex="0"
+      aria-label="Ett brev från tomtenissen ligger i toffeln"
+      @click.stop="pak.openWaiting()"
+      @keydown.enter.prevent="pak.openWaiting()"
+    >
+      <svg v-bind="box(drop, 40, 28)" viewBox="0 0 40 28" overflow="visible">
+        <use href="#pak-envelope" />
+      </svg>
+    </g>
+    <g
+      class="pak-item"
+      role="button"
+      tabindex="0"
+      :aria-label="drop?.id === 'suss' ? 'Toffeln med brevet' : 'Toffeln på fönsterbrädan'"
+      @click.stop="onSlipper"
+      @keydown.enter.prevent="onSlipper"
+    >
+      <svg v-bind="box(PAK_SLIPPER, 64, 26)" viewBox="0 18 64 26" overflow="visible">
+        <path
+          d="M4 32 Q4 22 17 22 L41 22 Q58 22 58 32 Q58 40 47 40 L13 40 Q4 40 4 32 Z"
+          fill="#b8322a"
+          stroke="#7a1f1a"
+          stroke-width="1.5"
+        />
+        <ellipse cx="23" cy="24.5" rx="14" ry="3.6" fill="#6e1c17" />
+        <path d="M10 34 H52" stroke="#f3eadb" stroke-width="1.6" stroke-dasharray="3 3" />
+        <circle cx="47" cy="29" r="1.6" fill="#f3eadb" />
+        <circle cx="42" cy="29" r="1.6" fill="#e8c34a" />
+        <circle cx="52" cy="29" r="1.6" fill="#e8c34a" />
+      </svg>
+    </g>
+    <!-- brevet någon annanstans i rummet -->
+    <g
+      v-if="drop && drop.id !== 'suss'"
+      class="pak-item pak-item--mail"
+      role="button"
+      tabindex="0"
+      aria-label="Ett brev från tomtenissen ligger i rummet"
+      @click.stop="pak.openWaiting()"
+      @keydown.enter.prevent="pak.openWaiting()"
+    >
+      <svg v-bind="box(drop, 40, 28)" viewBox="0 0 40 28" overflow="visible">
+        <use href="#pak-envelope" />
+      </svg>
+    </g>
+    <!-- fler brev väntar: en liten siffra vid brevet -->
+    <g v-if="drop && pak.waitingCount.value > 1" class="pak-count" aria-hidden="true">
+      <circle :cx="drop.x - drop.w / 2" :cy="drop.y - (drop.w * 28) / 40" r="6" />
+      <text :x="drop.x - drop.w / 2" :y="drop.y - (drop.w * 28) / 40 + 2.6" text-anchor="middle">
+        {{ pak.waitingCount.value }}
+      </text>
+    </g>
+    <defs>
+      <g id="pak-envelope">
+        <rect x="1" y="3" width="38" height="24" rx="2" fill="#fffaf0" stroke="#a8977c" stroke-width="1.2" />
+        <path d="M1.5 4 L20 17 L38.5 4" fill="none" stroke="#a8977c" stroke-width="1.2" />
+        <path d="M1.5 26.5 L15 14 M38.5 26.5 L25 14" fill="none" stroke="#d8cbb5" stroke-width="1" />
+        <circle cx="20" cy="16.5" r="4.2" fill="#c8352e" stroke="#8e211c" stroke-width="0.8" />
+        <path d="M20 13.8 L20 19.2 M17.4 16.5 L22.6 16.5" stroke="#f3b3a8" stroke-width="0.9" />
+        <path d="M27 3.5 Q31 -1 35 2 M29 1.5 L30 4 M32.5 0.5 L33 3.4" fill="none" stroke="#3f6b3a" stroke-width="1.3" />
       </g>
-      <path
-        d="M4 32 Q4 22 17 22 L41 22 Q58 22 58 32 Q58 40 47 40 L13 40 Q4 40 4 32 Z"
-        fill="#b8322a"
-        stroke="#7a1f1a"
-        stroke-width="1.5"
-      />
-      <ellipse cx="23" cy="24.5" rx="14" ry="3.6" fill="#6e1c17" />
-      <path d="M10 34 H52" stroke="#f3eadb" stroke-width="1.6" stroke-dasharray="3 3" />
-      <circle cx="47" cy="29" r="1.6" fill="#f3eadb" />
-      <circle cx="42" cy="29" r="1.6" fill="#e8c34a" />
-      <circle cx="52" cy="29" r="1.6" fill="#e8c34a" />
-    </svg>
-    <span v-if="pak.waitingCount.value > 1" class="pak-slipper__count">{{ pak.waitingCount.value }}</span>
-  </button>
+    </defs>
+  </svg>
 
   <div v-if="soonSaid" :key="soonSaid" class="pak-miss pak-miss--soon">
     <b lang="et">{{ pak.emptyLine.value.et }}</b>
@@ -118,50 +175,49 @@ function tap(id: PakTargetId, e: MouseEvent, rect: [number, number, number, numb
 </template>
 
 <style lang="scss" scoped>
-.pak-slipper {
+.pak-layer {
   position: absolute;
-  left: 12%;
-  top: 44.5%;
-  width: clamp(2.5rem, 11vw, 3.5rem);
-  transform: translate(-50%, -100%);
-  border: none;
-  background: none;
-  padding: 0;
-  cursor: pointer;
+  inset: 0;
+  width: 100%;
+  height: 100%;
   z-index: 4;
-  line-height: 0;
-  filter: drop-shadow(0 2px 2px rgba(40, 25, 10, 0.3));
-  @include focus-visible;
+  pointer-events: none;
+}
 
-  svg {
-    width: 100%;
-    height: auto;
-    display: block;
+.pak-item {
+  pointer-events: auto;
+  cursor: pointer;
+  outline: none;
+  filter: drop-shadow(0 1.5px 1.2px rgba(40, 25, 10, 0.35));
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+
+  &:focus-visible {
+    filter: drop-shadow(0 0 2px var(--blue)) drop-shadow(0 0 2px var(--blue));
   }
 
   &--mail {
     animation: pak-wiggle 3.2s ease-in-out infinite;
-    transform-origin: 50% 100%;
   }
 
   &:active {
-    transform: translate(-50%, -100%) scale(1.12);
+    transform: scale(1.12);
+  }
+}
+
+.pak-count {
+  pointer-events: none;
+
+  circle {
+    fill: var(--berry);
+    stroke: #fff;
+    stroke-width: 1;
   }
 
-  &__count {
-    position: absolute;
-    top: 0.25rem;
-    left: -0.625rem;
-    min-width: 1.25rem;
-    height: 1.25rem;
-    border-radius: $radius-pill;
-    background: var(--berry);
-    color: #fff;
-    font-size: $font-size-xs;
+  text {
+    fill: #fff;
+    font-size: 7.5px;
     font-weight: 700;
-    line-height: 1.25rem;
-    text-align: center;
-    padding: 0 0.25rem;
   }
 }
 
@@ -278,19 +334,19 @@ function tap(id: PakTargetId, e: MouseEvent, rect: [number, number, number, numb
   0%,
   78%,
   100% {
-    transform: translate(-50%, -100%) rotate(0);
+    transform: rotate(0);
   }
   82% {
-    transform: translate(-50%, -100%) rotate(-7deg);
+    transform: rotate(-7deg);
   }
   86% {
-    transform: translate(-50%, -100%) rotate(6deg);
+    transform: rotate(6deg);
   }
   90% {
-    transform: translate(-50%, -100%) rotate(-4deg);
+    transform: rotate(-4deg);
   }
   94% {
-    transform: translate(-50%, -100%) rotate(2deg);
+    transform: rotate(2deg);
   }
 }
 
@@ -374,7 +430,7 @@ function tap(id: PakTargetId, e: MouseEvent, rect: [number, number, number, numb
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .pak-slipper--mail,
+  .pak-item--mail,
   .pak-zone--hint,
   .pak-sparkle,
   .pak-miss {

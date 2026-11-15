@@ -193,6 +193,26 @@ export function pakPhrases(): string[] {
   return [...out];
 }
 
+/* ---------- var brevet ligger ----------
+   Toffeln står alltid på vänstra fönsterbrädan (traditionen), men brevet lägger nissen på ett
+   nytt ställe varje dag - ibland i toffeln, ibland på hyllan, spiselkransen, golvet ...
+   Koordinaterna är rummets egna (viewBox 0 0 400 270 i room-svg.ts): x = mitten, y = där
+   saken står (underkanten), w = bredd. Bara sådant som alltid finns i rummet. */
+export type PakDrop = { id: string; x: number; y: number; w: number };
+export const PAK_SLIPPER: PakDrop = { id: "suss", x: 42, y: 117, w: 36 };
+const DROPS: PakDrop[] = [
+  { id: "suss", x: 46, y: 109, w: 24 } /* i toffeln */,
+  { id: "riiul", x: 356, y: 98.5, w: 26 } /* på översta hyllan */,
+  { id: "vaip", x: 88, y: 244, w: 28 } /* på mattans vänstra kant */,
+  { id: "aken2", x: 197, y: 117, w: 26 } /* på andra fönsterbrädan */,
+  { id: "kamin", x: 330, y: 152, w: 26 } /* på spiselkransen, mellan dockorna och dalahästen */,
+  { id: "porand", x: 264, y: 228, w: 28 } /* på golvet mellan Siiri och brasan */,
+];
+/** Var brevet för en viss dag ligger - aldrig samma ställe två dagar i rad. */
+export function pakDrop(day: number): PakDrop {
+  return DROPS[(Math.max(1, day) - 1) % DROPS.length]!;
+}
+
 /* ---------- kalendern ---------- */
 
 /** Vilken fas december-leken är i just nu: "soon" sista veckan i november (toffeln står
