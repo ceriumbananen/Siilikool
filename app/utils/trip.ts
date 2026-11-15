@@ -10,6 +10,8 @@ export const TRIP = [
     y: 48,
     em: "🏰",
     fact: "Tallinns gamla stan är en av Europas bäst bevarade medeltidsstäder. Stadsmuren har kvar tjugo torn.",
+    factEt:
+      "Tallinna vanalinn on üks Euroopa kõige paremini säilinud keskaegseid linnu. Linnamüüril on alles kakskümmend torni.",
     words: [
       { et: "vanalinn", sv: "gamla stan", em: "🏘️", hint: "VA-na-linn" },
       { et: "torn", sv: "torn", em: "🗼", hint: "torn" },
@@ -24,6 +26,7 @@ export const TRIP = [
     y: 39.7,
     em: "🌲",
     fact: "Estlands största nationalpark. Här finns älgar, björnar och stora mossar man går på i träskor av trä.",
+    factEt: "Eesti suurim rahvuspark. Siin elavad põdrad ja karud ning suurtel rabadel käiakse rabakingadega.",
     words: [
       { et: "rahvuspark", sv: "nationalpark", em: "🏞️", hint: "RAH-vus-park" },
       { et: "raba", sv: "mosse", em: "🪵", hint: "RA-ba" },
@@ -38,6 +41,7 @@ export const TRIP = [
     y: 41.6,
     em: "🏯",
     fact: "Vid floden står en borg från 1200-talet. På andra sidan vattnet ligger Ryssland — man ser dit från muren.",
+    factEt: "Jõe ääres seisab 1200. aastatest pärit linnus. Teisel pool vett on Venemaa — müürilt näeb sinna.",
     words: [
       { et: "jõgi", sv: "flod", em: "🏞️", hint: "JÕ-gi" },
       { et: "kindlus", sv: "fästning, borg", em: "🏯", hint: "KIND-lus" },
@@ -52,6 +56,7 @@ export const TRIP = [
     y: 134.5,
     em: "🎓",
     fact: "Estlands studentstad. Universitetet grundades 1632 och staden kallas ofta för landets tankesmedja.",
+    factEt: "Eesti ülikoolilinn. Ülikool asutati 1632. aastal ja linna kutsutakse sageli vaimupealinnaks.",
     words: [
       { et: "ülikool", sv: "universitet", em: "🎓", hint: "Ü-li-kool" },
       { et: "raamatukogu", sv: "bibliotek", em: "📚", hint: "RAA-ma-tu-ko-gu" },
@@ -68,6 +73,8 @@ export const TRIP = [
     lx: 12,
     em: "⛪",
     fact: "Namnet kommer från ordet põlv, knä. Sägnen säger att kyrkan byggdes där man knäböjde. Runtom ligger åkrar och skogsfestivalen Intsikurmu.",
+    factEt:
+      "Nimi tuleb sõnast põlv. Lugu räägib, et kirik ehitati sinna, kus põlvitati. Ümberringi on põllud ja metsafestival Intsikurmu.",
     words: [
       { et: "põld", sv: "åker", em: "🌾", hint: "põld" },
       { et: "kirik", sv: "kyrka", em: "⛪", hint: "KI-rik" },
@@ -84,6 +91,7 @@ export const TRIP = [
     lx: 8,
     em: "🪗",
     fact: "Här bor seto-folket med eget språk och en sångtradition som heter leelo. Unesco skyddar den.",
+    factEt: "Siin elab seto rahvas oma keele ja laulutraditsiooniga, mille nimi on leelo. UNESCO kaitseb seda.",
     words: [
       { et: "laul", sv: "sång", em: "🎶", hint: "laul" },
       { et: "rahvariided", sv: "folkdräkt", em: "👗", hint: "RAH-va-rii-ded" },
@@ -100,6 +108,7 @@ export const TRIP = [
     lx: 16,
     em: "🎿",
     fact: "Estlands vinterhuvudstad. Här är det kuperat och alla åker skidor, kälke och skridskor på sjöarna.",
+    factEt: "Eesti talvepealinn. Siin on palju mägesid ja kõik suusatavad, kelgutavad ja uisutavad järvedel.",
     words: [
       { et: "suusarada", sv: "skidspår", em: "🎿", hint: "SUU-sa-ra-da" },
       { et: "küngas", sv: "kulle", em: "⛰️", hint: "KÜN-gas" },
@@ -114,6 +123,7 @@ export const TRIP = [
     y: 140.3,
     em: "🎻",
     fact: "Varje sommar fylls slottsruinen av folkmusik. Festivalen är en av Estlands största.",
+    factEt: "Igal suvel täitub lossivaremete ala rahvamuusikaga. Festival on üks Eesti suurimaid.",
     words: [
       { et: "muusika", sv: "musik", em: "🎶", hint: "MUU-si-ka" },
       { et: "varemed", sv: "ruiner", em: "🏚️", hint: "VA-re-med" },
@@ -128,6 +138,7 @@ export const TRIP = [
     y: 158,
     em: "🏖️",
     fact: "Estlands sommarhuvudstad med en lång sandstrand. Vattnet är grunt och varmt långt ut.",
+    factEt: "Eesti suvepealinn pika liivarannaga. Vesi on madal ja soe kaugele merre välja.",
     words: [
       { et: "rand", sv: "strand", em: "🏖️", hint: "rand" },
       { et: "liiv", sv: "sand", em: "🏝️", hint: "liiv" },
@@ -144,6 +155,7 @@ export const TRIP = [
     lx: 10,
     em: "👻",
     fact: "En gammal kurort där man badar i gyttja. I borgens fönster sägs Vita damen visa sig i augusti.",
+    factEt: "Vana kuurort, kus võetakse mudavanne. Räägitakse, et augustis näitab Valge daam end lossi aknas.",
     words: [
       { et: "raudtee", sv: "järnväg", em: "🚉", hint: "RAUD-tee" },
       { et: "muda", sv: "gyttja", em: "🛁", hint: "MU-da" },
@@ -159,6 +171,8 @@ export const TRIP = [
     ly: -14,
     em: "🏰",
     fact: "Huvudstaden på Saaremaa, Estlands största ö. Biskopsborgen från 1300-talet står kvar med vallgrav runt om, och inte långt bort ligger sjön Kaali i en meteoritkrater.",
+    factEt:
+      "Saaremaa pealinn. Saaremaa on Eesti suurim saar. 1300. aastatest pärit piiskopilinnus seisab ikka veel vallikraaviga ümbritsetuna ja lähedal on Kaali järv meteoriidikraatris.",
     words: [
       { et: "loss", sv: "slott", em: "🏰", hint: "loss" },
       { et: "tuulik", sv: "väderkvarn", em: "🌬️", hint: "TUU-lik" },
@@ -173,6 +187,7 @@ export const TRIP = [
     y: 61.2,
     em: "🐂",
     fact: "Utanför borgen står en jättelik uroxe i brons. Den är Estlands största djurstaty — sex meter lång.",
+    factEt: "Linnuse juures seisab hiiglaslik pronksist tarvas. See on Eesti suurim loomakuju — kuus meetrit pikk.",
     words: [
       { et: "härg", sv: "oxe", em: "🐂", hint: "härg" },
       { et: "loss", sv: "slott", em: "🏰", hint: "loss" },
@@ -187,6 +202,7 @@ export const TRIP = [
     y: 54.8,
     em: "⛏️",
     fact: "I nordost bryts oljeskiffer ur marken. Gruvmuseet låter dig åka ner i en riktig gruvgång.",
+    factEt: "Kirde-Eestis kaevandatakse maa seest põlevkivi. Kaevandusmuuseumis saad sõita alla päris kaevanduskäiku.",
     words: [
       { et: "kaevandus", sv: "gruva", em: "⛏️", hint: "KAE-van-dus" },
       { et: "kivi", sv: "sten", em: "🪨", hint: "KI-vi" },
@@ -201,6 +217,8 @@ export const TRIP = [
     y: 105.7,
     em: "🐟",
     fact: "Europas fjärde största sjö. Längs stranden ligger byar där man odlar lök i långa randiga rader.",
+    factEt:
+      "Euroopa suuruselt neljas järv. Kalda ääres on külad, kus kasvatatakse sibulat pikkades triibulistes ridades.",
     words: [
       { et: "järv", sv: "sjö", em: "🏞️", hint: "järv" },
       { et: "sibul", sv: "lök", em: "🧅", hint: "SI-bul" },
@@ -215,6 +233,7 @@ export const TRIP = [
     y: 167.8,
     em: "⛰️",
     fact: "Här finns Suur Munamägi, Baltikums högsta punkt — 318 meter. Uppe i tornet ser man tre länder.",
+    factEt: "Siin on Suur Munamägi, Baltimaade kõrgeim koht — 318 meetrit. Tornist näeb kolme riiki.",
     words: [
       { et: "mägi", sv: "berg", em: "⛰️", hint: "MÄ-gi" },
       { et: "kõrge", sv: "hög", em: "🔝", hint: "KÕR-ge" },
@@ -229,6 +248,7 @@ export const TRIP = [
     y: 179.1,
     em: "🚧",
     fact: "Staden är delad i två av gränsen. Ena halvan heter Valga och ligger i Estland, andra heter Valka och ligger i Lettland.",
+    factEt: "Piir jagab linna kaheks. Üks pool on Valga ja asub Eestis, teine pool on Valka ja asub Lätis.",
     words: [
       { et: "linn", sv: "stad", em: "🏙️", hint: "linn" },
       { et: "rong", sv: "tåg", em: "🚂", hint: "rong" },
@@ -243,6 +263,7 @@ export const TRIP = [
     y: 95.5,
     em: "🗼",
     fact: "Mitt i Estland står ett åttkantigt torn från 1200-talet. Härifrån är det lika långt åt alla håll.",
+    factEt: "Keset Eestit seisab 1200. aastatest pärit kaheksanurkne torn. Siit on igas suunas sama kaugele.",
     words: [
       { et: "kesk", sv: "mitten", em: "🎯", hint: "kesk" },
       { et: "torn", sv: "torn", em: "🗼", hint: "torn" },
@@ -257,6 +278,8 @@ export const TRIP = [
     y: 91.3,
     em: "🚨",
     fact: "På ön står Kõpu, en av världens äldsta fyrar som fortfarande lyser. Den har brunnit i femhundra år.",
+    factEt:
+      "Saarel seisab Kõpu tuletorn, üks maailma vanimaid tuletorne, mis ikka veel põleb. Ta on valgust andnud viissada aastat.",
     words: [
       { et: "saar", sv: "ö", em: "🏝️", hint: "saar" },
       { et: "tuletorn", sv: "fyr", em: "🚨", hint: "TU-le-torn" },
@@ -271,6 +294,7 @@ export const TRIP = [
     y: 118.5,
     em: "🧶",
     fact: "På Muhu broderar man de färggladaste folkdräkterna i hela Estland — orange, rosa och gult om vartannat.",
+    factEt: "Muhus tikitakse kogu Eesti kõige värvikamaid rahvariideid — oranži, roosat ja kollast läbisegi.",
     words: [
       { et: "tikand", sv: "broderi", em: "🧵", hint: "TI-kand" },
       { et: "lill", sv: "blomma", em: "🌸", hint: "lill" },
@@ -285,6 +309,8 @@ export const TRIP = [
     y: 173,
     em: "⛵",
     fact: "I Salme hittades två vikingaskepp i sanden, äldre än allt man känt till i Skandinavien. Ombord låg fyrtio krigare från Sverige.",
+    factEt:
+      "Salmest leiti liiva seest kaks viikingilaeva, vanemad kui kõik, mida Skandinaaviast teati. Laevadel olid neljakümne Rootsist tulnud sõdalase säilmed.",
     words: [
       { et: "viiking", sv: "viking", em: "🛡️", hint: "VII-king" },
       { et: "paat", sv: "roddbåt", em: "🚣", hint: "paat" },
@@ -433,6 +459,44 @@ export const STORY = {
     "I sanden vid Salme, där vikingaskeppen låg, ligger den sista raden begravd i tusen år. Siiri gräver fram den — och nu kan hon hela sången.",
 };
 
+/** Berättelsen på estniska, för estniskt läge (barnet talar estniska och lär sig svenska). */
+export const STORY_ET: Record<string, string> = {
+  tallinn:
+    "Siiri sai kirja. Kaheteistkümne nädala pärast on **laulupidu**, suur pidu Tallinna lauluväljakul, kus sada tuhat inimest laulavad koos. Aga Siiri oskab laulust ainult esimest rida. Ülejäänud read peab ta kokku korjama — ühe rea igast paigast.",
+  lahemaa: "Rabas laulavad sookured rida, mida keegi pole kirja pannud. Siiri õpib selle neilt.",
+  narva: "Jõe ääres linnuse juures laulab vana mees teisel pool vett üht rida. Siiri hüüab selle tagasi.",
+  tartu:
+    "Ülikooli raamatukogu asub Toomemäel, künkal, kus muistendite järgi kunagi valvati vana linnust hiiglase **Kalevipoja** lugudes. Tolmusest raamatust leiab Siiri unustatud värsi. Siiri loeb selle valjusti ette.",
+  polva:
+    "Taevaskoja kõrgete liivakivipankade juures sosistatakse, et hiiglane — võib-olla Kalevipoeg ise — lõhkus kord ühe jalahoobiga kalju pooleks. Põlva kirikukell lööb viisi, mis kajab sinnani. Siiri kirjutab noodid pulgaga põllumulda.",
+  setomaa:
+    "Seto naised laulavad leelot: üks alustab ja kõik teised vastavad. Nad õpetavad Siirile rea, mis on vanem kui ükski maja külas.",
+  otepaa:
+    "Ürgvanal linnusemäel, kus **Kalevipoeg** ise olevat valvanud Eesti piire, kajab talveõhus metsast tagasi üks rida. Siiri võtab kaja kaasa.",
+  viljandi:
+    "Pärimusmuusika festivalil lossivaremete juures mängib keegi kandlel täpselt õiget viisi. Siiri õpib rea ühe õhtuga selgeks.",
+  parnu: "Pärnu ranna lained laulavad sama rida ikka ja jälle. Siiri istub liivas, kuni ta selle selgeks saab.",
+  haapsalu: "Lossi aknas laulab Valge daam nii ilusat rida, et Siiri unustab karta.",
+  kuressaare:
+    "All rannas olevat hiiglane **Suur Tõll** kunagi visanud suuri kive üle mere tulnud vaenlaste pihta, et oma saart kaitsta. Üleval piiskopilinnuse juures kriuksuvad tuuleveskite tiivad taktis. Siiri kuuleb nende vahel tuules üht rida.",
+  rakvere:
+    "Rakvere linnuse juures ammub pronkstarvas rida nii sügavalt, et maa väriseb. Siiri tunneb seda läbi jalgade ja õpib selle pähe.",
+  johvi:
+    "Sügaval Jõhvi kaevanduskäigus kajab kiviseinte vahel üks rida. Siiri kuulab, kuni kajast saavad sõnad, mida ta saab üles kaasa võtta.",
+  peipsi:
+    "Muistendi järgi kaevas hiiglane **Kalevipoeg** ise Peipsi järve. Suurel veel kõigub kalapaat tuule toodud rea taktis. Siiri sõuab välja ja püüab selle kahvaga kinni.",
+  voru: "Suure Munamäe tornis näeb Siiri korraga kolme riiki — ja üht rida, mis hõljub nende vahel ja ootab, et keegi selle alla võtaks.",
+  valga:
+    "Keset Valga ja Valka piiri kohtuvad eesti ja läti hääl ning laulavad kumbki poole samast reast. Siiri paneb need kokku üheks.",
+  paide:
+    "Keset Eestit seisvast kaheksanurksest tornist kostab üks rida igas suunas ühtviisi tugevalt. Siiri ronib üles ja toob selle sealt, kus see kõige valjemini kajab.",
+  hiiumaa:
+    "Kõpu tuletorn on viissada aastat vilgutanud sama rida, korra pimedalt ja korra heledalt. Siiri loeb vilkumisi, kuni oskab neid laulda.",
+  muhu: "Muhus tikivad vanaemad ühe rea otse riide mustrisse, oranžis, roosas ja kollases. Siiri libistab sõrme mööda niite ja tunneb sõnu.",
+  salme:
+    "Salme liivas, kus lebasid viikingilaevad, on viimane rida tuhat aastat maetud olnud. Siiri kaevab selle välja — ja nüüd oskab ta kogu laulu.",
+};
+
 export const STATIONS = {
   tallinn: {
     em: "⚓",
@@ -440,6 +504,8 @@ export const STATIONS = {
     sv: "Hamnen",
     verb: "Lasta båten",
     eng: "harbor",
+    verbEt: "Lae paat",
+    introEt: "Siiri ütleb, mis läheb pardale. Vajuta kail õigetele asjadele.",
     intro: "Siiri säger vad som ska ombord. Tryck på rätt saker på kajen.",
   },
   lahemaa: {
@@ -449,6 +515,8 @@ export const STATIONS = {
     verb: "Hitta paren",
     eng: "pairs",
     pool: "loomad",
+    verbEt: "Leia paarid",
+    introEt: "Loomad peidavad end metsas. Pane pilt ja sõna paari.",
     intro: "Djuren gömmer sig i skogen. Para ihop bilden med ordet.",
   },
   rakvere: {
@@ -458,6 +526,8 @@ export const STATIONS = {
     verb: "Räkna djuren",
     eng: "count",
     pool: "loomad",
+    verbEt: "Loe loomad",
+    introEt: "Mitu sa näed? Kuula ja vali õige arv.",
     intro: "Hur många ser du? Lyssna och välj rätt tal.",
   },
   johvi: {
@@ -466,6 +536,8 @@ export const STATIONS = {
     sv: "Gruvan",
     verb: "Sortera stenarna",
     eng: "sort",
+    verbEt: "Sorteeri kivid",
+    introEt: "Kivid peavad minema õigesse kasti. Siiri ütleb, mis värvi.",
     intro: "Stenarna ska i rätt låda. Siiri säger vilken färg.",
   },
   narva: {
@@ -475,6 +547,8 @@ export const STATIONS = {
     verb: "Fånga i strömmen",
     eng: "catch",
     pool: "toit",
+    verbEt: "Püüa voolust",
+    introEt: "Asjad ujuvad jões mööda. Püüa kinni see, mida Siiri ütleb.",
     intro: "Saker flyter förbi i floden. Fånga det Siiri säger.",
   },
   peipsi: {
@@ -484,6 +558,8 @@ export const STATIONS = {
     verb: "Räkna lökarna",
     eng: "count",
     pool: "puuviljad",
+    verbEt: "Loe sibulad",
+    introEt: "Kuula arvu ja vali õige hulk.",
     intro: "Lyssna på talet och välj rätt antal.",
   },
   tartu: {
@@ -492,6 +568,8 @@ export const STATIONS = {
     sv: "Biblioteket",
     verb: "Sortera böckerna",
     eng: "library",
+    verbEt: "Sorteeri raamatud",
+    introEt: "Iga raamat peab minema õigele riiulile. Siiri ütleb, mis värvi riiul on.",
     intro: "Varje bok ska i rätt hylla. Siiri säger vilken färg hyllan har.",
   },
   polva: {
@@ -501,6 +579,8 @@ export const STATIONS = {
     verb: "Plocka i korgen",
     eng: "collect",
     pool: "loodus",
+    verbEt: "Korja korvi",
+    introEt: "Siiri ütleb, mis läheb korvi. Vajuta õigetele asjadele.",
     intro: "Siiri säger vad som ska i korgen. Tryck på rätt saker.",
   },
   voru: {
@@ -510,6 +590,8 @@ export const STATIONS = {
     verb: "Hitta paren",
     eng: "pairs",
     pool: "loodus",
+    verbEt: "Leia paarid",
+    introEt: "Teel üles pane pilt õige sõnaga paari.",
     intro: "Para ihop bilden med rätt ord på vägen upp.",
   },
   setomaa: {
@@ -519,6 +601,8 @@ export const STATIONS = {
     verb: "Upprepa ordningen",
     eng: "seq",
     pool: "tere",
+    verbEt: "Korda järjekorda",
+    introEt: "Siiri laulab sõnad ühes järjekorras. Korda seda.",
     intro: "Siiri sjunger orden i en ordning. Upprepa den.",
   },
   valga: {
@@ -528,6 +612,8 @@ export const STATIONS = {
     verb: "Lasta tåget",
     eng: "collect",
     pool: "soidukid",
+    verbEt: "Lae rong",
+    introEt: "Rong tuleb laadida. Siiri ütleb, mis peab kaasa minema.",
     intro: "Tåget ska lastas. Siiri säger vad som ska med.",
   },
   otepaa: {
@@ -537,6 +623,8 @@ export const STATIONS = {
     verb: "Upprepa ordningen",
     eng: "seq",
     pool: "riided",
+    verbEt: "Korda järjekorda",
+    introEt: "Pane riided õiges järjekorras selga, enne kui sõitma lähed.",
     intro: "Klä på dig i rätt ordning innan du åker.",
   },
   viljandi: {
@@ -546,6 +634,8 @@ export const STATIONS = {
     verb: "Spela efter",
     eng: "seq",
     pool: "mang",
+    verbEt: "Mängi järele",
+    introEt: "Siiri mängib viisijupi. Vajuta samas järjekorras.",
     intro: "Siiri spelar en slinga. Tryck på samma ordning.",
   },
   paide: {
@@ -555,6 +645,8 @@ export const STATIONS = {
     verb: "Räkna slagen",
     eng: "count",
     pool: "aeg",
+    verbEt: "Loe lööke",
+    introEt: "Kuula, mitu korda kell lööb, ja vali õige arv.",
     intro: "Hör hur många slag klockan gör och välj rätt tal.",
   },
   parnu: {
@@ -563,6 +655,8 @@ export const STATIONS = {
     sv: "Stranden",
     verb: "Fånga orden",
     eng: "beach",
+    verbEt: "Püüa sõnad",
+    introEt: "Sõnad ujuvad lainetega randa. Püüa kinni see, mida Siiri ütleb.",
     intro: "Orden flyter i land på vågorna. Fånga det Siiri säger.",
   },
   haapsalu: {
@@ -572,6 +666,8 @@ export const STATIONS = {
     verb: "Hitta paren",
     eng: "pairs",
     pool: "keha",
+    verbEt: "Leia paarid",
+    introEt: "Pane kuurordi pargis pilt ja sõna paari.",
     intro: "Para ihop bilden med ordet i kurortens park.",
   },
   hiiumaa: {
@@ -581,6 +677,8 @@ export const STATIONS = {
     verb: "Fånga i vågorna",
     eng: "catch",
     pool: "loodus",
+    verbEt: "Püüa lainetest",
+    introEt: "Lained toovad asju kaasa. Püüa kinni õige asi.",
     intro: "Vågorna bär med sig saker. Fånga rätt sak.",
   },
   muhu: {
@@ -589,6 +687,8 @@ export const STATIONS = {
     sv: "Broderiet",
     verb: "Sortera trådarna",
     eng: "sort",
+    verbEt: "Sorteeri niidid",
+    introEt: "Niidid peavad minema õigesse karpi. Siiri ütleb värvi.",
     intro: "Trådarna ska i rätt ask. Siiri säger färgen.",
   },
   kuressaare: {
@@ -598,6 +698,8 @@ export const STATIONS = {
     verb: "Servera gästen",
     eng: "collect",
     pool: "toit",
+    verbEt: "Teeninda külalist",
+    introEt: "Külaline tellib rootsi keeles. Pane õiged asjad kandikule.",
     intro: "Gästen beställer på estniska. Lägg rätt saker på brickan.",
   },
   salme: {
@@ -606,6 +708,8 @@ export const STATIONS = {
     sv: "Sångfesten",
     verb: "Sjung hela sången",
     eng: "finale",
+    verbEt: "Laula kogu laul",
+    introEt: "Kõik read on koos. Pane need õigesse järjekorda ja laula!",
     intro: "Alla raderna är samlade. Lägg dem i rätt ordning och sjung!",
   },
 };

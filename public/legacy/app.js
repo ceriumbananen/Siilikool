@@ -18,16 +18,16 @@
   /* varje ort har tre uppdrag och en souvenir */
   var TRIPTASKS = window.SiiriData.TRIPTASKS;
   var TASKTEXT = {
-    words: { em: "🎧", sv: "Lär dig ortens tre ord" },
-    theme: { em: "🏁", sv: "Klara ett tema" },
-    mix: { em: "🎲", sv: "Klara en runda blandade ord" },
-    type: { em: "✏️", sv: "Skriv ord rätt" },
-    sent: { em: "🧩", sv: "Bygg meningar rätt" },
-    talk: { em: "💬", sv: "Prata klart ett samtal med Siiri" },
-    hear: { em: "👂", sv: "Svara rätt på lyssningsfrågor" },
-    otsi: { em: "🔍", sv: "Hitta saker i Otsi!" },
-    mem: { em: "🃏", sv: "Klara en runda memory" },
-    duel: { em: "⚔️", sv: "Vinn en duell" },
+    words: { em: "🎧", sv: "Lär dig ortens tre ord", et: "Õpi selle paiga kolm sõna" },
+    theme: { em: "🏁", sv: "Klara ett tema", et: "Tee üks teema läbi" },
+    mix: { em: "🎲", sv: "Klara en runda blandade ord", et: "Tee üks segasõnade voor" },
+    type: { em: "✏️", sv: "Skriv ord rätt", et: "Kirjuta sõnu õigesti" },
+    sent: { em: "🧩", sv: "Bygg meningar rätt", et: "Ehita lauseid õigesti" },
+    talk: { em: "💬", sv: "Prata klart ett samtal med Siiri", et: "Räägi Siiriga üks vestlus lõpuni" },
+    hear: { em: "👂", sv: "Svara rätt på lyssningsfrågor", et: "Vasta kuulamisküsimustele õigesti" },
+    otsi: { em: "🔍", sv: "Hitta saker i Otsi!", et: "Leia asju mängus Otsi!" },
+    mem: { em: "🃏", sv: "Klara en runda memory", et: "Tee üks memoriinivoor" },
+    duel: { em: "⚔️", sv: "Vinn en duell", et: "Võida üks duell" },
   };
   var SOUVENIR = window.SiiriData.SOUVENIR; /* app/utils/trip.ts */
   var EPILOGUE = window.SiiriData.EPILOGUE; /* app/utils/trip.ts */
@@ -41,6 +41,10 @@
     return S.tripDone;
   }
   var STORY = window.SiiriData.STORY;
+  var STORY_ET = window.SiiriData.STORY_ET;
+  /* resans berättelse och ortfakta på barnets eget språk */
+  function storyOf(id) { return (isEt() ? STORY_ET[id] : STORY[id]) || ""; }
+  function factOf(t) { return isEt() && t.factEt ? t.factEt : t.fact; }
   var LORE = window.SiiriData.LORE;
   function tripReached() {
     return Math.max(1, Math.min(TRIP.length, tripDone() + 1));
@@ -6196,8 +6200,11 @@
       ST.order.length +
       " / " +
       SONG.length +
-      " rader</span></div>" +
-      '<div class="card"><p class="q">Pane laul järjekorda</p>' +
+      LT(" rader", " rida") +
+      "</span></div>" +
+      '<div class="card"><p class="q">' +
+      TL("Pane laul järjekorda", "Lägg sången i ordning") +
+      "</p>" +
       '<p class="qsub">' +
       LT(
         "Du har samlat alla rader på resan. Lägg dem i rätt ordning — ",
@@ -6217,9 +6224,9 @@
         (i + 1) +
         "</span>" +
         '<span class="ln">' +
-        (placed !== undefined ? esc(SONG[placed].et) : "—") +
+        (placed !== undefined ? esc(tgt(SONG[placed])) : "—") +
         "</span>" +
-        (placed !== undefined ? "<small>" + esc(SONG[placed].sv) + "</small>" : "") +
+        (placed !== undefined ? "<small>" + esc(nat(SONG[placed])) + "</small>" : "") +
         "</div>";
     }
     html += '</div><div class="songpool">';
@@ -6229,9 +6236,9 @@
         ST.pool[i].i +
         '">' +
         "<b>" +
-        esc(ST.pool[i].l.et) +
+        esc(tgt(ST.pool[i].l)) +
         "</b><small>" +
-        esc(ST.pool[i].l.sv) +
+        esc(nat(ST.pool[i].l)) +
         "</small>" +
         '<span class="sp">🔊</span></button>';
     }
@@ -6248,7 +6255,7 @@
           if (ST.lock) return;
           var idx = parseInt(el.getAttribute("data-line"), 10),
             tip = document.getElementById("sttip");
-          speak(SONG[idx].et);
+          speak(tgt(SONG[idx]));
           if (idx === ST.order.length) {
             ST.order.push(idx);
             ST.pool = ST.pool.filter(function (p) {
@@ -6294,8 +6301,12 @@
     setNav("home");
     btnBack.hidden = false;
     var html =
-      '<div class="zone"><span>🎶 <b>Laulupidu</b> · Salme</span><span>sjung!</span></div>' +
-      '<div class="card" style="text-align:center"><p class="kicker">🎤 Laulame!</p>' +
+      '<div class="zone"><span>🎶 <b>Laulupidu</b> · Salme</span><span>' +
+      LT("sjung!", "laula!") +
+      "</span></div>" +
+      '<div class="card" style="text-align:center"><p class="kicker">🎤 ' +
+      TL("Laulame!", "Vi sjunger!") +
+      "</p>" +
       '<div class="singstage">' +
       siilSVG() +
       "</div>" +
@@ -6306,10 +6317,10 @@
         '<div class="songslot filled" data-ln="' +
         i +
         '"><span class="ln">' +
-        esc(SONG[i].et) +
+        esc(tgt(SONG[i])) +
         "</span>" +
         "<small>" +
-        esc(SONG[i].sv) +
+        esc(nat(SONG[i])) +
         "</small></div>";
     html +=
       '</div><button class="btn big green wide" id="singgo">' +
@@ -6329,7 +6340,7 @@
           return;
         }
         if (box.children[i2]) box.children[i2].classList.add("now");
-        speak(SONG[i2].et);
+        speak(tgt(SONG[i2]));
         burst(24);
         dance(i2 % 2 === 0);
         i2++;
@@ -8000,8 +8011,8 @@
         (done ? "✅" : tt.em) +
         "</span>" +
         '<span class="ttx"><b>' +
-        esc(tt.sv) +
-        (goal > 1 && kind !== "words" ? " (" + goal + " st)" : "") +
+        esc(isEt() ? tt.et : tt.sv) +
+        (goal > 1 && kind !== "words" ? " (" + goal + LT(" st)", " tk)") : "") +
         "</b>" +
         '<span class="qbar" style="background:var(--line)"><i style="width:' +
         Math.round((val / goal) * 100) +
@@ -8010,7 +8021,7 @@
         '"></i></span>' +
         "<small>" +
         val +
-        " av " +
+        LT(" av ", " / ") +
         goal +
         (tg.tip ? " · " + esc(tg.tip) : "") +
         "</small></span>" +
@@ -8021,7 +8032,7 @@
             '" data-city="' +
             esc(cityId) +
             '">' +
-            (tg.lbl || "Mängi") +
+            TL(tg.lbl || "Mängi", "Spela") +
             " ▸</button>") +
         "</div>";
     }
@@ -8054,9 +8065,9 @@
       '" style="float:right" aria-label="' +
       LT("Hör ortens namn", "Kuula koha nime") +
       '">🔊</button></p>' +
-      (STORY[t.id] ? '<p class="storyline">' + STORY[t.id].replace(/\*\*(.+?)\*\*/g, "<b>$1</b>") + "</p>" : "") +
+      (storyOf(t.id) ? '<p class="storyline">' + storyOf(t.id).replace(/\*\*(.+?)\*\*/g, "<b>$1</b>") + "</p>" : "") +
       '<p class="qsub" style="text-align:left">' +
-      esc(t.fact) +
+      esc(factOf(t)) +
       "</p>";
     if (isHere) {
       var tl = tasksLeft();
@@ -8064,7 +8075,7 @@
         '<p class="qsub" style="text-align:left;margin-top:8px"><b>' +
         (tl
           ? LT("Klara alla tre, så vandrar Siiri vidare", "Tee kõik kolm ära, siis rändab Siiri edasi") +
-            (TRIP[n] ? " till " + esc(TRIP[n].et) : "") +
+            (TRIP[n] ? LT(" till ", ": ") + esc(TRIP[n].et) : "") +
             "."
           : LT("Alla uppdrag klara!", "Kõik ülesanded tehtud!")) +
         "</b></p>" +
@@ -8080,10 +8091,12 @@
           : LT("Souvenir du fick här: ", "Siit saadud suveniir: ")) +
         "<b>" +
         gift.em +
-        ' <span lang="et">' +
-        esc(gift.et) +
+        ' <span lang="' +
+        tgtLang() +
+        '">' +
+        esc(tgt(gift)) +
         "</span></b> — " +
-        esc(gift.sv) +
+        esc(nat(gift)) +
         "</p>";
     s +=
       '<button class="btn wide" data-practice="' +
@@ -8098,13 +8111,15 @@
         '">' +
         '<span class="stbtx">' +
         sta.em +
-        ' <span lang="et">' +
-        esc(sta.et) +
+        ' <span lang="' +
+        tgtLang() +
+        '">' +
+        esc(tgt(sta)) +
         "</span> · " +
-        esc(sta.verb) +
+        esc(isEt() ? sta.verbEt : sta.verb) +
         "</span>" +
         '</button><p class="qsub" style="text-align:left">' +
-        esc(sta.intro) +
+        esc(isEt() ? sta.introEt : sta.intro) +
         "</p>";
     s += '<div class="stopwords">';
     for (j = 0; j < t.words.length; j++) {
@@ -8142,10 +8157,10 @@
       i,
       html;
     html =
-      '<div class="zone map"><span class="zem">📖</span><span><b>Reseskrapbok</b>' +
+      '<div class="zone map"><span class="zem">📖</span><span><b>' + LT("Reseskrapbok", "Reisiraamat") + '</b>' +
       "<span>" +
       (n - 1) +
-      " av " +
+      LT(" av ", " / ") +
       TRIP.length +
       LT(" orter samlade", " paika kogutud") +
       "</span></span></div>" +
@@ -8155,10 +8170,11 @@
         open = i < n,
         gift = open ? itemById(SOUVENIR[t.id]) : null;
       if (open) {
-        var story = STORY[t.id] || "",
+        var story = storyOf(t.id),
           loreKey = null;
         for (var lk in LORE) {
-          if (story.indexOf(LORE[lk].et) >= 0) {
+          /* den svenska texten innehåller alltid grundformen (Kalevipoeg), den estniska ibland genitiv */
+          if ((STORY[t.id] || "").indexOf(LORE[lk].et) >= 0) {
             loreKey = lk;
             break;
           }
@@ -8181,9 +8197,9 @@
           "</span></p>" +
           (story ? '<p class="storyline">' + story.replace(/\*\*(.+?)\*\*/g, "<b>$1</b>") + "</p>" : "") +
           '<p class="qsub" style="text-align:left">' +
-          esc(t.fact) +
+          esc(factOf(t)) +
           "</p>" +
-          (gift ? '<p class="qsub" style="text-align:left"><b>🎁 ' + gift.em + " " + esc(gift.sv) + "</b></p>" : "") +
+          (gift ? '<p class="qsub" style="text-align:left"><b>🎁 ' + gift.em + " " + esc(nat(gift)) + "</b></p>" : "") +
           "</div>";
       } else {
         html +=
@@ -8215,7 +8231,7 @@
     /* målet först: barnet ska veta vad resan går ut på innan det ser kartan */
     html +=
       '<div class="card goalcard"><p class="q" style="text-align:left;margin-bottom:2px">' +
-      LT("🎶 Laulupidu · Sångfesten", "🎶 Laulupidu · Laulupidu") +
+      LT("🎶 Laulupidu · Sångfesten", "🎶 Sångfesten · Laulupidu") +
       "</p>" +
       '<p class="qsub" style="text-align:left">' +
       LT("Hjälp Siiri att resa genom Estlands ", "Aita Siiril reisida läbi Eesti ") +
@@ -8233,7 +8249,7 @@
       songPct +
       '%;background:var(--berry)"></i></span>' +
       (n > 1
-        ? '<button class="btn ghost wide" id="scrapbookbtn" style="margin-top:10px">📖 Reseskrapbok</button>'
+        ? '<button class="btn ghost wide" id="scrapbookbtn" style="margin-top:10px">📖 ' + LT("Reseskrapbok", "Reisiraamat") + '</button>'
         : "") +
       "</div>";
     html +=
@@ -8253,7 +8269,8 @@
       '<span class="qbar" style="background:var(--line)"><i style="width:' +
       Math.round((kmWalked() / kmTotal()) * 100) +
       '%;background:var(--bark)"></i></span>' +
-      '<span style="color:var(--muted)">av ' +
+      '<span style="color:var(--muted)">' +
+      LT("av ", "/ ") +
       kmTotal().toLocaleString("sv-SE") +
       "</span></div>" +
       (n < TRIP.length
