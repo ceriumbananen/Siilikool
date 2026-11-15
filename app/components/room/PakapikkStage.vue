@@ -4,6 +4,11 @@
    vid rätt. Logiken i app/composables/usePakapikk.ts. */
 const pak = usePakapikk();
 
+/* bildernas proportioner (public/images/room/pak-letter.webp, pak-stocking.webp) */
+const LETTER_W = 520,
+  LETTER_H = 386,
+  STOCKING_W = 360,
+  STOCKING_H = 779;
 /* dagens brev: var nissen lagt det (pakDrop) */
 const drop = computed(() => (pak.waiting.value ? pakDrop(pak.waiting.value) : null));
 /** x/y/bredd/höjd för en sak som står på (x, y) i rummet, w bred, med en bild i proportionerna vw:vh. */
@@ -54,9 +59,7 @@ function tap(id: PakTargetId, e: MouseEvent, rect: [number, number, number, numb
       @click.stop="pak.openWaiting()"
       @keydown.enter.prevent="pak.openWaiting()"
     >
-      <svg v-bind="box(drop, 40, 28)" viewBox="0 0 40 28" overflow="visible">
-        <use href="#pak-envelope" />
-      </svg>
+      <image v-bind="box(drop, LETTER_W, LETTER_H)" href="/images/room/pak-letter.webp" />
     </g>
     <g
       class="pak-item"
@@ -66,22 +69,7 @@ function tap(id: PakTargetId, e: MouseEvent, rect: [number, number, number, numb
       @click.stop="onSlipper"
       @keydown.enter.prevent="onSlipper"
     >
-      <svg v-bind="box(PAK_STOCKING, 40, 56)" viewBox="0 0 40 56" overflow="visible">
-        <path d="M10 6 Q9 -1 15 1" fill="none" stroke="#7a1f1a" stroke-width="1.2" />
-        <path
-          d="M8 12 L28 12 L28 35 Q28 39 31 41 L35 44 Q41 48 37 53 Q33 57 26 53 L14 46 Q8 42 8 36 Z"
-          fill="#b8322a"
-          stroke="#7a1f1a"
-          stroke-width="1.2"
-        />
-        <path d="M31 41 L35 44 Q41 48 37 53 Q33 57 26 53 Z" fill="#f3eadb" stroke="#7a1f1a" stroke-width="1" />
-        <path d="M8 25 L12 21 L16 25 L20 21 L24 25 L28 21" fill="none" stroke="#e8c34a" stroke-width="1.6" />
-        <path d="M8 30 L28 30" stroke="#3f6b3a" stroke-width="1.6" />
-        <rect x="6" y="4" width="24" height="10" rx="3" fill="#fbf7ef" stroke="#d9cfbf" />
-        <circle cx="12" cy="9" r="1.2" fill="#c8352e" />
-        <circle cx="18" cy="9" r="1.2" fill="#3f6b3a" />
-        <circle cx="24" cy="9" r="1.2" fill="#c8352e" />
-      </svg>
+      <image v-bind="box(PAK_STOCKING, STOCKING_W, STOCKING_H)" href="/images/room/pak-stocking.webp" />
     </g>
     <!-- brevet någon annanstans i rummet -->
     <g
@@ -93,27 +81,15 @@ function tap(id: PakTargetId, e: MouseEvent, rect: [number, number, number, numb
       @click.stop="pak.openWaiting()"
       @keydown.enter.prevent="pak.openWaiting()"
     >
-      <svg v-bind="box(drop, 40, 28)" viewBox="0 0 40 28" overflow="visible">
-        <use href="#pak-envelope" />
-      </svg>
+      <image v-bind="box(drop, LETTER_W, LETTER_H)" href="/images/room/pak-letter.webp" />
     </g>
     <!-- fler brev väntar: en liten siffra vid brevet -->
     <g v-if="drop && pak.waitingCount.value > 1" class="pak-count" aria-hidden="true">
-      <circle :cx="drop.x - drop.w / 2" :cy="drop.y - (drop.w * 28) / 40" r="6" />
-      <text :x="drop.x - drop.w / 2" :y="drop.y - (drop.w * 28) / 40 + 2.6" text-anchor="middle">
+      <circle :cx="drop.x - drop.w / 2" :cy="drop.y - (drop.w * LETTER_H) / LETTER_W" r="6" />
+      <text :x="drop.x - drop.w / 2" :y="drop.y - (drop.w * LETTER_H) / LETTER_W + 2.6" text-anchor="middle">
         {{ pak.waitingCount.value }}
       </text>
     </g>
-    <defs>
-      <g id="pak-envelope">
-        <rect x="1" y="3" width="38" height="24" rx="2" fill="#fffaf0" stroke="#a8977c" stroke-width="1.2" />
-        <path d="M1.5 4 L20 17 L38.5 4" fill="none" stroke="#a8977c" stroke-width="1.2" />
-        <path d="M1.5 26.5 L15 14 M38.5 26.5 L25 14" fill="none" stroke="#d8cbb5" stroke-width="1" />
-        <circle cx="20" cy="16.5" r="4.2" fill="#c8352e" stroke="#8e211c" stroke-width="0.8" />
-        <path d="M20 13.8 L20 19.2 M17.4 16.5 L22.6 16.5" stroke="#f3b3a8" stroke-width="0.9" />
-        <path d="M27 3.5 Q31 -1 35 2 M29 1.5 L30 4 M32.5 0.5 L33 3.4" fill="none" stroke="#3f6b3a" stroke-width="1.3" />
-      </g>
-    </defs>
   </svg>
 
   <div v-if="soonSaid" :key="soonSaid" class="pak-miss pak-miss--soon">

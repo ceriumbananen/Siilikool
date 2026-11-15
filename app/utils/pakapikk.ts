@@ -198,9 +198,9 @@ export function pakPhrases(): string[] {
    Koordinaterna är rummets egna (viewBox 0 0 400 270 i room-svg.ts): x = mitten, y = där
    saken står (underkanten), w = bredd. Bara sådant som alltid finns i rummet. */
 export type PakDrop = { id: string; x: number; y: number; w: number };
-export const PAK_STOCKING: PakDrop = { id: "sokk", x: 44, y: 150, w: 25 };
+export const PAK_STOCKING: PakDrop = { id: "sokk", x: 44, y: 162, w: 22 };
 const DROPS: PakDrop[] = [
-  { id: "sokk", x: 46, y: 124, w: 22 } /* i julstrumpan */,
+  { id: "sokk", x: 46, y: 128, w: 20 } /* i julstrumpan */,
   { id: "riiul", x: 356, y: 98.5, w: 26 } /* på översta hyllan */,
   { id: "vaip", x: 88, y: 244, w: 28 } /* på mattans vänstra kant */,
   { id: "aken2", x: 197, y: 117, w: 26 } /* på andra fönsterbrädan */,
