@@ -3565,10 +3565,14 @@
           (schoolHasAudio(w.et)
             ? '<button class="speakbtn sm" data-say="' +
               esc(w.et) +
-              '" aria-label="Hör ordet">🔊</button>' +
+              '" aria-label="' +
+              LT("Hör ordet", "Kuula sõna") +
+              '">🔊</button>' +
               '<button class="speakbtn sm" data-slow="' +
               esc(w.et) +
-              '" aria-label="Hör ordet långsamt">🐢</button>'
+              '" aria-label="' +
+              LT("Hör ordet långsamt", "Kuula sõna aeglaselt") +
+              '">🐢</button>'
             : ok
               ? ""
               : "—") +
@@ -5645,7 +5649,11 @@
         gift.sub +
         "</p>" +
         (gift.note ? '<p class="qsub">' + gift.note + "</p>" : "") +
-        (gift.word ? '<button class="btn ghost" id="bagsay" style="margin-top:8px">🔊 Hör ordet igen</button>' : "") +
+        (gift.word
+          ? '<button class="btn ghost" id="bagsay" style="margin-top:8px">🔊 ' +
+            LT("Hör ordet igen", "Kuula sõna uuesti") +
+            "</button>"
+          : "") +
         '<button class="btn big wide" id="bagok" style="margin-top:8px">Aitäh, Siiri!</button>' +
         '<p class="qsub" style="margin-top:8px">En ny påse väntar imorgon.</p></div>',
     );
@@ -5742,10 +5750,14 @@
     html +=
       '</div><div class="card">' +
       (listen
-        ? '<p class="q">Lyssna — vad betyder ordet?</p><div class="center"><button class="speakbtn big" id="tpsay" aria-label="Hör ordet">🔊</button></div>'
+        ? '<p class="q">Lyssna — vad betyder ordet?</p><div class="center"><button class="speakbtn big" id="tpsay" aria-label="' +
+          LT("Hör ordet", "Kuula sõna") +
+          '">🔊</button></div>'
         : '<p class="q">Vad betyder</p>' +
           promptHtml(w, w.et, "et") +
-          '<div class="center"><button class="speakbtn sm" id="tpsay" aria-label="Hör ordet">🔊</button></div>') +
+          '<div class="center"><button class="speakbtn sm" id="tpsay" aria-label="' +
+          LT("Hör ordet", "Kuula sõna") +
+          '">🔊</button></div>') +
       '<div class="opts">';
     for (j = 0; j < opts.length; j++)
       html += '<button class="opt" data-sv="' + esc(opts[j].sv) + '">' + esc(opts[j].sv) + "</button>";
@@ -7820,7 +7832,9 @@
         "</span></span>" +
         '<button class="speakbtn sm" data-say="' +
         esc(wd.et) +
-        '" data-refresh="1" aria-label="Hör ordet">🔊</button>' +
+        '" data-refresh="1" aria-label="' +
+        LT("Hör ordet", "Kuula sõna") +
+        '">🔊</button>' +
         '<button class="speakbtn sm" data-slow="' +
         esc(wd.et) +
         '" aria-label="Långsamt">🐢</button></div>';
@@ -8292,7 +8306,9 @@
       "</span></span>" +
       '<button class="speakbtn sm" data-say="' +
       esc(st.word.et) +
-      '" aria-label="Hör ordet">🔊</button>' +
+      '" aria-label="' +
+      LT("Hör ordet", "Kuula sõna") +
+      '">🔊</button>' +
       '<button class="speakbtn sm" data-slow="' +
       esc(st.word.et) +
       '" aria-label="Långsamt">🐢</button></div></div>' +
@@ -8608,11 +8624,15 @@
       '<div class="card">' +
       (listen
         ? '<p class="q">Lyssna — vad betyder ordet?</p>' +
-          '<div class="center"><button class="speakbtn big" id="say" aria-label="Hör ordet">🔊</button></div>'
+          '<div class="center"><button class="speakbtn big" id="say" aria-label="' +
+          LT("Hör ordet", "Kuula sõna") +
+          '">🔊</button></div>'
         : '<p class="q">Vad betyder</p><div class="bigword">' +
           esc(w.et) +
           "</div>" +
-          '<div class="center"><button class="speakbtn sm" id="say" aria-label="Hör ordet">🔊</button></div>') +
+          '<div class="center"><button class="speakbtn sm" id="say" aria-label="' +
+          LT("Hör ordet", "Kuula sõna") +
+          '">🔊</button></div>') +
       '<div class="opts">';
     for (i = 0; i < opts.length; i++)
       html += '<button class="opt" data-sv="' + esc(opts[i].sv) + '">' + esc(opts[i].sv) + "</button>";
@@ -8746,7 +8766,9 @@
         "</span></span>" +
         '<button class="speakbtn sm" data-say="' +
         esc(CH.log[i].w.et) +
-        '" aria-label="Hör ordet">🔊</button></div>';
+        '" aria-label="' +
+        LT("Hör ordet", "Kuula sõna") +
+        '">🔊</button></div>';
     }
     html +=
       '</div><div class="row"><button class="btn green big" id="again">Utmana igen 🤝</button>' +
@@ -9595,7 +9617,9 @@
         : "") +
       (listen
         ? '<p class="q">Lyssna och välj</p>' +
-          '<div class="center"><button class="speakbtn big" id="hear" aria-label="Hör ordet">🔊</button></div>' +
+          '<div class="center"><button class="speakbtn big" id="hear" aria-label="' +
+          LT("Hör ordet", "Kuula sõna") +
+          '">🔊</button></div>' +
           '<p class="qsub">Tryck igen om du vill höra en gång till</p>'
         : '<p class="q">Vad heter</p>' + promptHtml(w, w.sv)) +
       '<div class="opts" id="opts">';
@@ -9845,13 +9869,24 @@
        bara se den förvälja sig tillbaka till Lagom. */
     if (S.memLv !== 0 && !S.memLv) S.memLv = 1;
     var sizes = [4, 6, 8],
-      names = ["Lätt · 4 par", "Lagom · 6 par", "Svår · 8 par"],
+      names = [
+        LT("Lätt · 4 par", "Kerge · 4 paari"),
+        LT("Lagom · 6 par", "Keskmine · 6 paari"),
+        LT("Svår · 8 par", "Raske · 8 paari"),
+      ],
       i;
     var html =
       '<div class="zone play"><span class="zem">🃏</span><span><b>Mälumäng</b>' +
-      "<span>Memory — para ihop ordet med bilden</span></span></div>" +
+      "<span>" +
+      LT("Memory — para ihop ordet med bilden", "Paarismäng — ühenda sõna ja pilt") +
+      "</span></span></div>" +
       '<div class="card" style="text-align:center">' +
-      '<p class="qsub">Korten ligger nedvända. Vänd två i taget. Hittar du paret läser Siiri ordet – ingen klocka, ingen stress.</p>' +
+      '<p class="qsub">' +
+      LT(
+        "Korten ligger nedvända. Vänd två i taget. Hittar du paret läser Siiri ordet – ingen klocka, ingen stress.",
+        "Kaardid on tagurpidi. Pööra kaks korraga. Kui leiad paari, loeb Siiri sõna ette – ei mingit kella ega kiirustamist.",
+      ) +
+      "</p>" +
       '<div class="memlv">';
     for (i = 0; i < 3; i++) {
       var bestT = (S.memBestLv || {})[i];
@@ -9864,14 +9899,18 @@
         names[i] +
         "</b>" +
         "<small>" +
-        (bestT ? "bästa: " + bestT + " vändningar" : "inte spelat än") +
+        (bestT
+          ? LT("bästa: ", "parim: ") + bestT + LT(" vändningar", " pööret")
+          : LT("inte spelat än", "pole veel mänginud")) +
         "</small></button>";
     }
     html +=
       '</div><div class="center">' +
       siilSVG("small") +
       "</div>" +
-      '<button class="btn green big wide" id="start">Sätt igång 🃏</button></div>';
+      '<button class="btn green big wide" id="start">' +
+      LT("Sätt igång 🃏", "Alusta 🃏") +
+      "</button></div>";
     app.innerHTML = html;
     var bs = app.querySelectorAll("[data-lv]"),
       k;
@@ -9919,7 +9958,8 @@
       '<div class="zone play"><span class="zem">🃏</span><span><b>Mälumäng</b>' +
       "<span>" +
       MM.turns +
-      " vändningar · " +
+      LT(" vändningar", " pööret") +
+      " · " +
       Object.keys(MM.done).length +
       " av " +
       MM.pairs +
@@ -9931,10 +9971,12 @@
         ? '<div class="memflash"><span class="fem">' +
           MM.flash.em +
           "</span>" +
-          '<span><b lang="et">' +
-          esc(MM.flash.et) +
+          '<span><b lang="' +
+          tgtLang() +
+          '">' +
+          esc(tgt(MM.flash)) +
           "</b><small>" +
-          esc(MM.flash.sv) +
+          esc(nat(MM.flash)) +
           "</small></span></div>"
         : '<div class="memflash empty"></div>') +
       '<div class="memgrid' +
@@ -9954,14 +9996,17 @@
         '<span class="mface front">' +
         (c[i].kind === "pic"
           ? '<span class="mem-em">' + wIcon(c[i].w) + "</span>"
-          : '<span class="mem-wd">' + esc(c[i].w.et) + "</span>") +
+          : '<span class="mem-wd" lang="' + tgtLang() + '">' + esc(tgt(c[i].w)) + "</span>") +
         "</span></button>";
     }
     html +=
       '</div><p class="qsub" style="margin-top:10px">' +
       (MM.turns
-        ? "Klarar du det på " + perfect + " vändningar blir det tre stjärnor."
-        : "Varje par du minns direkt ger extra stjärnor.") +
+        ? LT(
+            "Klarar du det på " + perfect + " vändningar blir det tre stjärnor.",
+            "Kui saad hakkama " + perfect + " pöördega, saad kolm tähte.",
+          )
+        : LT("Varje par du minns direkt ger extra stjärnor.", "Iga kohe meelde jäetud paar annab lisatähti.")) +
       '</p></div><div class="center">' +
       siilSVG("small") +
       "</div>";
@@ -9986,7 +10031,7 @@
     var c = MM.cards[i];
     if (MM.done[c.id] || MM.open.indexOf(i) >= 0) return;
     MM.open.push(i);
-    speak(c.w.et);
+    speak(tgt(c.w));
     if (MM.open.length < 2) {
       MM.flash = null;
       memDraw();
@@ -10072,7 +10117,7 @@
       '<div class="bigscore">' +
       t +
       '</div><p class="q">' +
-      (st === 3 ? "Perfekt minne!" : rec ? "Nytt rekord!" : "Alla par hittade!") +
+      (st === 3 ? "Perfekt minne!" : rec ? "Nytt rekord!" : LT("Alla par hittade!", "Kõik paarid leitud!")) +
       "</p>" +
       '<p class="qsub">vändningar på ' +
       pairs +
@@ -10085,8 +10130,12 @@
       '<div class="center">' +
       siilSVG("small") +
       "</div>" +
-      '<button class="btn green big wide" id="again">En gång till 🃏</button>' +
-      '<div class="row"><button class="btn ghost" id="harder">Byt svårighet</button>' +
+      '<button class="btn green big wide" id="again">' +
+      LT("En gång till 🃏", "Veel kord 🃏") +
+      "</button>" +
+      '<div class="row"><button class="btn ghost" id="harder">' +
+      LT("Byt svårighet", "Muuda raskust") +
+      "</button>" +
       '<button class="btn ghost" id="home">Tillbaka</button></div></div>';
     MM = null;
     mood("cheer");
@@ -10103,12 +10152,21 @@
     screen = "rain";
     prefetchAllThemes();
     app.innerHTML =
-      '<div class="zone play"><span class="zem">🌧️</span><span><b>Sõnasadu</b><span>Ordregnet — fånga rätt ord</span></span></div>' +
-      '<div class="card" style="text-align:center"><p class="qsub">Orden dalar sakta ner. Tryck på det ord Siiri ber om. Missar du dyker det upp igen — ingen stress.</p>' +
+      '<div class="zone play"><span class="zem">🌧️</span><span><b>Sõnasadu</b><span>' +
+      LT("Ordregnet — fånga rätt ord", "Sõnavihm — püüa õige sõna") +
+      "</span></span></div>" +
+      '<div class="card" style="text-align:center"><p class="qsub">' +
+      LT(
+        "Orden dalar sakta ner. Tryck på det ord Siiri ber om. Missar du dyker det upp igen — ingen stress.",
+        "Sõnad langevad aeglaselt alla. Vajuta sõna, mida Siiri palub. Kui mööda läheb, tuleb see uuesti — ei mingit kiirustamist.",
+      ) +
+      "</p>" +
       '<div class="center">' +
       siilSVG("small") +
       "</div>" +
-      '<button class="btn green big wide" id="start">Sätt igång 🌧️</button></div>';
+      '<button class="btn green big wide" id="start">' +
+      LT("Sätt igång 🌧️", "Alusta 🌧️") +
+      "</button></div>";
     document.getElementById("start").onclick = rainStart;
   }
   function rainStart() {
@@ -10137,16 +10195,22 @@
     opts = shuffle(opts);
     var html =
       '<div class="zone play"><span class="zem">🌧️</span><span><b>Sõnasadu</b>' +
-      "<span>ord " +
+      "<span>" +
+      LT("ord ", "sõna ") +
       (RN.i + 1) +
-      " av " +
+      LT(" av ", " / ") +
       RN.n +
       " · " +
       RN.right +
-      " rätt</span></span></div>" +
-      '<div class="card"><p class="q">Hitta ordet för</p>' +
-      promptHtml(target, target.sv) +
-      '<div class="center"><button class="speakbtn sm" id="say" aria-label="Hör ordet">🔊</button></div>' +
+      LT(" rätt", " õiget") +
+      "</span></span></div>" +
+      '<div class="card"><p class="q">' +
+      LT("Hitta ordet för", "Leia sõna") +
+      "</p>" +
+      promptHtml(target, nat(target)) +
+      '<div class="center"><button class="speakbtn sm" id="say" aria-label="' +
+      LT("Hör ordet", "Kuula sõna") +
+      '">🔊</button></div>' +
       '<div class="rainbox">';
     for (i = 0; i < opts.length; i++) {
       html +=
@@ -10158,15 +10222,17 @@
         (7 + i * 1.3) +
         "s;animation-delay:" +
         i * 0.7 +
-        's">' +
-        esc(opts[i].et) +
+        's" lang="' +
+        tgtLang() +
+        '">' +
+        esc(tgt(opts[i])) +
         "</button>";
     }
     html += '</div><div class="feedback" id="fb"></div></div><div class="center">' + siilSVG("small") + "</div>";
     app.innerHTML = html;
-    speak(target.et);
+    speak(tgt(target));
     document.getElementById("say").onclick = function () {
-      speak(target.et);
+      speak(tgt(target));
     };
     var ds = app.querySelectorAll("[data-et]");
     for (i = 0; i < ds.length; i++) {
@@ -10221,11 +10287,15 @@
       r +
       " / " +
       n +
-      '</div><p class="q">Bra fångat!</p>' +
+      '</div><p class="q">' +
+      LT("Bra fångat!", "Hästi püütud!") +
+      "</p>" +
       '<div class="center">' +
       siilSVG("small") +
       "</div>" +
-      '<div class="row"><button class="btn green big" id="again">En gång till 🌧️</button>' +
+      '<div class="row"><button class="btn green big" id="again">' +
+      LT("En gång till 🌧️", "Veel kord 🌧️") +
+      "</button>" +
       '<button class="btn ghost big" id="home">Tillbaka</button></div></div>';
     RN = null;
     mood("cheer");
@@ -10257,12 +10327,21 @@
     screen = "boat";
     prefetchAllThemes();
     app.innerHTML =
-      '<div class="zone play"><span class="zem">🛶</span><span><b>Paadisõit</b><span>Barkbåten — styr och fånga rätt ord</span></span></div>' +
-      '<div class="card" style="text-align:center"><p class="qsub">Siiri åker barkbåt nerför floden. Flaskposter flyter förbi på vattnet. Styr båten upp och ner med musen eller piltangenterna, och åk på flaskan med ordet Siiri ber om. Tar du fel flaska? Ingen fara - floden fortsätter, bara testa nästa.</p>' +
+      '<div class="zone play"><span class="zem">🛶</span><span><b>Paadisõit</b><span>' +
+      LT("Barkbåten — styr och fånga rätt ord", "Puukoorepaat — juhi ja püüa õige sõna") +
+      "</span></span></div>" +
+      '<div class="card" style="text-align:center"><p class="qsub">' +
+      LT(
+        "Siiri åker barkbåt nerför floden. Flaskposter flyter förbi på vattnet. Styr båten upp och ner med musen eller piltangenterna, och åk på flaskan med ordet Siiri ber om. Tar du fel flaska? Ingen fara - floden fortsätter, bara testa nästa.",
+        "Siiri sõidab puukoorepaadiga mööda jõge. Pudelipostid ujuvad vee peal mööda. Juhi paati üles ja alla hiire või nooleklahvidega ja sõida pudelile, millel on sõna, mida Siiri palub. Võtsid vale pudeli? Pole hullu – jõgi voolab edasi, proovi järgmist.",
+      ) +
+      "</p>" +
       '<div class="center">' +
       siilSVG("small") +
       "</div>" +
-      '<button class="btn green big wide" id="start">Sätt igång 🛶</button></div>';
+      '<button class="btn green big wide" id="start">' +
+      LT("Sätt igång 🛶", "Alusta 🛶") +
+      "</button></div>";
     document.getElementById("start").onclick = boatStart;
   }
   var BOAT_LANES = [10, 37, 64, 90];
@@ -10289,6 +10368,7 @@
   function boatAssignWord(s) {
     var w = boatWordFor(s);
     s.et = w.et;
+    s.label = tgt(w); /* texten på flaskan: det ord barnet lär sig */
     s.golden = !BT.goldenActive && w.et === BT.target.et && Math.random() < 0.3;
     if (s.golden) BT.goldenActive = true;
   }
@@ -10310,8 +10390,8 @@
       }
     }
     var el = document.getElementById("boatprompt");
-    if (el) el.innerHTML = promptHtml(BT.target, BT.target.sv);
-    speak(BT.target.et);
+    if (el) el.innerHTML = promptHtml(BT.target, nat(BT.target));
+    speak(tgt(BT.target));
   }
   function boatRespawn(s) {
     s.state = "flowing";
@@ -10322,7 +10402,13 @@
     s.x = BT.reduceMotion ? 10 + s.lane * 20 : -15 - Math.random() * 12;
     var el = document.getElementById(s.domId);
     if (el) {
-      el.innerHTML = '<span class="riverlabel">' + (s.golden ? "✨ " : "") + s.et + "</span>";
+      el.innerHTML =
+        '<span class="riverlabel" lang="' +
+        tgtLang() +
+        '">' +
+        (s.golden ? "✨ " : "") +
+        esc(s.label || s.et) +
+        "</span>";
       el.classList.remove("hit", "miss");
       el.classList.toggle("golden", !!s.golden);
     }
@@ -10364,7 +10450,7 @@
       save();
       refreshTop();
       var scoreEl = document.getElementById("boatscore");
-      if (scoreEl) scoreEl.textContent = BT.right + " av " + BT.n + " rätt";
+      if (scoreEl) scoreEl.textContent = BT.right + " av " + BT.n + LT(" rätt", " õiget");
       var streakEl = document.getElementById("boatstreak");
       if (streakEl) {
         if (BT.streak >= 3) {
@@ -10431,13 +10517,18 @@
         BT.right +
         " av " +
         BT.n +
-        " rätt</span>" +
+        LT(" rätt", " õiget") +
+        "</span>" +
         '<span id="boatstreak" class="fchip" style="margin-left:6px;display:none"></span></span></div>' +
-        '<div class="card"><p class="q">Hitta ordet för</p>' +
+        '<div class="card"><p class="q">' +
+        LT("Hitta ordet för", "Leia sõna") +
+        "</p>" +
         '<div id="boatprompt">' +
-        promptHtml(BT.target, BT.target.sv) +
+        promptHtml(BT.target, nat(BT.target)) +
         "</div>" +
-        '<div class="center"><button class="speakbtn sm" id="say" aria-label="Hör ordet">🔊</button></div>' +
+        '<div class="center"><button class="speakbtn sm" id="say" aria-label="' +
+        LT("Hör ordet", "Kuula sõna") +
+        '">🔊</button></div>' +
         '<div class="riverbox" id="riverbox">' +
         boatIcon();
     for (i = 0; i < BOAT_LANES.length; i++) {
@@ -10445,9 +10536,9 @@
     }
     html += '</div></div><div class="center">' + siilSVG("small") + "</div>";
     app.innerHTML = html;
-    speak(BT.target.et);
+    speak(tgt(BT.target));
     document.getElementById("say").onclick = function () {
-      speak(BT.target.et);
+      speak(tgt(BT.target));
     };
     BT.reduceMotion = reduceMotion;
     BT.slots = [];
@@ -10465,7 +10556,13 @@
       (function (s) {
         var el = document.getElementById(s.domId);
         if (el) {
-          el.innerHTML = '<span class="riverlabel">' + (s.golden ? "✨ " : "") + s.et + "</span>";
+          el.innerHTML =
+            '<span class="riverlabel" lang="' +
+            tgtLang() +
+            '">' +
+            (s.golden ? "✨ " : "") +
+            esc(s.label || s.et) +
+            "</span>";
           el.classList.toggle("golden", !!s.golden);
           el.onclick = function () {
             boatCatch(s);
@@ -10519,7 +10616,7 @@
       /* strömmen växlar mjukt mellan lugnare och lite rappare partier istället för att alltid
          flyta i exakt samma takt - ett varv på ca 20s, ±35% kring grundfarten */
       var flow = 1 + 0.35 * Math.sin(ts / 3200);
-      /* buggrapport: "flaskorna rör sig för snabbt" - grundfarten var 0.022, sänkt ca 30% */
+      /* buggrapport: LT("flaskor", "pudelit") + "na rör sig för snabbt" - grundfarten var 0.022, sänkt ca 30% */
       var speed = dt * 0.015 * flow; /* % av rutans bredd per ms, tillräckligt lugnt för ett barn att hinna styra */
       for (var j = 0; j < BT.slots.length; j++) {
         var s = BT.slots[j];
@@ -10561,18 +10658,23 @@
       r +
       " / " +
       (r + w) +
-      '</div><p class="q">Bra fångat!</p>' +
+      '</div><p class="q">' +
+      LT("Bra fångat!", "Hästi püütud!") +
+      "</p>" +
       (w
         ? '<p class="qsub">' +
           w +
-          " fel " +
-          (w === 1 ? "flaska" : "flaskor") +
-          " på vägen - ingen fara, du kom hela vägen!</p>"
+          LT(" fel ", " vale ") +
+          (w === 1 ? LT("flaska", "pudel") : LT("flaskor", "pudelit")) +
+          LT(" på vägen - ingen fara, du kom hela vägen!", " teel – pole hullu, sa jõudsid lõpuni!") +
+          "</p>"
         : "") +
       '<div class="center">' +
       siilSVG("small") +
       "</div>" +
-      '<div class="row"><button class="btn green big" id="again">En gång till 🛶</button>' +
+      '<div class="row"><button class="btn green big" id="again">' +
+      LT("En gång till 🛶", "Veel kord 🛶") +
+      "</button>" +
       '<button class="btn ghost big" id="home">Tillbaka</button></div></div>';
     BT = null;
     mood("cheer");
@@ -12555,14 +12657,34 @@
     prefetchAllThemes();
     var html =
       '<div class="card" style="text-align:center"><div style="font-size:64px">🎲</div>' +
-      '<p class="q">Blandade ord</p>' +
-      '<p class="qsub">Tolv ord från alla teman, i din egen takt. Ingen klocka – ta all tid du behöver.<br>' +
-      "Tre rätt i rad ger dubbla poäng, fem i rad ger tredubbla.</p>" +
-      (S.mixbest ? '<p class="qsub">Ditt bästa hittills: <b>' + S.mixbest + " av 12</b></p>" : "") +
+      '<p class="q">' +
+      LT("Blandade ord", "Segased sõnad") +
+      "</p>" +
+      '<p class="qsub">' +
+      LT(
+        "Tolv ord från alla teman, i din egen takt. Ingen klocka – ta all tid du behöver.",
+        "Kaksteist sõna kõigist teemadest, omas tempos. Kella pole – võta nii palju aega kui vaja.",
+      ) +
+      "<br>" +
+      LT(
+        "Tre rätt i rad ger dubbla poäng, fem i rad ger tredubbla.",
+        "Kolm õiget järjest annab topeltpunktid, viis järjest kolmekordsed.",
+      ) +
+      "</p>" +
+      (S.mixbest
+        ? '<p class="qsub">' +
+          LT("Ditt bästa hittills: ", "Sinu parim siiani: ") +
+          "<b>" +
+          S.mixbest +
+          LT(" av 12", " / 12") +
+          "</b></p>"
+        : "") +
       '<div class="center">' +
       siilSVG("small") +
       "</div>" +
-      '<button class="btn green big wide" id="start">Sätt igång 🎲</button></div>';
+      '<button class="btn green big wide" id="start">' +
+      LT("Sätt igång 🎲", "Alusta 🎲") +
+      "</button></div>";
     app.innerHTML = html;
     document.getElementById("start").onclick = function () {
       speedStart();
@@ -12610,36 +12732,45 @@
       '<div style="display:flex;justify-content:space-between;font-weight:600;font-size:15.5px;color:var(--muted)">' +
       "<span>⭐ " +
       SP.score +
-      " poäng</span><span>" +
-      (SP.combo >= 3 ? "🔥 dubbla poäng · " : "") +
-      "ord " +
+      LT(" poäng", " punkti") +
+      "</span><span>" +
+      (SP.combo >= 3 ? LT("🔥 dubbla poäng · ", "🔥 topeltpunktid · ") : "") +
+      LT("ord ", "sõna ") +
       (SP.i + 1) +
       " av " +
       SP.n +
       "</span></div>";
     if (listen) {
       html +=
-        '<p class="q" style="margin-top:8px">Vilket ord hör du?</p>' +
-        '<div class="center"><button class="speakbtn" id="say" aria-label="Hör ordet">🔊</button>' +
-        '<button class="speakbtn sm" id="slow" aria-label="Hör ordet långsamt">🐢</button></div>';
+        '<p class="q" style="margin-top:8px">' +
+        LT("Vilket ord hör du?", "Millist sõna sa kuuled?") +
+        "</p>" +
+        '<div class="center"><button class="speakbtn" id="say" aria-label="' +
+        LT("Hör ordet", "Kuula sõna") +
+        '">🔊</button>' +
+        '<button class="speakbtn sm" id="slow" aria-label="' +
+        LT("Hör ordet långsamt", "Kuula sõna aeglaselt") +
+        '">🐢</button></div>';
     } else {
-      html += promptHtml(w, w.sv);
+      html += promptHtml(w, nat(w));
     }
     html +=
-      '<div class="streakline">' + (SP.combo > 1 ? SP.combo + " rätt i rad!" : "&nbsp;") + '</div><div class="opts">';
+      '<div class="streakline">' +
+      (SP.combo > 1 ? SP.combo + LT(" rätt i rad!", " õiget järjest!") : "&nbsp;") +
+      '</div><div class="opts">';
     for (i = 0; i < opts.length; i++) {
       html +=
-        '<button class="opt" data-et="' + esc(opts[i].et) + '">' + esc(opts[i].et) + (listen ? "" : "") + "</button>";
+        '<button class="opt" data-et="' + esc(opts[i].et) + '">' + esc(tgt(opts[i])) + (listen ? "" : "") + "</button>";
     }
     html += '</div><div class="feedback" id="fb"></div></div><div class="center">' + siilSVG("small") + "</div>";
     app.innerHTML = html;
     if (listen) {
-      speak(w.et);
+      speak(tgt(w));
       document.getElementById("say").onclick = function () {
-        speak(w.et);
+        speak(tgt(w));
       };
       document.getElementById("slow").onclick = function () {
-        speak(w.et, true);
+        speak(tgt(w), true);
       };
     }
     var btns = app.querySelectorAll(".opt");
@@ -12678,14 +12809,14 @@
             if (SP.combo === 3 || SP.combo === 5) comboFlash(SP.combo);
             if (SP.combo >= 10) comboTen();
             fb.className = "feedback ok";
-            fb.textContent = "Rätt! ⭐";
+            fb.textContent = LT("Rätt! ⭐", "Õige! ⭐");
           } else {
             SP.combo = 0;
             sndNo();
             mood("oops");
-            speak(w.et);
+            speak(tgt(w));
             fb.className = "feedback no";
-            fb.textContent = w.sv + " heter " + w.et;
+            fb.textContent = nat(w) + LT(" heter ", " on ") + tgt(w);
           }
           setTimeout(
             function () {
