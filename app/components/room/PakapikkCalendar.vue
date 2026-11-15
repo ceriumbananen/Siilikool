@@ -43,7 +43,8 @@ function pick(d: number, state: string) {
         @click="pick(x.d, x.state)"
       >
         <small>{{ x.d }}</small>
-        <span aria-hidden="true">{{ x.state === "found" ? x.gift.em : x.state === "waiting" ? "✉️" : "" }}</span>
+        <img v-if="x.state === 'found' && x.gift.img" :src="x.gift.img" alt="" class="pak-cal__img" />
+        <span v-else aria-hidden="true">{{ x.state === "found" ? x.gift.em : x.state === "waiting" ? "✉️" : "" }}</span>
       </button>
     </div>
   </UiAppCard>
@@ -106,6 +107,11 @@ function pick(d: number, state: string) {
 
     span {
       font-size: 1.375rem;
+    }
+
+    .pak-cal__img {
+      width: 1.625rem;
+      height: 1.625rem;
     }
 
     &--found {

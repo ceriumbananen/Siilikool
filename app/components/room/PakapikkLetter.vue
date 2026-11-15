@@ -19,7 +19,8 @@ const hatItem = computed(() => SHOP.find(it => it.id === PAK_FINAL_ITEM));
       <div v-if="pak.mode.value === 'done'" class="pak-letter__paper pak-letter__paper--gift">
         <p class="pak-letter__date">{{ pak.current.value!.day }}. detsember</p>
         <button class="pak-letter__gift" @click="pak.readAloud()">
-          <span aria-hidden="true">{{ pak.current.value!.gift.em }}</span>
+          <img v-if="pak.current.value!.gift.img" :src="pak.current.value!.gift.img" alt="" />
+          <span v-else aria-hidden="true">{{ pak.current.value!.gift.em }}</span>
           <b lang="et">{{ pak.current.value!.gift.et }}</b>
           <small>{{ pak.current.value!.gift.sv }}</small>
         </button>
@@ -211,6 +212,13 @@ const hatItem = computed(() => SHOP.find(it => it.id === PAK_FINAL_ITEM));
       animation: pak-bounce 0.9s cubic-bezier(0.34, 1.6, 0.5, 1);
     }
 
+    img {
+      width: 5rem;
+      height: 5rem;
+      margin: 0.25rem 0;
+      animation: pak-bounce 0.9s cubic-bezier(0.34, 1.6, 0.5, 1);
+    }
+
     b {
       font-size: $font-size-2xl;
       color: #a0261f;
@@ -283,6 +291,11 @@ const hatItem = computed(() => SHOP.find(it => it.id === PAK_FINAL_ITEM));
     &__gift span {
       font-size: 6rem;
     }
+
+    &__gift img {
+      width: 6.5rem;
+      height: 6.5rem;
+    }
   }
 }
 
@@ -307,6 +320,7 @@ const hatItem = computed(() => SHOP.find(it => it.id === PAK_FINAL_ITEM));
 
 @media (prefers-reduced-motion: reduce) {
   .pak-letter__paper,
+  .pak-letter__gift img,
   .pak-letter__gift span {
     animation: none;
   }

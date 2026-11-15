@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <!-- pepparkakshjärta med vit kristyr och ett rött band att hänga det i (Päkapiku kirjad) -->
+  <path d="M50 27 C38 2 62 2 50 27" fill="none" stroke="#c8352e" stroke-width="3" stroke-linecap="round" />
+  <path d="M50 92 C30 78 8 62 8 38 C8 24 18 14 31 14 C40 14 46 20 50 27 C54 20 60 14 69 14 C82 14 92 24 92 38 C92 62 70 78 50 92 Z" fill="#b5702f" stroke="#7a4518" stroke-width="2.5" />
+  <path d="M50 92 C30 78 8 62 8 38 C8 24 18 14 31 14 C40 14 46 20 50 27" fill="none" stroke="#d08a45" stroke-width="2" opacity="0.6" transform="translate(3 3) scale(0.94)" />
+  <path d="M50 80 C34 69 18 56 18 39 C18 30 24 24 32 24 C40 24 45 30 50 37 C55 30 60 24 68 24 C76 24 82 30 82 39 C82 56 66 69 50 80 Z" fill="none" stroke="#fffaf0" stroke-width="3" stroke-dasharray="1 5.5" stroke-linecap="round" />
+  <circle cx="50" cy="50" r="3.2" fill="#fffaf0" />
+  <circle cx="40" cy="44" r="2.2" fill="#fffaf0" />
+  <circle cx="60" cy="44" r="2.2" fill="#fffaf0" />
+  <circle cx="44" cy="58" r="2.2" fill="#fffaf0" />
+  <circle cx="56" cy="58" r="2.2" fill="#fffaf0" />
+  <circle cx="50" cy="66" r="2.2" fill="#c8352e" />
+</svg>
