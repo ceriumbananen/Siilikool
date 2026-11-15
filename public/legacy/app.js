@@ -9252,6 +9252,18 @@
       OT.say = ["Kus on", tCol.id, tObj.et, tg.spot.et];
       OT.sv = "Var är " + svDef(tCol, tObj) + " " + tg.spot.sv + "?";
     }
+    /* estniskt läge: Siiri frågar på svenska (det barnet lär sig), och "Mida see tähendab?"
+       visar den estniska frågan. Ordbrickorna blir den svenska meningens ord. */
+    if (isEt()) {
+      OT.help = OT.say.join(" ") + "?";
+      OT.say = OT.sv.replace(/\?$/, "").split(" ");
+    } else OT.help = OT.sv;
+  }
+  /* hela frågan: estniska ord för ord (Mari-klippen), svenska som en mening (Sofie/systemröst) */
+  function otsiSay(slow) {
+    if (isEt()) speak(OT.sv, slow);
+    else if (slow) speakSeqSlow(OT.say);
+    else speakSeq(OT.say);
   }
   function otsiScreen() {
     screen = "otsi";
@@ -9290,14 +9302,20 @@
       .join("");
     html +=
       '<div class="card"><div class="otsiask">' +
-      '<button class="btn small" id="otsisay" aria-label="Hör hela frågan">🔊</button>' +
-      '<button class="btn small ghost" id="otsislow" aria-label="Hör långsamt">🐢</button>' +
+      '<button class="btn small" id="otsisay" aria-label="' +
+      LT("Hör hela frågan", "Kuula kogu küsimust") +
+      '">🔊</button>' +
+      '<button class="btn small ghost" id="otsislow" aria-label="' +
+      LT("Hör långsamt", "Kuula aeglaselt") +
+      '">🐢</button>' +
       '<div class="ochips">' +
       chips +
       '<small id="otsisv" hidden>' +
-      esc(OT.sv) +
+      esc(OT.help) +
       "</small>" +
-      '<button class="obtnhelp" id="otsihelp">Vad betyder det?</button></div></div>' +
+      '<button class="obtnhelp" id="otsihelp">' +
+      LT("Vad betyder det?", "Mida see tähendab?") +
+      "</button></div></div>" +
       '<div class="odots">' +
       Array.apply(null, { length: OT.n })
         .map(function (_, k) {
@@ -9313,14 +9331,16 @@
       '<stop offset="100%" stop-color="#FFFFFF" stop-opacity="0"/></radialGradient></defs>' +
       OT.items.map(otsiDraw).join("") +
       "</svg></div>" +
-      '<p class="qsub" id="otsitip">Tryck på rätt sak i rummet.</p></div>';
+      '<p class="qsub" id="otsitip">' +
+      LT("Tryck på rätt sak i rummet.", "Vajuta toas õiget asja.") +
+      "</p></div>";
     app.innerHTML = html;
-    speakSeq(OT.say); /* direkt i tryckningen – annars stoppar webbläsaren ljudet */
+    otsiSay(); /* direkt i tryckningen – annars stoppar webbläsaren ljudet */
     document.getElementById("otsisay").onclick = function () {
-      speakSeq(OT.say);
+      otsiSay();
     };
     document.getElementById("otsislow").onclick = function () {
-      speakSeqSlow(OT.say);
+      otsiSay(true);
     };
     document.getElementById("otsihelp").onclick = function () {
       otsiHelp();
@@ -9375,8 +9395,10 @@
           '<b style="color:var(--moss)">Leidsid! ' +
           esc(OT.items[i].obj.def) +
           " ✓</b>" +
-          (solo ? ' <span class="qsub" style="display:inline">utan hjälp ⭐ +6</span>' : "");
-      speak("Leidsid!");
+          (solo
+            ? ' <span class="qsub" style="display:inline">' + LT("utan hjälp ⭐ +6", "ilma abita ⭐ +6") + "</span>"
+            : "");
+      speak(LT("Leidsid!", "Du hittade den!"));
       bumpQuest("correct", 1);
       tripBump("hear", 1);
       setTimeout(function () {
@@ -9397,12 +9419,14 @@
       if (OT.missHere >= 2) otsiHelp(); /* först efter två försök */
       var w = OT.items[i];
       if (tip)
-        tip.innerHTML = "Det där är <b>" + esc(svInd(w.col, w.obj)) + "</b> " + esc(w.spot.sv) + ". Leta vidare!";
+        tip.innerHTML = isEt()
+          ? "See on <b>" + esc(w.col.id + " " + w.obj.et) + "</b> " + esc(w.spot.et) + ". Otsi edasi!"
+          : "Det där är <b>" + esc(svInd(w.col, w.obj)) + "</b> " + esc(w.spot.sv) + ". Leta vidare!";
       setTimeout(function () {
         el.classList.remove("owrong");
       }, 600);
       setTimeout(function () {
-        speakSeq(OT.say);
+        otsiSay();
       }, 700);
     }
   }
@@ -9420,19 +9444,25 @@
     app.innerHTML =
       '<div class="card" style="text-align:center"><p class="kicker">🔍 Otsi!</p>' +
       '<h2 class="q">' +
-      (wrong === 0 ? "Alla rätt!" : "Bra letat!") +
+      (wrong === 0 ? LT("Alla rätt!", "Kõik õiged!") : "Bra letat!") +
       "</h2>" +
       '<div class="bigstars">' +
       "⭐".repeat(st) +
       "</div>" +
-      '<p class="qsub">Du hittade 8 saker och samlade ⭐ ' +
+      '<p class="qsub">' +
+      LT("Du hittade 8 saker och samlade ⭐ ", "Leidsid 8 asja ja kogusid ⭐ ") +
       gained +
       ".<br>" +
       "<b>" +
       solo +
-      " av 8</b> klarade du utan att se den svenska texten.</p>" +
-      '<div class="row"><button class="btn big" id="oag">En gång till</button>' +
-      '<button class="btn ghost" id="ohome">Till start</button></div></div>';
+      LT(" av 8</b> klarade du utan att se den svenska texten.", " / 8</b> said hakkama ilma tõlget vaatamata.") +
+      "</p>" +
+      '<div class="row"><button class="btn big" id="oag">' +
+      LT("En gång till", "Veel kord") +
+      "</button>" +
+      '<button class="btn ghost" id="ohome">' +
+      LT("Till start", "Algusesse") +
+      "</button></div></div>";
     burst(160);
     fanfare(st);
     document.getElementById("oag").onclick = function () {
@@ -9449,13 +9479,32 @@
     btnBack.hidden = false;
     app.innerHTML =
       '<div class="zone play"><span class="zem">🔍</span><span><b>Otsi!</b>' +
-      "<span>Hitta det Siiri säger</span></span></div>" +
+      "<span>" +
+      LT("Hitta det Siiri säger", "Leia, mida Siiri ütleb") +
+      "</span></span></div>" +
       '<div class="card" style="text-align:center">' +
-      '<p class="qsub">Siiri säger på estniska vad hon letar efter. Tryck på rätt sak i rummet.</p>' +
-      '<p class="qsub">Först <b>färg och sak</b> — <i>kollane müts</i>. Sedan <b>var den ligger</b> — ' +
-      "<i>laua all</i>, <i>tooli peal</i>, <i>akna juures</i>.</p>" +
-      '<p class="qsub">Åtta saker att hitta. Tryck på 🔊 för att höra om.</p>' +
-      '<button class="btn big wide" id="ostart">Alusta! · Börja leta</button></div>';
+      '<p class="qsub">' +
+      LT(
+        "Siiri säger på estniska vad hon letar efter. Tryck på rätt sak i rummet.",
+        "Siiri ütleb rootsi keeles, mida ta otsib. Vajuta toas õiget asja.",
+      ) +
+      "</p>" +
+      '<p class="qsub">' +
+      LT(
+        "Först <b>färg och sak</b> — <i>kollane müts</i>. Sedan <b>var den ligger</b> — ",
+        "Kõigepealt <b>värv ja asi</b> — <i>den gula mössan</i>. Siis <b>kus see on</b> — ",
+      ) +
+      LT(
+        "<i>laua all</i>, <i>tooli peal</i>, <i>akna juures</i>.",
+        "<i>under bordet</i>, <i>på stolen</i>, <i>vid fönstret</i>.",
+      ) +
+      "</p>" +
+      '<p class="qsub">' +
+      LT("Åtta saker att hitta. Tryck på 🔊 för att höra om.", "Kaheksa asja leida. Vajuta 🔊, et uuesti kuulata.") +
+      "</p>" +
+      '<button class="btn big wide" id="ostart">' +
+      LT("Alusta! · Börja leta", "Börja leta! · Alusta") +
+      "</button></div>";
     document.getElementById("ostart").onclick = function () {
       try {
         ensureGraph();
