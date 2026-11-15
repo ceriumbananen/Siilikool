@@ -5395,13 +5395,22 @@
     prefetch("sent");
     var html =
       '<div class="card" style="text-align:center"><div style="font-size:64px">🧩</div>' +
-      '<p class="q">Bygg meningar</p>' +
-      '<p class="qsub">Siiri visar en mening på svenska. Lägg de estniska orden i rätt ordning – tryck på ett ord för att höra det.</p>' +
-      (S.sentbest ? '<p class="qsub">Ditt bästa: <b>' + S.sentbest + " av 6</b></p>" : "") +
+      '<p class="q">' +
+      LT("Bygg meningar", "Ehita lauseid") +
+      "</p>" +
+      '<p class="qsub">' +
+      LT(
+        "Siiri visar en mening på svenska. Lägg de estniska orden i rätt ordning – tryck på ett ord för att höra det.",
+        "Siiri näitab lauset eesti keeles. Pane rootsikeelsed sõnad õigesse järjekorda – vajuta sõnale, et seda kuulda.",
+      ) +
+      "</p>" +
+      (S.sentbest ? '<p class="qsub">' + LT("Ditt bästa: <b>", "Sinu parim: <b>") + S.sentbest + LT(" av 6</b>", " / 6</b>") + "</p>" : "") +
       '<div class="center">' +
       siilSVG("small") +
       "</div>" +
-      '<button class="btn green big wide" id="start">Sätt igång 🧩</button></div>';
+      '<button class="btn green big wide" id="start">' +
+      LT("Sätt igång 🧩", "Alusta 🧩") +
+      "</button></div>";
     app.innerHTML = html;
     document.getElementById("start").onclick = function () {
       sentStart();
@@ -5419,6 +5428,18 @@
       w: tpl.w.map(function (tk) {
         return tk === "{name}" ? name : tk;
       }),
+    };
+  }
+  /* språkriktningen: say = meningen på språket barnet lär sig (den som byggs och läses upp),
+     show = förklaringen på barnets eget språk, w = orden att lägga. I estniskt läge byggs den
+     svenska meningen av sina egna ord; et = de estniska orden, för ordminnet (wordmem). */
+  function sentView(s) {
+    if (!isEt()) return { say: s.et, show: s.sv, w: s.w, etw: s.w };
+    return {
+      say: s.sv,
+      show: s.et,
+      w: s.sv.replace(/[.!?,]/g, "").split(/\s+/).filter(Boolean),
+      etw: s.w,
     };
   }
   function sentStart() {
@@ -5441,6 +5462,7 @@
         }),
       ).slice(0, pet ? 5 : 6);
     if (pet) list.splice(Math.floor(Math.random() * (list.length + 1)), 0, pet);
+    list = list.map(sentView);
     LS = {
       list: list,
       i: 0,
@@ -5472,18 +5494,26 @@
       html += '<span class="' + c + '"></span>';
     }
     html +=
-      '</div><div class="card"><p class="q">Hur säger man det här?</p>' +
+      '</div><div class="card"><p class="q">' +
+      LT("Hur säger man det här?", "Kuidas seda rootsi keeles öelda?") +
+      "</p>" +
       '<p class="qsub" style="font-size:19px;color:var(--ink);font-weight:600">' +
-      esc(s.sv) +
+      esc(s.show) +
       "</p>" +
       '<div class="slots" id="slots"></div>' +
       '<div class="tiles" id="tiles"></div>' +
       (diff().id === "svar"
         ? ""
-        : '<div class="center" style="margin-top:12px"><button class="speakbtn sm" id="hear" aria-label="Hör meningen">🔊</button>' +
-          '<button class="speakbtn sm" id="hearslow" aria-label="Hör meningen långsamt">🐢</button></div>') +
+        : '<div class="center" style="margin-top:12px"><button class="speakbtn sm" id="hear" aria-label="' +
+          LT("Hör meningen", "Kuula lauset") +
+          '">🔊</button>' +
+          '<button class="speakbtn sm" id="hearslow" aria-label="' +
+          LT("Hör meningen långsamt", "Kuula lauset aeglaselt") +
+          '">🐢</button></div>') +
       '<div class="feedback" id="fb"></div>' +
-      '<button class="btn ghost wide" id="clear" style="margin-top:8px">Börja om med den här</button>' +
+      '<button class="btn ghost wide" id="clear" style="margin-top:8px">' +
+      LT("Börja om med den här", "Alusta seda uuesti") +
+      "</button>" +
       '</div><div class="center">' +
       siilSVG("small") +
       "</div>";
@@ -5493,10 +5523,10 @@
     var hb = document.getElementById("hear");
     if (hb) {
       hb.onclick = function () {
-        speak(s.et);
+        speak(s.say);
       };
       document.getElementById("hearslow").onclick = function () {
-        speak(s.et, true);
+        speak(s.say, true);
       };
     }
     document.getElementById("clear").onclick = function () {
@@ -5592,7 +5622,7 @@
     if (!LS.resList) LS.resList = [];
     LS.resList[LS.i] = ok;
     LS.done = true;
-    wmemHitSentenceWords(s.w, ok);
+    wmemHitSentenceWords(s.etw, ok);
     if (ok) {
       LS.right++;
       S.correct++;
@@ -5606,8 +5636,8 @@
       mood("cheer");
       save();
       fb.className = "feedback ok";
-      fb.textContent = "Täpselt! ⭐";
-      speak(s.et);
+      fb.textContent = TL("Täpselt! ⭐", "Precis! ⭐");
+      speak(s.say);
       drawTiles();
       setTimeout(function () {
         if (!LS) return;
@@ -5618,14 +5648,14 @@
       sndNo();
       mood("oops");
       fb.className = "feedback no";
-      fb.textContent = "Rätt ordning: " + s.et;
+      fb.textContent = LT("Rätt ordning: ", "Õige järjekord: ") + s.say;
       var sl = document.getElementById("slots");
       if (sl)
         sl.querySelectorAll(".slot").forEach &&
           sl.querySelectorAll(".slot").forEach(function (e) {
             e.classList.add("wrong");
           });
-      speak(s.et);
+      speak(s.say);
       setTimeout(function () {
         if (!LS) return;
         LS.i++;
@@ -5652,22 +5682,28 @@
       n +
       "</div>" +
       '<p class="q">' +
-      (right >= n ? "Alla meningar rätt!" : "Bra byggt!") +
+      (right >= n ? LT("Alla meningar rätt!", "Kõik laused õiged!") : LT("Bra byggt!", "Hästi ehitatud!")) +
       "</p>" +
-      '<p class="qsub">Varje rätt mening ger 2 stjärnor på marknaden.</p>' +
+      '<p class="qsub">' +
+      LT("Varje rätt mening ger 2 stjärnor på marknaden.", "Iga õige lause annab laadal 2 tähte.") +
+      "</p>" +
       '<div class="center">' +
       siilSVG("small") +
       "</div>";
     if (newB.length) {
       html += '<div style="margin-top:8px">';
       for (var i = 0; i < newB.length; i++) {
-        html += '<span class="badge">' + newB[i].em + " " + esc(newB[i].sv) + "</span>";
+        html += '<span class="badge">' + newB[i].em + " " + esc(nat(newB[i])) + "</span>";
       }
       html += "</div>";
     }
     html +=
-      '<div class="row"><button class="btn green big" id="again">En omgång till 🧩</button>' +
-      '<button class="btn ghost big" id="home">Tillbaka</button></div></div>';
+      '<div class="row"><button class="btn green big" id="again">' +
+      LT("En omgång till 🧩", "Veel üks voor 🧩") +
+      "</button>" +
+      '<button class="btn ghost big" id="home">' +
+      LT("Tillbaka", "Tagasi") +
+      "</button></div></div>";
     app.innerHTML = html;
     LS = null;
     mood("cheer");
@@ -11230,21 +11266,34 @@
       cards +=
         '<button class="btn big wide" style="margin-top:8px" data-ri="' +
         i +
-        '"><span lang="et">' +
+        '"><span lang="' +
+        tgtLang() +
+        '">' +
         rc.perfect.em +
         " " +
-        esc(rc.name.et) +
+        esc(tgt(rc.name)) +
         "</span><small>" +
-        esc(rc.name.sv) +
+        esc(nat(rc.name)) +
         "</small></button>";
     }
     app.innerHTML =
-      '<div class="zone play"><span class="zem">🥨</span><span><b>Siiri köök</b><span>Laga mat med Siiri</span></span></div>' +
-      '<div class="card" style="text-align:center"><p class="qsub">Följ receptet steg för steg - häll, rör, hacka och grädda tillsammans med Siiri. Gör du något lite annorlunda blir det aldrig fel, bara en annan rolig maträtt!</p>' +
+      '<div class="zone play"><span class="zem">🥨</span><span><b>' +
+      TL("Siiri köök", "Siiris kök") +
+      "</b><span>" +
+      LT("Laga mat med Siiri", "Tee Siiriga süüa") +
+      "</span></span></div>" +
+      '<div class="card" style="text-align:center"><p class="qsub">' +
+      LT(
+        "Följ receptet steg för steg - häll, rör, hacka och grädda tillsammans med Siiri. Gör du något lite annorlunda blir det aldrig fel, bara en annan rolig maträtt!",
+        "Järgi retsepti samm-sammult - vala, sega, tükelda ja küpseta koos Siiriga. Kui teed midagi natuke teisiti, pole see kunagi vale, vaid lihtsalt üks teine lõbus roog!",
+      ) +
+      "</p>" +
       '<div class="center">' +
       siilSVG("small") +
       "</div>" +
-      '<p class="q">Vad ska vi laga?</p>' +
+      '<p class="q">' +
+      LT("Vad ska vi laga?", "Mida me teeme?") +
+      "</p>" +
       cards +
       "</div>";
     var bs = app.querySelectorAll("[data-ri]"),
@@ -11270,17 +11319,21 @@
         '<div class="zone play"><span class="zem">' +
         r.perfect.em +
         "</span><span><b>" +
-        esc(r.name.sv) +
-        '</b><span>Receptet</span></span></div><div class="card">',
+        esc(nat(r.name)) +
+        "</b><span>" +
+        LT("Receptet", "Retsept") +
+        '</span></span></div><div class="card">',
       i,
       j;
     for (i = 0; i < r.ingredients.length; i++) {
       var sec = r.ingredients[i];
       html +=
-        '<p class="q" lang="et">' +
-        esc(sec.title.et) +
+        '<p class="q" lang="' +
+        tgtLang() +
+        '">' +
+        esc(tgt(sec.title)) +
         ' <small style="font-weight:400">(' +
-        esc(sec.title.sv) +
+        esc(nat(sec.title)) +
         ')</small></p><ul class="kitingredients">';
       for (j = 0; j < sec.items.length; j++) {
         var it = sec.items[j];
@@ -11290,16 +11343,19 @@
         html +=
           "<li>" +
           (it.amount ? "<b>" + esc(it.amount) + "</b> " : "") +
-          '<span lang="et">' +
-          esc(it.et) +
+          '<span lang="' +
+          tgtLang() +
+          '">' +
+          esc(tgt(it)) +
           "</span><br><small>" +
-          esc(it.sv) +
+          esc(nat(it)) +
           "</small></li>";
       }
       html += "</ul>";
     }
     html +=
-      '<button class="btn green big wide" id="kitplay" style="margin-top:12px">Sätt igång ' +
+      '<button class="btn green big wide" id="kitplay" style="margin-top:12px">' +
+      LT("Sätt igång ", "Alusta ") +
       r.perfect.em +
       "</button></div>";
     app.innerHTML = html;
@@ -11309,23 +11365,26 @@
     var step = KT.recipe.steps[KT.stepIdx];
     app.innerHTML =
       '<div class="zone play"><span class="zem">🥨</span><span><b>' +
-      esc(KT.recipe.name.sv) +
-      "</b><span>Steg " +
+      esc(nat(KT.recipe.name)) +
+      "</b><span>" +
+      LT("Steg ", "Samm ") +
       (KT.stepIdx + 1) +
-      " av " +
+      LT(" av ", " / ") +
       KT.recipe.steps.length +
       "</span></span></div>" +
       '<div class="card" style="text-align:center">' +
-      '<p class="q" lang="et">' +
-      esc(step.et) +
+      '<p class="q" lang="' +
+      tgtLang() +
+      '">' +
+      esc(tgt(step)) +
       "</p>" +
       '<p class="qsub">' +
-      esc(step.sv) +
+      esc(nat(step)) +
       "</p>" +
       '<div class="kitstage" id="kitstage"></div>' +
       '<div id="kitcontinue"></div>' +
       "</div>";
-    speak(step.et);
+    speak(tgt(step));
     if (step.verb === "vala") kitchenSetupVala(step);
     else if (step.verb === "puista") kitchenSetupPuista(step);
     else if (step.verb === "sega") kitchenSetupSega();
@@ -11683,14 +11742,21 @@
           : target === "buns"
             ? '<img class="kitbowl" id="kitpuistatarget" src="/images/kitchen/kuklid.webp" alt="" style="width:170px;height:85px">'
             : '<img class="kitbowl" id="kitpuistatarget" src="/images/kitchen/skal.webp" alt="">',
-      targetWord = target === "dough" ? "degen" : target === "buns" ? "bullarna" : "skålen";
+      targetWord =
+        target === "dough"
+          ? LT("degen", "taigna")
+          : target === "buns"
+            ? LT("bullarna", "kuklite")
+            : LT("skålen", "kausi");
     /* spelkänsla: hjälptexten sa bara "dra över X", inget om att man måste FORTSÄTTA röra den
        där (annars faller inga korn alls) - ett barn som drar den dit och sen håller stilla,
        som man gör i sõtku, ser inget hända och tror att det är trasigt. Säger nu uttryckligen
        att man ska skaka den. */
     stage.innerHTML =
-      '<div class="kithint">Dra och skaka strökrukan över ' +
+      '<div class="kithint">' +
+      LT("Dra och skaka strökrukan över ", "Lohista ja raputa puistetopsi ") +
       targetWord +
+      LT("", " kohal") +
       "</div>" +
       targetHtml +
       '<img class="kitshaker" id="kitshaker" src="/images/kitchen/strokruka.webp" alt="">' +
@@ -11712,7 +11778,7 @@
     function showContinue() {
       var c = document.getElementById("kitcontinue");
       if (c.firstChild) return;
-      c.innerHTML = '<button class="btn green big wide" id="kitdone">Klar! ✅</button>';
+      c.innerHTML = '<button class="btn green big wide" id="kitdone">' + LT("Klar! ✅", "Valmis! ✅") + "</button>";
       document.getElementById("kitdone").onclick = function () {
         kitchenAdvance(false);
       };
@@ -11822,7 +11888,7 @@
       kitSwirlSvg() +
       "</div></div>" +
       '<img class="kitspoon" id="kitspoon" src="/images/kitchen/slev.webp" alt="">' +
-      '<div class="kitturns" id="kitturns">0 varv</div>';
+      '<div class="kitturns" id="kitturns">0' + LT(" varv", " ringi") + "</div>";
     var bowl = document.getElementById("kitbowl"),
       spoon = document.getElementById("kitspoon"),
       batter = document.getElementById("kitbatter"),
@@ -11948,7 +12014,7 @@
     function showContinue() {
       var c = document.getElementById("kitcontinue");
       if (c.firstChild) return;
-      c.innerHTML = '<button class="btn green big wide" id="kitdone">Klar! ✅</button>';
+      c.innerHTML = '<button class="btn green big wide" id="kitdone">' + LT("Klar! ✅", "Valmis! ✅") + "</button>";
       document.getElementById("kitdone").onclick = function () {
         kitchenAdvance(total / (2 * Math.PI) > MAX_TURNS);
       };
@@ -11979,7 +12045,7 @@
         stirStep(speed);
       }
       drawBatter();
-      document.getElementById("kitturns").textContent = turns.toFixed(1) + " varv";
+      document.getElementById("kitturns").textContent = turns.toFixed(1) + LT(" varv", " ringi");
       if (turns >= MIN_TURNS) showContinue();
       /* klumparna har just smält bort = smeten är klar: samma "nu räcker det"-glitter som de
          andra momenten, och smeten får en blank yta. */
@@ -12038,7 +12104,7 @@
     function showContinue() {
       var c = document.getElementById("kitcontinue");
       if (c.firstChild) return;
-      c.innerHTML = '<button class="btn green big wide" id="kitdone">Klar! ✅</button>';
+      c.innerHTML = '<button class="btn green big wide" id="kitdone">' + LT("Klar! ✅", "Valmis! ✅") + "</button>";
       document.getElementById("kitdone").onclick = function () {
         kitchenAdvance(false);
       };
@@ -12122,7 +12188,7 @@
     var stage = document.getElementById("kitstage");
     stage.innerHTML =
       '<img class="kitrise kit-breathe" id="kitrise" src="/images/kitchen/deg.webp" alt="">' +
-      '<div class="kithint">Degen vilar och jäser …</div>';
+      '<div class="kithint">' + LT("Degen vilar och jäser …", "Tainas puhkab ja kerkib …") + "</div>";
     var rise = document.getElementById("kitrise"),
       bubbles = 0;
     function bubble() {
@@ -12153,7 +12219,7 @@
       var rr = rise.getBoundingClientRect();
       kitBits(stage, rr.left + rr.width / 2, rr.top + rr.height * 0.75, 8, "flour", 70, 4);
       var c = document.getElementById("kitcontinue");
-      c.innerHTML = '<button class="btn green big wide" id="kitdone">Nu är den klar! ✅</button>';
+      c.innerHTML = '<button class="btn green big wide" id="kitdone">' + LT("Nu är den klar! ✅", "Nüüd on valmis! ✅") + "</button>";
       document.getElementById("kitdone").onclick = function () {
         kitchenAdvance(false);
       };
@@ -12189,7 +12255,7 @@
     function showContinue() {
       var c = document.getElementById("kitcontinue");
       if (c.firstChild) return;
-      c.innerHTML = '<button class="btn green big wide" id="kitdone">Klar! ✅</button>';
+      c.innerHTML = '<button class="btn green big wide" id="kitdone">' + LT("Klar! ✅", "Valmis! ✅") + "</button>";
       document.getElementById("kitdone").onclick = function () {
         kitchenAdvance(false);
       };
@@ -12402,7 +12468,7 @@
     function showContinue() {
       var c = document.getElementById("kitcontinue");
       if (c.firstChild) return;
-      c.innerHTML = '<button class="btn green big wide" id="kitdone">Klar! ✅</button>';
+      c.innerHTML = '<button class="btn green big wide" id="kitdone">' + LT("Klar! ✅", "Valmis! ✅") + "</button>";
       document.getElementById("kitdone").onclick = function () {
         kitchenAdvance(false);
       };
@@ -12480,7 +12546,7 @@
       '<div class="kitdough" id="kitdough">' +
       '<img class="kitscraper" id="kitscraper" src="/images/kitchen/degskrapa.webp" alt="">' +
       '<img class="kitdoughimg" src="/images/kitchen/deg.webp" alt="">' +
-      '<div class="kitcount" id="kitcount">0 hack</div></div>';
+      '<div class="kitcount" id="kitcount">0' + LT(" hack", " lõiget") + "</div></div>";
     var dough = document.getElementById("kitdough"),
       scraper = document.getElementById("kitscraper"),
       count = 0,
@@ -12500,14 +12566,14 @@
     function showContinue() {
       var c = document.getElementById("kitcontinue");
       if (c.firstChild) return;
-      c.innerHTML = '<button class="btn green big wide" id="kitdone">Klar! ✅</button>';
+      c.innerHTML = '<button class="btn green big wide" id="kitdone">' + LT("Klar! ✅", "Valmis! ✅") + "</button>";
       document.getElementById("kitdone").onclick = function () {
         kitchenAdvance(count < MIN_CHOPS);
       };
     }
     dough.addEventListener("pointerdown", function () {
       count++;
-      document.getElementById("kitcount").textContent = count + " hack";
+      document.getElementById("kitcount").textContent = count + LT(" hack", " lõiget");
       dough.classList.remove("kit-pop");
       void dough.offsetWidth;
       dough.classList.add("kit-pop");
@@ -12545,7 +12611,7 @@
   function kitchenSetupVormi() {
     var stage = document.getElementById("kitstage");
     stage.innerHTML =
-      '<div class="kithint">Dra degen till knuten</div><div class="kitknot" id="kitknot">🥨</div>' +
+      '<div class="kithint">' + LT("Dra degen till knuten", "Lohista tainas sõlme juurde") + '</div><div class="kitknot" id="kitknot">🥨</div>' +
       /* buggrapport: "fastnar hela tiden upp i högra hörnet, lyckades inte dra degen till
          kringlan" - .kiting:s standardposition (top/left:20px) ligger rakt ovanpå hyllans
          bråte i kökbakgrunden, samma plats som gjorde smörkniven näst intill osynlig innan
@@ -12684,7 +12750,7 @@
       '><div class="kitheatfill" id="kitheatfill"></div><div class="kitheatzone"></div></div>' +
       '<button class="btn green big wide" id="kittake" style="margin-top:12px' +
       (hidden ? ";visibility:hidden" : "") +
-      '">Ta ut! 🍽️</button>'
+      '">' + LT("Ta ut! 🍽️", "Võta välja! 🍽️") + "</button>"
     );
   }
   function kitchenSetupKupseta() {
@@ -12844,27 +12910,39 @@
     save();
     burst(perfect ? 120 : 60);
     fanfare(perfect ? 2 : 1);
-    speak(outcome.et);
+    speak(tgt(outcome));
     app.innerHTML =
       '<div class="card" style="text-align:center">' +
       '<div style="font-size:64px">' +
       outcome.em +
       "</div>" +
-      '<p class="q" lang="et">' +
-      esc(outcome.name.et) +
+      '<p class="q" lang="' +
+      tgtLang() +
+      '">' +
+      esc(tgt(outcome.name)) +
       "</p>" +
       '<p class="qsub">' +
-      esc(outcome.name.sv) +
+      esc(nat(outcome.name)) +
       "</p>" +
-      '<p class="qsub" lang="et">' +
-      esc(outcome.et) +
+      '<p class="qsub" lang="' +
+      tgtLang() +
+      '">' +
+      esc(tgt(outcome)) +
       "</p>" +
-      (isNew ? '<p class="qsub" style="color:var(--moss);font-weight:700">🆕 Ny sida i kokboken!</p>' : "") +
+      (isNew
+        ? '<p class="qsub" style="color:var(--moss);font-weight:700">' +
+          LT("🆕 Ny sida i kokboken!", "🆕 Uus lehekülg kokaraamatus!") +
+          "</p>"
+        : "") +
       '<div class="center">' +
       siilSVG("small") +
       "</div>" +
-      '<div class="row"><button class="btn green big" id="again">Laga igen 🥨</button>' +
-      '<button class="btn ghost big" id="home">Tillbaka</button></div></div>';
+      '<div class="row"><button class="btn green big" id="again">' +
+      LT("Laga igen 🥨", "Tee uuesti 🥨") +
+      "</button>" +
+      '<button class="btn ghost big" id="home">' +
+      LT("Tillbaka", "Tagasi") +
+      "</button></div></div>";
     mood("cheer");
     KT = null;
     document.getElementById("again").onclick = kitchenIntro;
@@ -13405,7 +13483,7 @@
     if (newB.length) {
       html += '<div style="margin-top:8px">';
       for (i = 0; i < newB.length; i++) {
-        html += '<span class="badge">' + newB[i].em + " " + esc(newB[i].sv) + "</span>";
+        html += '<span class="badge">' + newB[i].em + " " + esc(nat(newB[i])) + "</span>";
       }
       html += "</div>";
     }
@@ -14924,7 +15002,7 @@
     if (newB.length) {
       html += '<p class="q" style="margin-top:12px">' + LT("Nytt märke!", "Uus märk!") + "</p><div>";
       for (var i = 0; i < newB.length; i++) {
-        html += '<span class="badge">' + newB[i].em + " " + esc(newB[i].sv) + "</span>";
+        html += '<span class="badge">' + newB[i].em + " " + esc(nat(newB[i])) + "</span>";
       }
       html += "</div>";
     }
@@ -15071,8 +15149,15 @@
     screen = "talk";
     prefetch("chat");
     var html =
-      '<div class="card"><p class="q">Vad vill du prata om?</p>' +
-      '<p class="qsub">Siiri ställer en fråga. Du svarar med rösten eller trycker på ett svar.</p>' +
+      '<div class="card"><p class="q">' +
+      LT("Vad vill du prata om?", "Millest sa tahad rääkida?") +
+      "</p>" +
+      '<p class="qsub">' +
+      LT(
+        "Siiri ställer en fråga. Du svarar med rösten eller trycker på ett svar.",
+        "Siiri esitab küsimuse rootsi keeles. Vasta häälega või vajuta vastusele.",
+      ) +
+      "</p>" +
       '<div class="center">' +
       siilSVG() +
       '</div><div class="topics">';
@@ -15084,15 +15169,17 @@
         '<span class="em">' +
         CHATS[i].em +
         '</span><span class="et">' +
-        esc(CHATS[i].et) +
+        esc(tgt(CHATS[i])) +
         "</span>" +
         '<span class="sv">' +
-        esc(CHATS[i].sv) +
+        esc(nat(CHATS[i])) +
         "</span></button>";
     }
     html +=
       "</div>" +
-      '<button class="btn ghost wide" id="asksiiri" style="margin-top:10px">💬 Fråga Siiri vad du vill!</button></div>';
+      '<button class="btn ghost wide" id="asksiiri" style="margin-top:10px">' +
+      LT("💬 Fråga Siiri vad du vill!", "💬 Küsi Siirilt, mida tahad!") +
+      "</button></div>";
     app.innerHTML = html;
     mMood("");
     document.getElementById("asksiiri").onclick = function () {
@@ -15129,6 +15216,11 @@
     if (!extra.length) return c.turns;
     return c.turns.slice(0, -1).concat(extra, c.turns.slice(-1));
   }
+  /* en rad i samtalet: i estniskt läge byts rader om språket ut ("Talar du estniska?" blir
+     "Talar du svenska?") via alt i chats.ts */
+  function chatLine(o) {
+    return isEt() && o && o.alt ? o.alt : o;
+  }
   function startChat(id) {
     var c = null,
       i;
@@ -15160,15 +15252,19 @@
         nmSv = childName || "vän";
       step.opts = [{ et: "Minu nimi on " + nm + ".", sv: "Jag heter " + nmSv + "." }];
     }
+    var opts = step.opts.map(chatLine);
     var freeReplyOverride = T.freeReply;
     T.freeReply = null;
-    var line = T.phase === "intro" ? c.intro : T.phase === "reply" ? freeReplyOverride || step.reply : step.q;
+    var line = chatLine(T.phase === "intro" ? c.intro : T.phase === "reply" ? freeReplyOverride || step.reply : step.q);
+    var q = chatLine(step.q);
     var html =
       '<div class="stage">' +
-      '<div class="saysbub" id="bub"><b>' +
-      esc(line.et) +
+      '<div class="saysbub" id="bub"><b lang="' +
+      tgtLang() +
+      '">' +
+      esc(tgt(line)) +
       "</b><span>" +
-      esc(line.sv) +
+      esc(nat(line)) +
       "</span></div>" +
       siilSVG("big") +
       '<div class="progressdots">';
@@ -15179,47 +15275,65 @@
     if (T.phase === "q" && step.freeText) {
       var prevAns = step.saveAs ? S[step.saveAs] || "" : "";
       html +=
-        '<div class="center"><button class="speakbtn sm" id="again" aria-label="Hör frågan igen">🔊</button>' +
-        '<button class="speakbtn sm" id="slow" aria-label="Hör frågan långsamt">🐢</button></div>' +
+        '<div class="center"><button class="speakbtn sm" id="again" aria-label="' +
+        LT("Hör frågan igen", "Kuula küsimust uuesti") +
+        '">🔊</button>' +
+        '<button class="speakbtn sm" id="slow" aria-label="' +
+        LT("Hör frågan långsamt", "Kuula küsimust aeglaselt") +
+        '">🐢</button></div>' +
         '<div class="heard" id="heard">' +
         (prevAns
-          ? "Jag minns: <b>" + esc(prevAns) + "</b>. Skriv om, eller tryck Klart för samma svar."
-          : "Skriv ditt eget svar.") +
+          ? LT("Jag minns: <b>", "Ma mäletan: <b>") +
+            esc(prevAns) +
+            LT("</b>. Skriv om, eller tryck Klart för samma svar.", "</b>. Kirjuta uuesti või vajuta Valmis, et jätta sama vastus.")
+          : LT("Skriv ditt eget svar.", "Kirjuta oma vastus.")) +
         "</div>" +
-        '<label class="sr-only" for="freeans">Ditt svar</label>' +
+        '<label class="sr-only" for="freeans">' +
+        LT("Ditt svar", "Sinu vastus") +
+        "</label>" +
         '<input class="type" id="freeans" maxlength="24" autocomplete="off" autocapitalize="off"' +
         (step.numeric ? ' inputmode="numeric" pattern="[0-9]*"' : "") +
-        ' placeholder="skriv här" value="' +
+        ' placeholder="' +
+        LT("skriv här", "kirjuta siia") +
+        '" value="' +
         esc(prevAns) +
         '">' +
-        '<button class="btn green big wide" id="freeok" style="margin-top:10px">Klart →</button>';
+        '<button class="btn green big wide" id="freeok" style="margin-top:10px">' +
+        LT("Klart →", "Valmis →") +
+        "</button>";
     } else if (T.phase === "q") {
       html +=
-        '<div class="center"><button class="speakbtn sm" id="again" aria-label="Hör frågan igen">🔊</button>' +
-        (micOK ? '<button class="mic" id="mic" aria-label="Svara med rösten">🎤</button>' : "") +
-        '<button class="speakbtn sm" id="slow" aria-label="Hör frågan långsamt">🐢</button></div>' +
+        '<div class="center"><button class="speakbtn sm" id="again" aria-label="' +
+        LT("Hör frågan igen", "Kuula küsimust uuesti") +
+        '">🔊</button>' +
+        (micOK ? '<button class="mic" id="mic" aria-label="' + LT("Svara med rösten", "Vasta häälega") + '">🎤</button>' : "") +
+        '<button class="speakbtn sm" id="slow" aria-label="' +
+        LT("Hör frågan långsamt", "Kuula küsimust aeglaselt") +
+        '">🐢</button></div>' +
         '<div class="heard" id="heard">' +
-        (micOK ? "Säg ditt svar – eller tryck på det." : "Tryck på det svar du vill ge.") +
+        (micOK
+          ? LT("Säg ditt svar – eller tryck på det.", "Ütle oma vastus rootsi keeles – või vajuta sellele.")
+          : LT("Tryck på det svar du vill ge.", "Vajuta vastusele, mida tahad anda.")) +
         "</div>";
-      for (var i = 0; i < step.opts.length; i++) {
+      for (var i = 0; i < opts.length; i++) {
         html +=
           '<button class="answer" data-opt="' +
           i +
           '">' +
-          esc(step.opts[i].et) +
+          esc(tgt(opts[i])) +
           "<span>" +
-          esc(step.opts[i].sv) +
+          esc(nat(opts[i])) +
           "</span></button>";
       }
     } else {
       html +=
         '<div class="center"><button class="btn big" id="onwards">' +
-        (T.phase === "intro" ? "Börja prata 💬" : "Vidare →") +
+        (T.phase === "intro" ? LT("Börja prata 💬", "Hakka rääkima 💬") : LT("Vidare →", "Edasi →")) +
         "</button></div>";
     }
     html += "</div>";
     app.innerHTML = html;
-    speak(line.et);
+    speak(tgt(line));
 
     if (T.phase !== "q") {
       document.getElementById("onwards").onclick = function () {
@@ -15236,10 +15350,10 @@
       return;
     }
     document.getElementById("again").onclick = function () {
-      speak(step.q.et);
+      speak(tgt(q));
     };
     document.getElementById("slow").onclick = function () {
-      speak(step.q.et, true);
+      speak(tgt(q), true);
     };
     if (step.freeText) {
       var fi = document.getElementById("freeans"),
@@ -15274,18 +15388,18 @@
         stopSpeak();
         mMood("listen");
         mic.classList.add("listening");
-        document.getElementById("heard").textContent = "Jag lyssnar …";
+        document.getElementById("heard").textContent = LT("Jag lyssnar …", "Ma kuulan …");
         listen(
           function (alts) {
             var k,
               hit = -1;
-            for (k = 0; k < step.opts.length; k++) {
-              if (saidIt(alts, step.opts[k].et)) {
+            for (k = 0; k < opts.length; k++) {
+              if (saidIt(alts, tgt(opts[k]))) {
                 hit = k;
                 break;
               }
             }
-            document.getElementById("heard").textContent = "Du sa: " + alts[0];
+            document.getElementById("heard").textContent = LT("Du sa: ", "Sa ütlesid: ") + alts[0];
             if (hit >= 0) {
               btns[hit].classList.add("picked");
               setTimeout(function () {
@@ -15293,7 +15407,8 @@
               }, 350);
             } else {
               mMood("think");
-              document.getElementById("heard").textContent = "Du sa: " + alts[0] + " – prova ett av svaren nedan.";
+              document.getElementById("heard").textContent =
+                LT("Du sa: ", "Sa ütlesid: ") + alts[0] + LT(" – prova ett av svaren nedan.", " – proovi mõnda allolevat vastust.");
               setTimeout(function () {
                 mMood("");
               }, 1600);
@@ -15331,7 +15446,7 @@
     sndOk();
     burst(byVoice ? 70 : 40);
     mood("cheer");
-    speak(step.opts[k].et);
+    speak(tgt(chatLine(step.opts[k])));
     if (firstSpoken) celebrateFirst("🎤", "Sa ütlesid esimese sõna valjusti!", "Du sa ditt första ord högt!");
     setTimeout(function () {
       T.phase = "reply";
@@ -15380,10 +15495,12 @@
     burst(40);
     mood("cheer");
     T.freeReply = remembered
-      ? {
-          et: "Jah, täpselt nii!",
-          sv: (REMEMBER_SV[step.saveAs] || "Ja, jag minns att {v} är ditt svar!").replace("{v}", text),
-        }
+      ? isEt()
+        ? { sv: "Ja, precis så!", et: "Jah, ma mäletan: " + text + "!" }
+        : {
+            et: "Jah, täpselt nii!",
+            sv: (REMEMBER_SV[step.saveAs] || "Ja, jag minns att {v} är ditt svar!").replace("{v}", text),
+          }
       : null;
     setTimeout(function () {
       T.phase = "reply";
@@ -15398,29 +15515,37 @@
     burst(150);
     var html =
       '<div class="card" style="text-align:center"><div class="bigstars">★★★</div>' +
-      '<p class="q">Sa said hakkama' +
+      '<p class="q">' +
+      TL("Sa said hakkama", "Du klarade det") +
       (mine ? ", " + mine : "") +
-      "! Du klarade hela samtalet!</p>" +
+      LT("! Du klarade hela samtalet!", "! Sa rääkisid terve vestluse läbi!") +
+      "</p>" +
       '<p class="qsub">' +
       T.voice +
-      " av " +
+      LT(" av ", " / ") +
       T.said +
-      " svar sa du med rösten.</p>" +
+      LT(" svar sa du med rösten.", " vastust ütlesid häälega.") +
+      "</p>" +
       '<div class="center">' +
       siilSVG() +
       "</div>";
     if (newB.length) {
       html += '<div style="margin-top:12px">';
       for (var i = 0; i < newB.length; i++) {
-        html += '<span class="badge">' + newB[i].em + " " + esc(newB[i].sv) + "</span>";
+        html += '<span class="badge">' + newB[i].em + " " + esc(nat(newB[i])) + "</span>";
       }
       html += "</div>";
     }
     html +=
-      '<div class="row"><button class="btn green big" id="again">Prata om annat 💬</button>' +
-      '<button class="btn ghost big" id="home">Tillbaka</button></div></div>';
+      '<div class="row"><button class="btn green big" id="again">' +
+      LT("Prata om annat 💬", "Räägi millestki muust 💬") +
+      "</button>" +
+      '<button class="btn ghost big" id="home">' +
+      LT("Tillbaka", "Tagasi") +
+      "</button></div></div>";
     app.innerHTML = html;
-    if (S.name) speakTo("tubli");
+    if (isEt()) speak("Du är duktig!");
+    else if (S.name) speakTo("tubli");
     else speak("Sa oled tubli!");
     setTimeout(function () {
       mood("cheer");

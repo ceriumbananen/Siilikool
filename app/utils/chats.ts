@@ -33,7 +33,12 @@ export const CHATS = [
         reply: { et: "Väga meeldiv!", sv: "Trevligt!" },
       },
       {
-        q: { et: "Kas sa räägid eesti keelt?", sv: "Talar du estniska?" },
+        /* alt = raden i estniskt läge (barnet lär sig svenska), se chatLine() i app.js */
+        q: {
+          et: "Kas sa räägid eesti keelt?",
+          sv: "Talar du estniska?",
+          alt: { et: "Kas sa räägid rootsi keelt?", sv: "Talar du svenska?" },
+        },
         opts: [
           { et: "Natuke.", sv: "Lite grann." },
           { et: "Jah, ma õpin!", sv: "Ja, jag lär mig!" },
@@ -252,7 +257,11 @@ export const CHATS = [
         q: { et: "Mida sa täna teed?", sv: "Vad gör du idag?" },
         opts: [
           { et: "Ma mängin.", sv: "Jag leker." },
-          { et: "Ma õpin eesti keelt.", sv: "Jag lär mig estniska." },
+          {
+            et: "Ma õpin eesti keelt.",
+            sv: "Jag lär mig estniska.",
+            alt: { et: "Ma õpin rootsi keelt.", sv: "Jag lär mig svenska." },
+          },
         ],
         reply: { et: "See on väga tore!", sv: "Det är jättekul!" },
       },
