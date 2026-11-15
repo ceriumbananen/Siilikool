@@ -14,7 +14,8 @@ const foundCount = computed(() => days.value.filter(x => x.state === "found").le
 
 function pick(d: number, state: string) {
   if (state === "later") return;
-  pak.openLetter(d);
+  if (state === "found") pak.openGift(d);
+  else pak.openLetter(d);
 }
 </script>
 
@@ -35,7 +36,7 @@ function pick(d: number, state: string) {
         :disabled="x.state === 'later' || pak.searching.value"
         :aria-label="
           x.state === 'found'
-            ? `${x.d} december: ${x.gift.sv}, läs brevet igen`
+            ? `${x.d} december: ${x.gift.sv}`
             : x.state === 'waiting'
               ? `${x.d} december: brevet väntar`
               : `${x.d} december`

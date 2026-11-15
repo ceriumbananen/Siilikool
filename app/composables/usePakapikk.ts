@@ -142,6 +142,17 @@ export function usePakapikk() {
     jingle();
     readAloud();
   }
+  /** Ett redan hittat brevs sak (adventskalendern): visas stort, läses upp, brevet går att öppna därifrån. */
+  function openGift(d: number) {
+    if (searching.value || !isFound(d)) return;
+    day.value = d;
+    step.value = 0;
+    reread.value = true;
+    reward.value = null;
+    mode.value = "done";
+    jingle();
+    sayLines([pakDay(d).gift.et]);
+  }
   function openWaiting() {
     if (waiting.value) openLetter(waiting.value);
   }
@@ -262,6 +273,7 @@ export function usePakapikk() {
     readAloud,
     sayLine: (et: string) => voice.sayWord(et),
     openLetter,
+    openGift,
     openWaiting,
     startSearch,
     close,

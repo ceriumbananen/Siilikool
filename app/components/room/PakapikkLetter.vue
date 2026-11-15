@@ -10,6 +10,16 @@ const lines = computed(() =>
 );
 const askEt = computed(() => pak.target.value?.ask.et);
 const hatItem = computed(() => SHOP.find(it => it.id === PAK_FINAL_ITEM));
+
+/* dagens sak i stort format: tryck på bilden, tryck var som helst för att stänga */
+const zoomed = ref(false);
+watch(open, o => {
+  if (!o) zoomed.value = false;
+});
+function zoom() {
+  zoomed.value = true;
+  pak.readAloud();
+}
 </script>
 
 <template>
@@ -18,7 +28,7 @@ const hatItem = computed(() => SHOP.find(it => it.id === PAK_FINAL_ITEM));
       <!-- dagens sak -->
       <div v-if="pak.mode.value === 'done'" class="pak-letter__paper pak-letter__paper--gift">
         <p class="pak-letter__date">{{ pak.current.value!.day }}. detsember</p>
-        <button class="pak-letter__gift" @click="pak.readAloud()">
+        <button class="pak-letter__gift" aria-label="Visa större" @click="zoom">
           <img v-if="pak.current.value!.gift.img" :src="pak.current.value!.gift.img" alt="" />
           <span v-else aria-hidden="true">{{ pak.current.value!.gift.em }}</span>
           <b lang="et">{{ pak.current.value!.gift.et }}</b>
@@ -28,17 +38,26 @@ const hatItem = computed(() => SHOP.find(it => it.id === PAK_FINAL_ITEM));
           {{ hatItem?.em }} Nissen lämnade också en <b>{{ hatItem?.sv.toLowerCase() }}</b> till Siiri! Den finns under
           Kläder.
         </p>
-        <p v-if="pak.testing.value" class="pak-letter__hat">
+        <p v-if="pak.testing.value && !pak.reread.value" class="pak-letter__hat">
           🧪 Testläge – inga stjärnor{{ pak.current.value!.day === PAK_DAYS ? " och ingen tomteluva" : "" }} sparas.
         </p>
         <p v-if="pak.reward.value?.stars" class="pak-letter__stars">+{{ pak.reward.value.stars }} ⭐</p>
-        <p class="pak-letter__next">
-          <template v-if="pak.waiting.value">Det väntar ett brev till i rummet ✉️</template>
-          <template v-else-if="pak.current.value!.day < PAK_DAYS">Nytt brev i rummet i morgon!</template>
-          <template v-else>Häid jõule! God jul från nissen 🎄</template>
-        </p>
-        <UiAppButton variant="green" wide big @click="pak.close()">Aitäh! · Tack!</UiAppButton>
+        <template v-if="pak.reread.value">
+          <div class="pak-letter__tools pak-letter__tools--center">
+            <button class="pak-letter__tool" @click="pak.openLetter(pak.current.value!.day)">📜 Läs brevet</button>
+          </div>
+          <UiAppButton variant="ghost" wide @click="pak.close()">Stäng</UiAppButton>
+        </template>
+        <template v-else>
+          <p class="pak-letter__next">
+            <template v-if="pak.waiting.value">Det väntar ett brev till i rummet ✉️</template>
+            <template v-else-if="pak.current.value!.day < PAK_DAYS">Nytt brev i rummet i morgon!</template>
+            <template v-else>Häid jõule! God jul från nissen 🎄</template>
+          </p>
+          <UiAppButton variant="green" wide big @click="pak.close()">Aitäh! · Tack!</UiAppButton>
+        </template>
       </div>
+
 
       <!-- brevet eller lappen -->
       <div v-else class="pak-letter__paper" :class="{ 'pak-letter__paper--note': pak.mode.value === 'note' }">
@@ -66,6 +85,19 @@ const hatItem = computed(() => SHOP.find(it => it.id === PAK_FINAL_ITEM));
         <UiAppButton v-if="pak.reread.value" variant="ghost" wide @click="pak.close()">Stäng</UiAppButton>
         <UiAppButton v-else variant="green" wide big @click="pak.startSearch()">🔍 Ma otsin! · Jag letar!</UiAppButton>
       </div>
+
+      <!-- dagens sak i stort format -->
+      <button
+        v-if="zoomed && pak.mode.value === 'done'"
+        class="pak-zoom"
+        aria-label="Stäng den stora bilden"
+        @click="zoomed = false"
+      >
+        <img v-if="pak.current.value!.gift.img" :src="pak.current.value!.gift.img" alt="" />
+        <span v-else aria-hidden="true">{{ pak.current.value!.gift.em }}</span>
+        <b lang="et">{{ pak.current.value!.gift.et }}</b>
+        <small>{{ pak.current.value!.gift.sv }}</small>
+      </button>
     </div>
   </Teleport>
 </template>
@@ -300,6 +332,56 @@ const hatItem = computed(() => SHOP.find(it => it.id === PAK_FINAL_ITEM));
   }
 }
 
+.pak-letter__tools--center {
+  justify-content: center;
+}
+
+.pak-zoom {
+  position: fixed;
+  inset: 0;
+  z-index: 101;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: $spacing-2;
+  border: none;
+  padding: $spacing-4;
+  background: rgba(12, 28, 18, 0.88);
+  color: #fffaf0;
+  font: inherit;
+  cursor: zoom-out;
+  animation: pak-zoom-in 0.35s cubic-bezier(0.34, 1.4, 0.4, 1);
+
+  img {
+    width: min(80vw, 60vh, 32rem);
+    height: min(80vw, 60vh, 32rem);
+    object-fit: contain;
+    filter: drop-shadow(0 0.5rem 1.25rem rgba(0, 0, 0, 0.4));
+  }
+
+  span {
+    font-size: min(50vw, 40vh, 16rem);
+    line-height: 1.1;
+  }
+
+  b {
+    font-size: $font-size-3xl;
+  }
+
+  small {
+    font-size: $font-size-lg;
+    opacity: 0.8;
+  }
+}
+
+@keyframes pak-zoom-in {
+  from {
+    opacity: 0;
+    transform: scale(0.85);
+  }
+}
+
 @keyframes pak-unfold {
   from {
     opacity: 0;
@@ -321,6 +403,7 @@ const hatItem = computed(() => SHOP.find(it => it.id === PAK_FINAL_ITEM));
 
 @media (prefers-reduced-motion: reduce) {
   .pak-letter__paper,
+  .pak-zoom,
   .pak-letter__gift img,
   .pak-letter__gift span {
     animation: none;
