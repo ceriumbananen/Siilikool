@@ -28,6 +28,7 @@
    den kommer från tone(), som hör till ljudmotorn i app.js och inte är laddad här. */
 
 const profile = useProfileStore();
+const { L, TL, tgt, nat, tgtLang, isEt } = useLang();
 /* estniskt läge är under uppbyggnad - rutan syns bara där det slagits på i Admin (samma
    flagga som språkvalet vid första start, LANG_BETA_KEY i public/legacy/app.js) eller för en
    spelare som redan är i estniskt läge */
@@ -97,7 +98,7 @@ const favColor = computed(() => (profile.state.favColor as string | undefined) |
 const petName = computed(() => (profile.state.petName as string | undefined) || "");
 const petKind = computed(() => {
   const id = (profile.state.room as Record<string, string> | undefined)?.pet;
-  return FURN.find(f => f.id === id)?.sv.toLowerCase() || "";
+  return nat(FURN.find(f => f.id === id)).toLowerCase();
 });
 const daysPlayed = computed(() => (profile.state.daysPlayed as number | undefined) || 0);
 const hasFacts = computed(() => !!(favColor.value || petName.value || daysPlayed.value));
@@ -180,63 +181,77 @@ function tapSettingsTitle() {
 <template>
   <UiAppShell active="me">
     <main class="profile-page">
-      <UiPageHero emoji="🦔" title="Minu profiil" subtitle="Min profil" tone="violet" />
+      <UiPageHero
+        emoji="🦔"
+        :title="TL('Minu profiil', 'Min profil')"
+        :subtitle="L('Min profil', 'Minu profiil')"
+        tone="violet"
+      />
 
       <UiAppCard class="profile-page__section profile-page__me">
         <UiSiiriPortrait />
-        <p class="profile-page__name">{{ profile.state.name || "Ingen spelare än" }}</p>
+        <p class="profile-page__name">{{ profile.state.name || L("Ingen spelare än", "Mängijat veel pole") }}</p>
         <div v-if="nameClipUrl || profile.state.name" class="profile-page__name-audio">
-          <UiAppButton v-if="nameClipUrl" variant="ghost" @click="playName">🔊 Hör Siiri säga ditt namn</UiAppButton>
+          <UiAppButton v-if="nameClipUrl" variant="ghost" @click="playName">{{
+            L("🔊 Hör Siiri säga ditt namn", "🔊 Kuula, kuidas Siiri su nime ütleb")
+          }}</UiAppButton>
           <p v-else class="profile-page__rank-sv">
-            Siiri kan inte säga just det namnet högt än, men skriver det överallt.
+            {{
+              L(
+                "Siiri kan inte säga just det namnet högt än, men skriver det överallt.",
+                "Siiri ei oska seda nime veel valjusti öelda, aga kirjutab selle igale poole.",
+              )
+            }}
           </p>
         </div>
         <UiMedalBadge :rank="rank" :locked="false" :medal-style="medalStyleOf(profile.state.mstyle, rank.id)" />
-        <p class="profile-page__rank-name" lang="et">{{ rank.et }}</p>
-        <p class="profile-page__rank-sv">{{ rank.sv }}</p>
-        <p v-if="nextRank">Nästa märke om {{ nextRank.xp - profile.state.xp }} poäng</p>
-        <p v-else>Alla märken tagna!</p>
+        <p class="profile-page__rank-name" :lang="tgtLang()">{{ tgt(rank) }}</p>
+        <p class="profile-page__rank-sv">{{ nat(rank) }}</p>
+        <p v-if="nextRank && isEt()">Järgmise märgini veel {{ nextRank.xp - profile.state.xp }} punkti</p>
+        <p v-else-if="nextRank">Nästa märke om {{ nextRank.xp - profile.state.xp }} poäng</p>
+        <p v-else>{{ L("Alla märken tagna!", "Kõik märgid käes!") }}</p>
       </UiAppCard>
 
       <UiAppCard class="profile-page__section">
-        <h2>Dina siffror</h2>
+        <h2>{{ L("Dina siffror", "Sinu numbrid") }}</h2>
         <div class="profile-page__stats">
           <div class="profile-page__stat">
             <b>{{ profile.state.xp }}</b
-            ><span>poäng</span>
+            ><span>{{ L("poäng", "punkti") }}</span>
           </div>
           <div class="profile-page__stat">
             <b>{{ profile.state.stars }}</b
-            ><span>stjärnor</span>
+            ><span>{{ L("stjärnor", "tähte") }}</span>
           </div>
           <div class="profile-page__stat">
             <b>{{ profile.state.correct }}</b
-            ><span>rätta svar</span>
+            ><span>{{ L("rätta svar", "õiget vastust") }}</span>
           </div>
           <div class="profile-page__stat">
             <b>{{ profile.state.bestcombo || 0 }}</b
-            ><span>bästa kombo</span>
+            ><span>{{ L("bästa kombo", "parim seeria") }}</span>
           </div>
           <div class="profile-page__stat">
             <b>{{ themesDone }} / {{ THEMES_LENGTH }}</b
-            ><span>teman klara</span>
+            ><span>{{ L("teman klara", "teemat läbitud") }}</span>
           </div>
           <div class="profile-page__stat">
-            <b>{{ profile.state.flames || 0 }} 🌟</b><span>dagsutmaningar klarade</span>
+            <b>{{ profile.state.flames || 0 }} 🌟</b
+            ><span>{{ L("dagsutmaningar klarade", "päevaülesannet tehtud") }}</span>
           </div>
           <div class="profile-page__stat">
             <b>{{ profile.state.spoken }}</b
-            ><span>sagt högt</span>
+            ><span>{{ L("sagt högt", "valjusti öeldud") }}</span>
           </div>
           <div class="profile-page__stat">
             <b>{{ profile.state.typed }}</b
-            ><span>skrivna ord</span>
+            ><span>{{ L("skrivna ord", "kirjutatud sõna") }}</span>
           </div>
         </div>
       </UiAppCard>
 
       <UiAppCard class="profile-page__section">
-        <h2>Dina bragder</h2>
+        <h2>{{ L("Dina bragder", "Sinu saavutused") }}</h2>
         <UiBadgeChip
           v-for="row in badgeRows"
           :key="row.badge.id"
@@ -247,26 +262,36 @@ function tapSettingsTitle() {
       </UiAppCard>
 
       <UiAppCard class="profile-page__section">
-        <h2>Om dig och Siiri</h2>
+        <h2>{{ L("Om dig och Siiri", "Sinust ja Siirist") }}</h2>
         <ul v-if="hasFacts" class="profile-page__facts">
           <li v-if="favColor">
-            🎨 Din favoritfärg är <b>{{ favColor }}</b>
+            {{ L("🎨 Din favoritfärg är", "🎨 Sinu lemmikvärv on") }} <b>{{ favColor }}</b>
           </li>
           <li v-if="petName">
-            🐾 Husdjuret i rummet heter <b>{{ petName }}</b
+            {{ L("🐾 Husdjuret i rummet heter", "🐾 Toa lemmiklooma nimi on") }} <b>{{ petName }}</b
             ><template v-if="petKind"> ({{ petKind }})</template>
           </li>
-          <li v-if="daysPlayed">
+          <li v-if="daysPlayed && isEt()">
+            💛 Te olete koos mänginud <b>{{ daysPlayed }}</b> {{ daysPlayed === 1 ? "päev" : "päeva" }}
+          </li>
+          <li v-else-if="daysPlayed">
             💛 Ni har spelat ihop i <b>{{ daysPlayed }}</b> {{ daysPlayed === 1 ? "dag" : "dagar" }}
           </li>
         </ul>
-        <p v-else class="profile-page__facts-empty">Ju mer ni pratar och leker, desto mer lär Siiri känna dig!</p>
+        <p v-else class="profile-page__facts-empty">
+          {{
+            L(
+              "Ju mer ni pratar och leker, desto mer lär Siiri känna dig!",
+              "Mida rohkem te räägite ja mängite, seda paremini Siiri sind tundma õpib!",
+            )
+          }}
+        </p>
       </UiAppCard>
 
       <div v-if="profile.state.secretsOpen" class="profile-page__secrets">
         <h3 @click="toggleSecrets">
-          🤫 {{ secretsFound.length }} av {{ SECRETS.length }}
-          <span class="profile-page__secrets-close">✕ dölj</span>
+          🤫 {{ secretsFound.length }} {{ L("av", "/") }} {{ SECRETS.length }}
+          <span class="profile-page__secrets-close">{{ L("✕ dölj", "✕ peida") }}</span>
         </h3>
         <div
           v-for="secret in SECRETS"
@@ -276,17 +301,31 @@ function tapSettingsTitle() {
         >
           <span aria-hidden="true">{{ secretsFound.includes(secret.id) ? secret.em : "❔" }}</span>
           <span>
-            <template v-if="secretsFound.includes(secret.id)">{{ secret.sv }}</template>
-            <i v-else>{{ secret.hint }}</i>
-            <small>{{ secretsFound.includes(secret.id) ? "Hittad" : "" }}</small>
+            <template v-if="secretsFound.includes(secret.id)">{{ L(secret.sv, secret.et) }}</template>
+            <i v-else>{{ L(secret.hint, secret.hintEt) }}</i>
+            <small>{{ secretsFound.includes(secret.id) ? L("Hittad", "Leitud") : "" }}</small>
           </span>
         </div>
-        <p class="profile-page__secrets-note">Siiri gömmer saker i appen. Vissa hittar man av en slump.</p>
+        <p class="profile-page__secrets-note">
+          {{
+            L(
+              "Siiri gömmer saker i appen. Vissa hittar man av en slump.",
+              "Siiri peidab äppi asju. Mõned leiad juhuslikult.",
+            )
+          }}
+        </p>
       </div>
 
       <UiAppCard class="profile-page__section">
-        <h2>Mängijad · Spelare</h2>
-        <p>Varje spelare har egna poäng, egen figur och egen garderob.</p>
+        <h2>{{ L("Mängijad · Spelare", "Spelare · Mängijad") }}</h2>
+        <p>
+          {{
+            L(
+              "Varje spelare har egna poäng, egen figur och egen garderob.",
+              "Igal mängijal on oma punktid, oma tegelane ja oma riidekapp.",
+            )
+          }}
+        </p>
         <div class="profile-page__slots">
           <button
             v-for="s in players"
@@ -296,27 +335,27 @@ function tapSettingsTitle() {
             @click="cloud.requestPlayer(s.key)"
           >
             <span aria-hidden="true">{{ s.info?.avatar || "🦔" }}</span>
-            <b>{{ s.name || "Namnlös" }}</b>
+            <b>{{ s.name || L("Namnlös", "Nimetu") }}</b>
             <small v-if="s.info"
               >{{ (s.info.xp || 0).toLocaleString("sv-SE") }} p · ⭐{{
                 (s.info.stars || 0).toLocaleString("sv-SE")
               }}</small
             >
             <small v-if="s.kind === 'child-pin'">☁️ 🔒 PIN</small>
-            <small v-else-if="s.kind === 'child'">☁️ familjen</small>
-            <small v-else-if="s.kind === 'adult'">☁️ vuxen</small>
-            <small v-if="s.current" class="profile-page__slot-current">spelar nu</small>
+            <small v-else-if="s.kind === 'child'">☁️ {{ L("familjen", "pere") }}</small>
+            <small v-else-if="s.kind === 'adult'">☁️ {{ L("vuxen", "täiskasvanu") }}</small>
+            <small v-if="s.current" class="profile-page__slot-current">{{ L("spelar nu", "mängib praegu") }}</small>
           </button>
           <button v-for="m in family" :key="m.id" class="profile-page__slot" :disabled="playBusy" @click="playAs(m)">
             <span aria-hidden="true">{{ m.avatar }}</span>
             <b>{{ m.name }}</b>
             <small>⭐{{ (m.stars || 0).toLocaleString("sv-SE") }}</small>
-            <small>▶ spela som</small>
+            <small>{{ L("▶ spela som", "▶ mängi temana") }}</small>
           </button>
           <button class="profile-page__slot" @click="profile.newLocalPlayer('/')">
             <span aria-hidden="true">➕</span>
-            <b>Ny spelare</b>
-            <small>utan konto</small>
+            <b>{{ L("Ny spelare", "Uus mängija") }}</b>
+            <small>{{ L("utan konto", "ilma kontota") }}</small>
           </button>
         </div>
         <p v-if="playErr" role="alert">{{ playErr }}</p>
@@ -324,42 +363,75 @@ function tapSettingsTitle() {
       <WhoPlays />
 
       <UiAppCard v-if="cloud.enabled" class="profile-page__section">
-        <h2>Perekond · Familj</h2>
+        <h2>{{ L("Perekond · Familj", "Familj · Perekond") }}</h2>
         <template v-if="cloud.isAdult">
-          <p>
+          <p v-if="isEt()">
+            Oled sisse loginud täiskasvanuna{{ cloud.familyName ? ` (${cloud.familyName})` : "" }}. Kõik pereliikmed,
+            sõnad, koodid ja „Lämna över till barnen” on lehel Pere.
+          </p>
+          <p v-else>
             Du är inloggad som vuxen{{ cloud.familyName ? ` i ${cloud.familyName}` : "" }}. Alla i familjen, glosor,
             koder och ”Lämna över till barnen” finns i Familjen.
           </p>
           <div class="profile-page__row">
-            <a class="profile-page__btn profile-page__btn--green" href="/familj">👨‍👩‍👧 Familjen</a>
+            <a class="profile-page__btn profile-page__btn--green" href="/familj">{{ L("👨‍👩‍👧 Familjen", "👨‍👩‍👧 Pere") }}</a>
           </div>
         </template>
         <template v-else-if="cloud.isFamilyDevice">
-          <p>
+          <p v-if="isEt()">
+            {{ cloud.isLocked ? "🔒 Täiskasvanu on seadme lukustanud. " : "" }}
+            {{ cloud.familyName ? `Te mängite peres „${cloud.familyName}”.` : "Te mängite pere kontoga." }}
+            Mäng salvestub pere kontole ja sõnad tulevad täiskasvanutelt.
+          </p>
+          <p v-else>
             {{ cloud.isLocked ? "🔒 Enheten är låst av en vuxen. " : "" }}
             {{ cloud.familyName ? `Ni spelar i ${cloud.familyName}.` : "Ni spelar i familjen." }}
             Spelet sparas i familjekontot och glosorna kommer från de vuxna.
           </p>
           <div class="profile-page__row">
-            <UiAppButton variant="green" @click="cloud.openPicker()">👥 Byt spelare</UiAppButton>
-            <a class="profile-page__btn profile-page__btn--ghost" href="/join">➕ Lägg till spelare</a>
-            <a v-if="cloud.isLocked" class="profile-page__btn profile-page__btn--ghost" href="/familj">🔓 Lås upp</a>
+            <UiAppButton variant="green" @click="cloud.openPicker()">{{
+              L("👥 Byt spelare", "👥 Vaheta mängijat")
+            }}</UiAppButton>
+            <a class="profile-page__btn profile-page__btn--ghost" href="/join">{{
+              L("➕ Lägg till spelare", "➕ Lisa mängija")
+            }}</a>
+            <a v-if="cloud.isLocked" class="profile-page__btn profile-page__btn--ghost" href="/familj">{{
+              L("🔓 Lås upp", "🔓 Ava lukk")
+            }}</a>
           </div>
         </template>
         <template v-else-if="cloud.session">
-          <p>Du är inloggad men inte med i någon familj än.</p>
+          <p>
+            {{ L("Du är inloggad men inte med i någon familj än.", "Oled sisse loginud, aga pole veel üheski peres.") }}
+          </p>
           <div class="profile-page__row">
-            <a class="profile-page__btn profile-page__btn--green" href="/familj">👨‍👩‍👧 Skapa familjen</a>
+            <a class="profile-page__btn profile-page__btn--green" href="/familj">{{
+              L("👨‍👩‍👧 Skapa familjen", "👨‍👩‍👧 Loo pere")
+            }}</a>
           </div>
         </template>
         <template v-else-if="cloud.link?.kind === 'adult'">
-          <p>Spelet hör till ditt konto, men du är utloggad. Logga in igen så sparas det som vanligt.</p>
+          <p>
+            {{
+              L(
+                "Spelet hör till ditt konto, men du är utloggad. Logga in igen så sparas det som vanligt.",
+                "Mäng kuulub sinu kontole, aga sa oled välja logitud. Logi uuesti sisse, siis salvestub kõik nagu tavaliselt.",
+              )
+            }}
+          </p>
           <div class="profile-page__row">
-            <a class="profile-page__btn profile-page__btn--green" href="/">🔑 Logga in</a>
+            <a class="profile-page__btn profile-page__btn--green" href="/">{{ L("🔑 Logga in", "🔑 Logi sisse") }}</a>
           </div>
         </template>
         <template v-else>
-          <p>
+          <p v-if="isEt()">
+            {{
+              cloud.link
+                ? "Mäng kuulub perele, aga seade on välja logitud. Kirjuta perekood uuesti, siis salvestub kõik nagu tavaliselt."
+                : "Mängi koos perega: mäng salvestub pere kontole ja liigub kaasa teistesse seadmetesse ning sõnad tulevad täiskasvanutelt. Kas sul on juba konto? Vajuta „Täiskasvanutele”, et sisse logida – seal on ka edusammud, kooli sõnad ja varukoopia."
+            }}
+          </p>
+          <p v-else>
             {{
               cloud.link
                 ? "Spelet hör till familjen, men enheten är utloggad. Skriv familjekoden igen så sparas det som vanligt."
@@ -369,8 +441,12 @@ function tapSettingsTitle() {
             }}
           </p>
           <div class="profile-page__row">
-            <a class="profile-page__btn profile-page__btn--green" href="/join">🔑 Jag har en familjekod</a>
-            <a class="profile-page__btn profile-page__btn--ghost" href="/familj">🔐 För vuxna · logga in</a>
+            <a class="profile-page__btn profile-page__btn--green" href="/join">{{
+              L("🔑 Jag har en familjekod", "🔑 Mul on perekood")
+            }}</a>
+            <a class="profile-page__btn profile-page__btn--ghost" href="/familj">{{
+              L("🔐 För vuxna · logga in", "🔐 Täiskasvanutele · logi sisse")
+            }}</a>
           </div>
         </template>
       </UiAppCard>
@@ -399,17 +475,22 @@ function tapSettingsTitle() {
       </UiAppCard>
 
       <UiAppCard class="profile-page__section">
-        <h2 class="profile-page__secret-tap" @click="tapSettingsTitle">Seaded · Inställningar</h2>
+        <h2 class="profile-page__secret-tap" @click="tapSettingsTitle">
+          {{ L("Seaded · Inställningar", "Inställningar · Seaded") }}
+        </h2>
         <div class="profile-page__row">
           <UiAppButton variant="ghost" @click="toggleSound">{{
-            profile.state.sound ? "🔊 Ljud på" : "🔇 Ljud av"
+            profile.state.sound ? L("🔊 Ljud på", "🔊 Heli sees") : L("🔇 Ljud av", "🔇 Heli väljas")
           }}</UiAppButton>
-          <UiAppButton variant="ghost" @click="toggleTheme">🌙 Ljust / mörkt</UiAppButton>
+          <UiAppButton variant="ghost" @click="toggleTheme">{{ L("🌙 Ljust / mörkt", "🌙 Hele / tume") }}</UiAppButton>
           <UiAppButton variant="ghost" @click="toggleAmbience">{{
-            profile.state.amb ? "🎵 Ljudmiljö på" : "🎵 Ljudmiljö av"
+            profile.state.amb
+              ? L("🎵 Ljudmiljö på", "🎵 Taustahelid sees")
+              : L("🎵 Ljudmiljö av", "🎵 Taustahelid väljas")
           }}</UiAppButton>
         </div>
-        <p>
+        <p v-if="isEt()">Siiri räägib rootsi keelt Sofie häälega. 🐢 loeb sama sõna aeglasemalt ette.</p>
+        <p v-else>
           Siiri talar med den estniska rösten Mari, byggd på studioinspelningar från Tartu universitet. 🐢 ger en
           långsammare inläsning av samma ord.
         </p>
@@ -419,24 +500,24 @@ function tapSettingsTitle() {
         <button
           v-if="!profile.state.secretsOpen"
           class="profile-page__peek"
-          aria-label="Visa dolda hemligheter"
+          :aria-label="L('Visa dolda hemligheter', 'Näita peidetud saladusi')"
           @click="toggleSecrets"
         >
           🤫
         </button>
 
-        <a class="profile-page__btn profile-page__btn--wide" href="/room"
-          >🏠 Siiri tuba · välj Siiris färg och kläder</a
-        >
-        <a class="profile-page__btn profile-page__btn--wide" href="/" @click="markLegacyScreen('edit')"
-          >✏️ Ändra namn, figur och färg</a
-        >
+        <a class="profile-page__btn profile-page__btn--wide" href="/room">{{
+          L("🏠 Siiri tuba · välj Siiris färg och kläder", "🏠 Siiris rum · vali Siiri värv ja riided")
+        }}</a>
+        <a class="profile-page__btn profile-page__btn--wide" href="/" @click="markLegacyScreen('edit')">{{
+          L("✏️ Ändra namn, figur och färg", "✏️ Muuda nime, tegelast ja värvi")
+        }}</a>
         <!-- Tillfälligt utkommenterade tills vi vet vad vi vill göra med denna actions meny -->
         <!-- <a class="profile-page__btn profile-page__btn--wide profile-page__btn--ghost" href="/shop"
             >🎪 Laat · Marknaden</a> -->
-        <a class="profile-page__btn profile-page__btn--wide profile-page__btn--ghost" href="/trophy"
-          >🏆 Skattkammaren</a
-        >
+        <a class="profile-page__btn profile-page__btn--wide profile-page__btn--ghost" href="/trophy">{{
+          L("🏆 Skattkammaren", "🏆 Aarded")
+        }}</a>
         <!-- Tillfälligt utkommenterade tills vi vet vad vi vill göra med denna actions meny -->
         <!-- <a class="profile-page__btn profile-page__btn--wide profile-page__btn--ghost" href="/"
               @click="markLegacyScreen('words')">📖 Sõnastik · Ordlistan</a> -->
@@ -446,12 +527,12 @@ function tapSettingsTitle() {
           class="profile-page__btn profile-page__btn--wide profile-page__btn--ghost"
           href="/familj"
         >
-          🔐 För vuxna
+          {{ L("🔐 För vuxna", "🔐 Täiskasvanutele") }}
         </a>
         <a v-if="profile.state.school" class="profile-page__bigcard" href="/" @click="markLegacyScreen('school')">
           <span class="profile-page__bigcard-emoji" aria-hidden="true">📝</span>
           <span class="profile-page__bigcard-text">
-            <b>Läxorden · ▶️ Öva</b>
+            <b>{{ L("Läxorden · ▶️ Öva", "Koolisõnad · ▶️ Harjuta") }}</b>
             <small>{{ profile.state.school.name }}</small>
           </span>
           <span aria-hidden="true">›</span>

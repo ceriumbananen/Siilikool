@@ -3,6 +3,7 @@
    Ett gammaldags brev på krämvitt papper med rött sigill; varje rad går att trycka på för att
    höra den igen. Svenskan är dold bakom 🇸🇪 utom på lätt nivå. Logiken i usePakapikk.ts. */
 const pak = usePakapikk();
+const { L, TL, tgt, nat, tgtLang, isEt } = useLang();
 
 const open = computed(() => ["letter", "note", "done"].includes(pak.mode.value) && !!pak.current.value);
 const lines = computed(() =>
@@ -27,42 +28,64 @@ function zoom() {
     <div v-if="open" class="pak-letter" role="dialog" aria-modal="true" @click.self="pak.close()">
       <!-- dagens sak -->
       <div v-if="pak.mode.value === 'done'" class="pak-letter__paper pak-letter__paper--gift">
-        <p class="pak-letter__date">{{ pak.current.value!.day }}. detsember</p>
-        <button class="pak-letter__gift" aria-label="Visa större" @click="zoom">
+        <p class="pak-letter__date">
+          {{ TL(`${pak.current.value!.day}. detsember`, `${pak.current.value!.day} december`) }}
+        </p>
+        <button class="pak-letter__gift" :aria-label="L('Visa större', 'Näita suuremalt')" @click="zoom">
           <img v-if="pak.current.value!.gift.img" :src="pak.current.value!.gift.img" alt="" />
           <span v-else aria-hidden="true">{{ pak.current.value!.gift.em }}</span>
-          <b lang="et">{{ pak.current.value!.gift.et }}</b>
-          <small>{{ pak.current.value!.gift.sv }}</small>
+          <b :lang="tgtLang()">{{ tgt(pak.current.value!.gift) }}</b>
+          <small>{{ nat(pak.current.value!.gift) }}</small>
         </button>
-        <p v-if="pak.reward.value?.hat" class="pak-letter__hat">
+        <p v-if="pak.reward.value?.hat && isEt()" class="pak-letter__hat">
+          {{ hatItem?.em }} Päkapikk jättis Siirile ka kingituse: <b>{{ hatItem?.et.toLowerCase() }}</b
+          >! Leiad selle riiete juurest.
+        </p>
+        <p v-else-if="pak.reward.value?.hat" class="pak-letter__hat">
           {{ hatItem?.em }} Nissen lämnade också en <b>{{ hatItem?.sv.toLowerCase() }}</b> till Siiri! Den finns under
           Kläder.
         </p>
         <p v-if="pak.testing.value && !pak.reread.value" class="pak-letter__hat">
-          🧪 Testläge – inga stjärnor{{ pak.current.value!.day === PAK_DAYS ? " och ingen tomteluva" : "" }} sparas.
+          {{
+            L(
+              `🧪 Testläge – inga stjärnor${pak.current.value!.day === PAK_DAYS ? " och ingen tomteluva" : ""} sparas.`,
+              `🧪 Testrežiim – tähti${pak.current.value!.day === PAK_DAYS ? " ega jõulumütsi" : ""} ei salvestata.`,
+            )
+          }}
         </p>
         <p v-if="pak.reward.value?.stars" class="pak-letter__stars">+{{ pak.reward.value.stars }} ⭐</p>
         <template v-if="pak.reread.value">
           <div class="pak-letter__tools pak-letter__tools--center">
-            <button class="pak-letter__tool" @click="pak.openLetter(pak.current.value!.day)">📜 Läs brevet</button>
+            <button class="pak-letter__tool" @click="pak.openLetter(pak.current.value!.day)">
+              {{ L("📜 Läs brevet", "📜 Loe kirja") }}
+            </button>
           </div>
-          <UiAppButton variant="ghost" wide @click="pak.close()">Stäng</UiAppButton>
+          <UiAppButton variant="ghost" wide @click="pak.close()">{{ L("Stäng", "Sulge") }}</UiAppButton>
         </template>
         <template v-else>
           <p class="pak-letter__next">
-            <template v-if="pak.waiting.value">Det väntar ett brev till i rummet ✉️</template>
-            <template v-else-if="pak.current.value!.day < PAK_DAYS">Nytt brev i rummet i morgon!</template>
-            <template v-else>Häid jõule! God jul från nissen 🎄</template>
+            <template v-if="pak.waiting.value">{{
+              L("Det väntar ett brev till i rummet ✉️", "Toas ootab veel üks kiri ✉️")
+            }}</template>
+            <template v-else-if="pak.current.value!.day < PAK_DAYS">{{
+              L("Nytt brev i rummet i morgon!", "Homme on toas uus kiri!")
+            }}</template>
+            <template v-else>{{
+              L("Häid jõule! God jul från nissen 🎄", "God jul! Häid jõule päkapikult 🎄")
+            }}</template>
           </p>
-          <UiAppButton variant="green" wide big @click="pak.close()">Aitäh! · Tack!</UiAppButton>
+          <UiAppButton variant="green" wide big @click="pak.close()">{{
+            L("Aitäh! · Tack!", "Tack! · Aitäh!")
+          }}</UiAppButton>
         </template>
       </div>
-
 
       <!-- brevet eller lappen -->
       <div v-else class="pak-letter__paper" :class="{ 'pak-letter__paper--note': pak.mode.value === 'note' }">
         <span class="pak-letter__seal" aria-hidden="true" />
-        <p v-if="pak.mode.value === 'letter'" class="pak-letter__date">{{ pak.current.value!.day }}. detsember</p>
+        <p v-if="pak.mode.value === 'letter'" class="pak-letter__date">
+          {{ TL(`${pak.current.value!.day}. detsember`, `${pak.current.value!.day} december`) }}
+        </p>
         <button
           v-for="(l, i) in lines"
           :key="i"
@@ -71,32 +94,36 @@ function zoom() {
             'pak-letter__line--ask': l.et === askEt,
             'pak-letter__line--sign': l === PAK_SIGNOFF,
           }"
-          @click="pak.sayLine(l.et)"
+          @click="pak.sayLine(l)"
         >
-          <b lang="et">{{ l.et }}</b>
-          <small v-if="pak.showSv.value">{{ l.sv }}</small>
+          <b :lang="tgtLang()">{{ tgt(l) }}</b>
+          <small v-if="pak.showSv.value">{{ nat(l) }}</small>
         </button>
         <div class="pak-letter__tools">
-          <button class="pak-letter__tool" @click="pak.readAloud()">🔊 Loe ette</button>
+          <button class="pak-letter__tool" @click="pak.readAloud()">{{ TL("🔊 Loe ette", "🔊 Läs upp") }}</button>
           <button v-if="!pak.showSv.value" class="pak-letter__tool" @click="pak.showSv.value = true">
-            🇸🇪 Vad står det?
+            {{ L("🇸🇪 Vad står det?", "🇪🇪 Mida see tähendab?") }}
           </button>
         </div>
-        <UiAppButton v-if="pak.reread.value" variant="ghost" wide @click="pak.close()">Stäng</UiAppButton>
-        <UiAppButton v-else variant="green" wide big @click="pak.startSearch()">🔍 Ma otsin! · Jag letar!</UiAppButton>
+        <UiAppButton v-if="pak.reread.value" variant="ghost" wide @click="pak.close()">{{
+          L("Stäng", "Sulge")
+        }}</UiAppButton>
+        <UiAppButton v-else variant="green" wide big @click="pak.startSearch()">{{
+          L("🔍 Ma otsin! · Jag letar!", "🔍 Jag letar! · Ma otsin!")
+        }}</UiAppButton>
       </div>
 
       <!-- dagens sak i stort format -->
       <button
         v-if="zoomed && pak.mode.value === 'done'"
         class="pak-zoom"
-        aria-label="Stäng den stora bilden"
+        :aria-label="L('Stäng den stora bilden', 'Sulge suur pilt')"
         @click="zoomed = false"
       >
         <img v-if="pak.current.value!.gift.img" :src="pak.current.value!.gift.img" alt="" />
         <span v-else aria-hidden="true">{{ pak.current.value!.gift.em }}</span>
-        <b lang="et">{{ pak.current.value!.gift.et }}</b>
-        <small>{{ pak.current.value!.gift.sv }}</small>
+        <b :lang="tgtLang()">{{ tgt(pak.current.value!.gift) }}</b>
+        <small>{{ nat(pak.current.value!.gift) }}</small>
       </button>
     </div>
   </Teleport>

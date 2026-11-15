@@ -12,12 +12,13 @@ const {
    * (t.ex. för hemliga märken som inte ska avslöja hur de tas). */
   progress?: [number, number] | null;
 }>();
+const { L } = useLang();
 </script>
 
 <template>
   <span class="badge-chip" :class="{ 'badge-chip--locked': !earned }">
     <span aria-hidden="true">{{ badge.em }}</span>
-    {{ badge.sv }}
+    {{ L(badge.sv, badge.et) }}
     <small v-if="!earned && progress" class="badge-chip__progress">{{ progress[0] }}/{{ progress[1] }}</small>
   </span>
 </template>

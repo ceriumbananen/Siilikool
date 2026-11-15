@@ -3,6 +3,7 @@
    fönsterbrädan och dagens brev, rutorna man letar i, "Ei ole siin" vid fel ställe och nissen som tittar fram
    vid rätt. Logiken i app/composables/usePakapikk.ts. */
 const pak = usePakapikk();
+const { L, tgt, nat, tgtLang } = useLang();
 
 /* bildernas proportioner (public/images/room/pak-letter.webp, pak-stocking.webp) */
 const LETTER_W = 520,
@@ -103,7 +104,7 @@ function tap(id: PakTargetId, e: MouseEvent, rect: [number, number, number, numb
       class="pak-item pak-item--mail"
       role="button"
       tabindex="0"
-      aria-label="Ett brev från tomtenissen ligger i julstrumpan"
+      :aria-label="L('Ett brev från tomtenissen ligger i julstrumpan', 'Jõulusokis on päkapiku kiri')"
       @click.stop="pak.openWaiting()"
       @keydown.enter.prevent="pak.openWaiting()"
     >
@@ -113,7 +114,11 @@ function tap(id: PakTargetId, e: MouseEvent, rect: [number, number, number, numb
       class="pak-item"
       role="button"
       tabindex="0"
-      :aria-label="drop?.id === 'sokk' ? 'Julstrumpan med brevet' : 'Julstrumpan under fönstret'"
+      :aria-label="
+        drop?.id === 'sokk'
+          ? L('Julstrumpan med brevet', 'Jõulusokk koos kirjaga')
+          : L('Julstrumpan under fönstret', 'Jõulusokk akna all')
+      "
       @click.stop="onSlipper"
       @keydown.enter.prevent="onSlipper"
     >
@@ -125,7 +130,7 @@ function tap(id: PakTargetId, e: MouseEvent, rect: [number, number, number, numb
       class="pak-item pak-item--mail"
       role="button"
       tabindex="0"
-      aria-label="Ett brev från tomtenissen ligger i rummet"
+      :aria-label="L('Ett brev från tomtenissen ligger i rummet', 'Toas on päkapiku kiri')"
       @click.stop="pak.openWaiting()"
       @keydown.enter.prevent="pak.openWaiting()"
     >
@@ -141,8 +146,8 @@ function tap(id: PakTargetId, e: MouseEvent, rect: [number, number, number, numb
   </svg>
 
   <div v-if="soonSaid" :key="soonSaid" class="pak-miss pak-miss--soon">
-    <b lang="et">{{ pak.emptyLine.value.et }}</b>
-    <span>{{ pak.emptyLine.value.sv }}</span>
+    <b :lang="tgtLang()">{{ tgt(pak.emptyLine.value) }}</b>
+    <span>{{ nat(pak.emptyLine.value) }}</span>
   </div>
 
   <!-- jakten: rutorna i rummet (lappens instruktion visas under scenen, RoomPakapikkBanner) -->
@@ -154,7 +159,7 @@ function tap(id: PakTargetId, e: MouseEvent, rect: [number, number, number, numb
         class="pak-zone"
         :class="{ 'pak-zone--hint': hint && pak.mode.value === 'search' && pak.target.value.id === t.id }"
         :style="{ left: `${r[0]}%`, top: `${r[1]}%`, width: `${r[2]}%`, height: `${r[3]}%` }"
-        :aria-label="t.ask.sv"
+        :aria-label="nat(t.ask)"
         @click.stop="tap(t.id, $event, r)"
       />
     </template>
@@ -171,8 +176,8 @@ function tap(id: PakTargetId, e: MouseEvent, rect: [number, number, number, numb
       class="pak-miss"
       :style="{ left: `${Math.min(86, Math.max(14, pak.miss.value.x))}%`, top: `${Math.max(16, pak.miss.value.y)}%` }"
     >
-      <b lang="et">{{ PAK_WRONG.et }}</b>
-      <span>{{ PAK_WRONG.sv }}</span>
+      <b :lang="tgtLang()">{{ tgt(PAK_WRONG) }}</b>
+      <span>{{ nat(PAK_WRONG) }}</span>
     </div>
 
     <!-- nissen tittar fram bakom en kant där saken låg (bilden: vantarna vilar på kanten,
@@ -191,8 +196,8 @@ function tap(id: PakTargetId, e: MouseEvent, rect: [number, number, number, numb
         <img class="pak-peek__elf" :src="ELF_POSES[peekBox.pose].src" alt="" />
       </div>
       <div class="pak-peek__bubble">
-        <b lang="et">{{ pak.target.value.at.et }}</b>
-        <span>{{ pak.target.value.at.sv }}</span>
+        <b :lang="tgtLang()">{{ tgt(pak.target.value.at) }}</b>
+        <span>{{ nat(pak.target.value.at) }}</span>
       </div>
     </div>
   </template>

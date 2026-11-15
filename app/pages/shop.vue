@@ -10,6 +10,7 @@ const voice = useSiiriVoice();
 const { tone, fanfare } = useSiiriSound();
 const { burst, petals } = useConfetti();
 const { dance, mood } = useSiiri();
+const { L, TL, tgt, nat, tgtLang, isEt } = useLang();
 
 const owned = computed(() => (profile.state.owned as string[] | undefined) || []);
 const wear = computed(() => (profile.state.wear as Record<string, string | null> | undefined) || {});
@@ -26,9 +27,11 @@ const hardLocked = computed(() => SHOP.filter(it => it.hard && !owns(it.id) && !
 const limitedList = computed(() => SHOP.filter(it => isLimited(it) && !it.hard && available(it) && !owns(it.id)));
 const holiday = holidayNow();
 const season = seasonNow();
-const limitedTitle = holiday
-  ? `${holiday.em} Bara idag: ${holiday.sv}`
-  : `${season.em} Bara den här årstiden: ${season.sv}`;
+const limitedTitle = computed(() =>
+  holiday
+    ? L(`${holiday.em} Bara idag: ${holiday.sv}`, `${holiday.em} Ainult täna! ${holiday.et}`)
+    : L(`${season.em} Bara den här årstiden: ${season.sv}`, `${season.em} Ainult sel aastaajal: ${season.et}`),
+);
 /* vanliga hyllor, en per plats på Siiri */
 const shelves = computed(() =>
   WEAR_SLOTS.map(slot => ({
@@ -46,9 +49,9 @@ const dreams = computed(() =>
       const have = owns(it.id);
       const status = have
         ? wearing(it.slot) === it.id
-          ? "Du bär den ✓"
-          : "I lådan – tryck för att ta på"
-        : `${stars.value.toLocaleString("sv-SE")} av ${it.price.toLocaleString("sv-SE")} (${pct}%)`;
+          ? L("Du bär den ✓", "Kasutusel ✓")
+          : L("I lådan – tryck för att ta på", "Kastis – vajuta, et kasutada")
+        : `${stars.value.toLocaleString("sv-SE")} ${L("av", "/")} ${it.price.toLocaleString("sv-SE")} (${pct}%)`;
       return { it, pct, status };
     }),
 );
@@ -58,9 +61,9 @@ const left = computed(() => SHOP.filter(it => !owns(it.id)).length);
 const furnOwnedIds = computed(() => profile.state.furnOwned as string[] | undefined);
 const room = computed(() => profile.state.room as Record<string, string> | undefined);
 const furnShelves = computed(() =>
-  FURN_SLOTS.map(([id, sv, em]) => ({
+  FURN_SLOTS.map(([id, sv, em, et]) => ({
     id,
-    title: `${em} ${sv}`,
+    title: `${em} ${L(sv, et)}`,
     items: FURN.filter(f => f.slot === id && !f.def).map(f => {
       const own = furnOwned(f.id, furnOwnedIds.value);
       const on = furnOf(id, room.value, furnOwnedIds.value) === f.id;
@@ -68,10 +71,10 @@ const furnShelves = computed(() =>
       const cant = !own && stars.value < f.price;
       const label = own
         ? on
-          ? "bärs nu"
-          : "ägd — sätt in"
+          ? L("bärs nu", "praegu toas")
+          : L("ägd — sätt in", "olemas — pane tuppa")
         : cant
-          ? `🔒 ⭐ ${(f.price - stars.value).toLocaleString("sv-SE")} kvar`
+          ? `🔒 ⭐ ${(f.price - stars.value).toLocaleString("sv-SE")} ${L("kvar", "puudu")}`
           : `⭐ ${f.price}`;
       return { f, own, on, cant, label };
     }),
@@ -135,7 +138,7 @@ function buyOrWear(it: ShopItem) {
     }
     mood("cheer");
     if (it.slot === "scene") scenePop(1200);
-    setTimeout(() => voice.sayWord(it.et), tier >= 3 ? 1500 : 520);
+    setTimeout(() => voice.sayWord(tgt(it)), tier >= 3 ? 1500 : 520);
     setTimeout(() => (bought.value = { item: it, tier }), 200);
     return;
   }
@@ -147,7 +150,7 @@ function buyOrWear(it: ShopItem) {
     scenePop(1100);
     burst(90);
   }
-  if (!on) voice.sayWord(it.et);
+  if (!on) voice.sayWord(tgt(it));
 }
 
 function furnBuy(f: FurnItem) {
@@ -156,7 +159,7 @@ function furnBuy(f: FurnItem) {
   if (furnOwned(f.id, furnOwnedIds.value)) {
     setRoom();
     profile.save();
-    voice.sayWord(f.et);
+    voice.sayWord(tgt(f));
     return;
   }
   if (stars.value < f.price) return notEnough(f.price);
@@ -166,12 +169,12 @@ function furnBuy(f: FurnItem) {
   profile.save();
   burst(120);
   fanfare(2);
-  voice.sayWord(f.et);
+  voice.sayWord(tgt(f));
   setTimeout(() => dance(f.price >= 600), 400);
 }
 
 function toRoom() {
-  voice.sayWord("Siiri tuba");
+  voice.sayWord(TL("Siiri tuba", "Siiris rum"));
   location.href = "/room";
 }
 </script>
@@ -179,23 +182,40 @@ function toRoom() {
 <template>
   <UiAppShell active="shop">
     <main class="shop-page">
-      <UiPageHero emoji="🎪" title="Laat" subtitle="Marknaden — som Mardilaat och Märtsilaat i Estland" tone="amber" />
+      <UiPageHero
+        emoji="🎪"
+        :title="TL('Laat', 'Marknaden')"
+        :subtitle="
+          L('Marknaden — som Mardilaat och Märtsilaat i Estland', 'Laat — nagu Mardilaat ja Märtsilaat Eestis')
+        "
+        tone="amber"
+      />
 
       <UiAppCard class="shop-page__siiri">
-        <p>
+        <p v-if="isEt()">
+          Sul on <b>⭐ {{ stars.toLocaleString("sv-SE") }}</b> tähte. Vajuta, et osta, vajuta uuesti, et ära võtta.
+        </p>
+        <p v-else>
           Du har <b>⭐ {{ stars.toLocaleString("sv-SE") }}</b> stjärnor. Tryck för att köpa, tryck igen för att ta av.
         </p>
         <UiSiiriPortrait />
       </UiAppCard>
 
-      <UiAppButton variant="primary" wide class="shop-page__to-room" @click="toRoom"
-        >🏠 Siiri tuba · klä Siiri och möblera rummet</UiAppButton
-      >
+      <UiAppButton variant="primary" wide class="shop-page__to-room" @click="toRoom">{{
+        L("🏠 Siiri tuba · klä Siiri och möblera rummet", "🏠 Siiris rum · riieta Siirit ja sisusta tuba")
+      }}</UiAppButton>
 
       <!-- möbler till rummet -->
       <UiAppCard class="shop-page__section">
-        <h2 class="shop-page__kicker">🛋️ Tuba · Rummet</h2>
-        <p class="shop-page__sub">Möbler, färger och saker till Siiris rum. Du byter fritt mellan det du äger.</p>
+        <h2 class="shop-page__kicker">{{ L("🛋️ Tuba · Rummet", "🛋️ Rummet · Tuba") }}</h2>
+        <p class="shop-page__sub">
+          {{
+            L(
+              "Möbler, färger och saker till Siiris rum. Du byter fritt mellan det du äger.",
+              "Mööbel, värvid ja asjad Siiri tuppa. Seda, mis sul juba on, saad vabalt vahetada.",
+            )
+          }}
+        </p>
         <template v-for="shelf in furnShelves" :key="shelf.id">
           <h3 class="shop-page__furn-title">{{ shelf.title }}</h3>
           <div
@@ -209,23 +229,42 @@ function toRoom() {
             }"
             @click="furnBuy(row.f)"
           >
-            <button class="shop-page__say" aria-label="Hör namnet på estniska" @click.stop="voice.sayWord(row.f.et)">
+            <button
+              class="shop-page__say"
+              :aria-label="L('Hör namnet på estniska', 'Kuula nime rootsi keeles')"
+              @click.stop="voice.sayWord(tgt(row.f))"
+            >
               🔊
             </button>
             <button class="shop-page__furn-text" :aria-disabled="row.cant">
-              <b lang="et">{{ row.f.et }}</b
-              ><span>{{ row.f.sv }}</span>
+              <b :lang="tgtLang()">{{ tgt(row.f) }}</b
+              ><span>{{ nat(row.f) }}</span>
             </button>
             <span class="shop-page__furn-price">{{ row.label }}</span>
-            <button class="shop-page__preview" aria-label="Förhandsgranska" @click.stop="previewFurn = row.f">👁</button>
+            <button
+              class="shop-page__preview"
+              :aria-label="L('Förhandsgranska', 'Vaata lähemalt')"
+              @click.stop="previewFurn = row.f"
+            >
+              👁
+            </button>
           </div>
         </template>
       </UiAppCard>
 
       <!-- hyllan för svår nivå -->
       <UiAppCard v-if="hardList.length" class="shop-page__section shop-page__section--hard">
-        <h2 class="shop-page__slot shop-page__slot--hard">🔥 Bara för svår nivå</h2>
-        <p class="shop-page__sub">Du har klarat ett tema på svår — de här tre finns bara för dig.</p>
+        <h2 class="shop-page__slot shop-page__slot--hard">
+          {{ L("🔥 Bara för svår nivå", "🔥 Ainult raske taseme jaoks") }}
+        </h2>
+        <p class="shop-page__sub">
+          {{
+            L(
+              "Du har klarat ett tema på svår — de här tre finns bara för dig.",
+              "Sa läbisid ühe teema raskel tasemel — need kolm on ainult sinu jaoks.",
+            )
+          }}
+        </p>
         <div class="shop-page__grid">
           <ShopCell
             v-for="it in hardList"
@@ -240,8 +279,12 @@ function toRoom() {
         </div>
       </UiAppCard>
       <UiAppCard v-else-if="hardLocked" class="shop-page__section shop-page__section--locked">
-        <h2 class="shop-page__slot">🔒 Tre plagg är låsta</h2>
-        <p class="shop-page__sub">
+        <h2 class="shop-page__slot">{{ L("🔒 Tre plagg är låsta", "🔒 Kolm riideeset on lukus") }}</h2>
+        <p v-if="isEt()" class="shop-page__sub">
+          Tulekroon, välk ja draakonitiivad avanevad, kui läbid ühe teema <b>🔥 raskel tasemel</b>. Seal on ka kaks
+          saladust, mida mujalt ei leia.
+        </p>
+        <p v-else class="shop-page__sub">
           Eldkrona, blixtar och drakvingar öppnas när du klarar ett tema på <b>🔥 svår nivå</b>. Där finns också två
           hemligheter som inte går att hitta någon annanstans.
         </p>
@@ -251,7 +294,12 @@ function toRoom() {
       <UiAppCard v-if="limitedList.length" class="shop-page__section shop-page__section--season">
         <h2 class="shop-page__slot shop-page__slot--season">{{ limitedTitle }}</h2>
         <p class="shop-page__sub">
-          De här försvinner ur butiken när årstiden byts – men det du köpt får du behålla för alltid.
+          {{
+            L(
+              "De här försvinner ur butiken när årstiden byts – men det du köpt får du behålla för alltid.",
+              "Need kaovad laadalt, kui aastaaeg vahetub – aga mis sa ostad, jääb sulle igaveseks.",
+            )
+          }}
         </p>
         <div class="shop-page__grid">
           <ShopCell
@@ -269,7 +317,7 @@ function toRoom() {
 
       <!-- vanliga hyllor -->
       <UiAppCard v-for="shelf in shelves" :key="shelf.slot.id" class="shop-page__section">
-        <h2 class="shop-page__slot">{{ shelf.slot.sv }}</h2>
+        <h2 class="shop-page__slot">{{ L(shelf.slot.sv, shelf.slot.et) }}</h2>
         <div class="shop-page__grid">
           <ShopCell
             v-for="it in shelf.items"
@@ -286,34 +334,56 @@ function toRoom() {
 
       <!-- drömmarna -->
       <section class="shop-page__dreams">
-        <h2 class="shop-page__slot shop-page__slot--dream">🌠 Drömmar</h2>
-        <p class="shop-page__sub shop-page__sub--dream">Långa sparmål. De tar tid – men tänk vad fint det blir.</p>
+        <h2 class="shop-page__slot shop-page__slot--dream">{{ L("🌠 Drömmar", "🌠 Unistused") }}</h2>
+        <p class="shop-page__sub shop-page__sub--dream">
+          {{
+            L(
+              "Långa sparmål. De tar tid – men tänk vad fint det blir.",
+              "Pikad säästmise sihid. Need võtavad aega – aga mõtle, kui ilus see tuleb!",
+            )
+          }}
+        </p>
         <div v-for="d in dreams" :key="d.it.id" class="shop-page__dream">
           <button class="shop-page__dream-main" @click="buyOrWear(d.it)">
             <span class="shop-page__dream-em" aria-hidden="true">{{ d.it.em }}</span>
             <span class="shop-page__dream-text">
-              <b lang="et">{{ d.it.et }}</b>
-              <small>{{ d.it.sv }} · ⭐ {{ d.it.price.toLocaleString("sv-SE") }}</small>
+              <b :lang="tgtLang()">{{ tgt(d.it) }}</b>
+              <small>{{ nat(d.it) }} · ⭐ {{ d.it.price.toLocaleString("sv-SE") }}</small>
               <span class="shop-page__dream-bar"><i :style="{ width: `${d.pct}%` }" /></span>
               <small>{{ d.status }}</small>
             </span>
           </button>
-          <button class="shop-page__dream-preview" aria-label="Förhandsgranska" @click="previewWear = d.it">👁</button>
+          <button
+            class="shop-page__dream-preview"
+            :aria-label="L('Förhandsgranska', 'Vaata lähemalt')"
+            @click="previewWear = d.it"
+          >
+            👁
+          </button>
         </div>
       </section>
 
       <p class="shop-page__note">
-        <template v-if="left">
+        <template v-if="left && isEt()">
+          Veel {{ left }} asja, mille jaoks säästa, ja mõnda neist saab osta ainult teatud kuudel. Tähti saad iga õige
+          vastuse eest – kolm järjest annab topelt, viis järjest kolmekordselt.
+        </template>
+        <template v-else-if="left">
           {{ left }} saker kvar att spara till, varav några bara går att köpa vissa månader. Stjärnor får du för varje
           rätt svar – tre i rad ger dubbelt, fem i rad tredubbelt.
         </template>
-        <template v-else>Du har köpt allt på marknaden! Siiri är världens finaste igelkott.</template>
+        <template v-else>{{
+          L(
+            "Du har köpt allt på marknaden! Siiri är världens finaste igelkott.",
+            "Sa ostsid laadalt kõik ära! Siiri on maailma kõige ilusam siil.",
+          )
+        }}</template>
       </p>
     </main>
 
     <!-- "⭐ 120 kvar" när det inte räcker -->
     <div v-if="tooExpensive" :key="tooExpensive.key" class="shop-page__too-expensive" aria-live="polite">
-      ⭐ {{ tooExpensive.n }} kvar
+      ⭐ {{ tooExpensive.n }} {{ L("kvar", "puudu") }}
     </div>
     <ShopBuyOverlay v-if="bought" :item="bought.item" :tier="bought.tier" @close="bought = null" />
     <ShopPreviewOverlay

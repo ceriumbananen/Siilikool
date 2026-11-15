@@ -5,6 +5,7 @@ const profile = useProfileStore();
 const { rankUp, closeRankUp } = useRewards();
 const { sndLvl } = useSiiriSound();
 const { burst } = useConfetti();
+const { L, tgt, nat, tgtLang, isEt } = useLang();
 
 watch(rankUp, r => {
   if (!r) return;
@@ -15,7 +16,10 @@ watch(rankUp, r => {
 
 const climbed = computed(() =>
   rankUp.value
-    ? `${profile.state.name || "Du"} har klättrat till märke ${rankUp.value.index + 1} av ${RANKS.length}.`
+    ? L(
+        `${profile.state.name || "Du"} har klättrat till märke ${rankUp.value.index + 1} av ${RANKS.length}.`,
+        `${profile.state.name ? `${profile.state.name} on` : "Sa oled"} nüüd märgil ${rankUp.value.index + 1} / ${RANKS.length}.`,
+      )
     : "",
 );
 </script>
@@ -24,12 +28,12 @@ const climbed = computed(() =>
   <!-- stängs bara med knappen, som i legacy -->
   <div v-if="rankUp" class="rank-up" role="dialog" aria-modal="true">
     <div class="rank-up__card">
-      <p class="rank-up__kicker">Nytt märke upplåst!</p>
+      <p class="rank-up__kicker">{{ L("Nytt märke upplåst!", "Uus märk avatud!") }}</p>
       <UiMedalBadge class="rank-up__medal" :rank="rankUp.rank" :medal-style="rankUp.style" />
-      <h3>{{ rankUp.rank.et }}</h3>
-      <p>{{ rankUp.rank.sv }} · {{ difficultyLabel(rankUp.style) }}</p>
+      <h3 :lang="tgtLang()">{{ tgt(rankUp.rank) }}</h3>
+      <p>{{ nat(rankUp.rank) }} · {{ difficultyLabel(rankUp.style, isEt()) }}</p>
       <p class="rank-up__climbed">{{ climbed }}</p>
-      <UiAppButton variant="primary" wide @click="closeRankUp">Toppen! 🎉</UiAppButton>
+      <UiAppButton variant="primary" wide @click="closeRankUp">{{ L("Toppen! 🎉", "Super! 🎉") }}</UiAppButton>
     </div>
   </div>
 </template>

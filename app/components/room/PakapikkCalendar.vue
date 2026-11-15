@@ -2,6 +2,7 @@
 /* Päkapiku kirjad: adventskalendern under rummet. Hittade brev visar dagens sak och går att
    läsa (och höra) igen, väntande brev ligger som kuvert, kommande dagar är bara siffror. */
 const pak = usePakapikk();
+const { L, isEt } = useLang();
 
 const days = computed(() =>
   Array.from({ length: PAK_DAYS }, (_, i) => {
@@ -21,8 +22,14 @@ function pick(d: number, state: string) {
 
 <template>
   <UiAppCard v-if="pak.phase.value.phase === 'on'" class="pak-cal">
-    <h2 class="pak-cal__title"><span lang="et">Päkapiku kirjad</span> · Tomtenissens brev</h2>
-    <p class="pak-cal__sub">
+    <h2 v-if="isEt()" class="pak-cal__title"><span lang="sv">Tomtenissens brev</span> · Päkapiku kirjad</h2>
+    <h2 v-else class="pak-cal__title"><span lang="et">Päkapiku kirjad</span> · Tomtenissens brev</h2>
+    <p v-if="isEt()" class="pak-cal__sub">
+      Detsembris jätavad päkapikud igal ööl lastele väikseid üllatusi. Siiri päkapikk peidab igal päeval tuppa
+      rootsikeelse kirja: leia kiri, loe ja otsi!
+      <b>{{ foundCount }}/{{ PAK_DAYS }}</b>
+    </p>
+    <p v-else class="pak-cal__sub">
       I Estland lämnar tomtenissarna, päkapikud, små överraskningar till barnen varje natt i december. Siiris nisse
       gömmer ett brev på estniska i rummet varje dag: hitta brevet, läs och leta!
       <b>{{ foundCount }} av {{ PAK_DAYS }}</b>
@@ -36,10 +43,10 @@ function pick(d: number, state: string) {
         :disabled="x.state === 'later' || pak.searching.value"
         :aria-label="
           x.state === 'found'
-            ? `${x.d} december: ${x.gift.sv}`
+            ? L(`${x.d} december: ${x.gift.sv}`, `${x.d}. detsember: ${x.gift.et}`)
             : x.state === 'waiting'
-              ? `${x.d} december: brevet väntar`
-              : `${x.d} december`
+              ? L(`${x.d} december: brevet väntar`, `${x.d}. detsember: kiri ootab`)
+              : L(`${x.d} december`, `${x.d}. detsember`)
         "
         @click="pick(x.d, x.state)"
       >

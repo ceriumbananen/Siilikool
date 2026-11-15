@@ -11,6 +11,9 @@ export type KesFeature = {
   id: string;
   em: string;
   ask: KesLine;
+  /** estniskt läge: frågan som barnet läser och Siiri säger på svenska, när ask.sv är en
+   * förklaring snarare än en fråga man ställer (se kesAsk) */
+  askSv?: string;
   /* Siiris svar */
   yes: KesLine;
   no: KesLine;
@@ -60,6 +63,7 @@ export const KES_FEATURES: KesFeature[] = [
     id: "karvane",
     em: "🧶",
     ask: { et: "Kas sa oled karvane?", sv: "Är du lurvig (har du päls)?" },
+    askSv: "Har du päls?",
     yes: { et: "Jah, ma olen karvane.", sv: "Ja, jag har päls." },
     no: { et: "Ei, ma ei ole karvane.", sv: "Nej, jag har ingen päls." },
     isTrue: { et: "Sa oled karvane.", sv: "Du har päls." },
@@ -129,10 +133,15 @@ export type KesAnimal = {
   reveal: string;
   /** fel gissning: "Ei, ma ei ole kass." */
   notMe: string;
+  /** estniskt läge (och den svenska hjälpraden): "Jag är en räv!" */
+  revealSv: string;
+  /** "Nej, jag är ingen katt." */
+  notMeSv: string;
   /** egenskaperna (KES_FEATURES.id) som stämmer - alla andra är "nej" */
   has: string[];
 };
 
+/* Alla djuren är en-ord på svenska (en hund, en ko, en groda ...), så "en"/"ingen" stämmer. */
 /* Svaren följer hur en bilderbok visar djuret, inte zoologiska undantag: björnen och igelkotten
    har ingen synlig svans, grisen räknas inte som lurvig. Varje djur har en egen kombination
    (kontrolleras i kesSelfCheck), så det går alltid att fråga sig fram. */
@@ -143,6 +152,8 @@ const A = (et: string, sv: string, em: string, has: string[]): KesAnimal => ({
   has,
   reveal: `Ma olen ${et}!`,
   notMe: `Ei, ma ei ole ${et}.`,
+  revealSv: `Jag är en ${sv}!`,
+  notMeSv: `Nej, jag är ingen ${sv}.`,
 });
 export const KES_ANIMALS: KesAnimal[] = [
   A("koer", "hund", "🐶", ["karvane", "jalad", "saba", "haugub"]),
@@ -167,6 +178,12 @@ export const KES_GUESS: KesLine = { et: "Kes ma olen?", sv: "Vem är jag?" };
 export const KES_MORE: KesLine = { et: "Küsi veel!", sv: "Fråga mer!" };
 export const KES_I_KNOW: KesLine = { et: "Ma tean!", sv: "Jag vet!" };
 
+/** Frågan som ett { et, sv }-par för estniskt läge, där den svenska sidan är det barnet läser
+ * och säger (askSv om det finns). Svenskt läge använder f.ask direkt. */
+export const kesAsk = (f: KesFeature): KesLine => ({ et: f.ask.et, sv: f.askSv ?? f.ask.sv });
+export const kesReveal = (a: KesAnimal): KesLine => ({ et: a.reveal, sv: a.revealSv });
+export const kesNotMe = (a: KesAnimal): KesLine => ({ et: a.notMe, sv: a.notMeSv });
+
 export function kesHas(a: KesAnimal, f: KesFeature): boolean {
   return a.has.includes(f.id);
 }
@@ -179,6 +196,19 @@ export function kesPhrases(): string[] {
   for (const a of KES_ANIMALS) {
     out.add(a.reveal);
     out.add(a.notMe);
+  }
+  return [...out];
+}
+
+/** Alla svenska fraser som behöver Sofies röst i estniskt läge (svenska klipp, findSvClip). */
+export function kesPhrasesSv(): string[] {
+  const out = new Set<string>();
+  for (const l of [KES_INTRO, KES_ASK_ME, KES_RECAP, KES_PICK, KES_GUESS, KES_MORE, KES_I_KNOW]) out.add(l.sv);
+  for (const f of KES_FEATURES) for (const l of [kesAsk(f), f.yes, f.no, f.isTrue, f.isFalse]) out.add(l.sv);
+  for (const a of KES_ANIMALS) {
+    out.add(a.sv);
+    out.add(a.revealSv);
+    out.add(a.notMeSv);
   }
   return [...out];
 }

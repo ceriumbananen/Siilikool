@@ -2,15 +2,16 @@
 /* "🤫 Hemlighet!" - porterat från eggSay()/eggSay2() i public/legacy/app.js. Visas när
    useRewards().showSecret() anropas; stängs bara med knappen eller av sig själv efter 6s. */
 const { secret, closeSecret } = useRewards();
+const { L, tgt, nat, tgtLang } = useLang();
 </script>
 
 <template>
   <div v-if="secret" class="secret-overlay" role="dialog" aria-modal="true">
     <div class="secret-overlay__card">
-      <p class="secret-overlay__kicker">🤫 Hemlighet!</p>
+      <p class="secret-overlay__kicker">{{ L("🤫 Hemlighet!", "🤫 Saladus!") }}</p>
       <div class="secret-overlay__emoji" aria-hidden="true">{{ secret.em }}</div>
-      <h3 lang="et">{{ secret.et }}</h3>
-      <p>{{ secret.sv }}</p>
+      <h3 :lang="tgtLang()">{{ tgt(secret) }}</h3>
+      <p>{{ nat(secret) }}</p>
       <UiAppButton variant="primary" wide @click="closeSecret">Hihi!</UiAppButton>
     </div>
   </div>

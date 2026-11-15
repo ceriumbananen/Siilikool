@@ -14,6 +14,7 @@ const voice = useSiiriVoice();
 const { sndOk, sndNo, fanfare } = useSiiriSound();
 const { burst } = useConfetti();
 const { addXp } = useRewards();
+const { L, tgt, nat, tgtLang } = useLang();
 
 const ROUNDS = 10;
 /* tio av temats ord (färre ord än tio: de upprepas) */
@@ -27,36 +28,37 @@ function pickWords(): WordItem[] {
 const words = ref(pickWords());
 const index = ref(0);
 const right = ref(0);
-const answered = ref<string | null>(null); /* svaret barnet valde (sv), medan rätt svar visas */
+const answered = ref<string | null>(null); /* svaret barnet valde (nat), medan rätt svar visas */
 const result = ref<{ seals: number; gain: number } | null>(null);
 
 const word = computed(() => words.value[index.value]!);
 const listen = computed(() => index.value % 3 === 2);
-/* rätt svar + tre andra (olika betydelser) bland alla ord barnet möter */
+/* rätt svar + tre andra (olika betydelser) bland alla ord barnet möter. Alternativen är på
+   barnets eget språk (nat), ordet på det språk det lär sig (tgt) - se useLang. */
 const options = ref<string[]>([]);
 function makeOptions() {
   const all = allWords(profile.state);
   const opts: WordItem[] = [word.value];
   for (let tries = 0; opts.length < 4 && tries < 120; tries++) {
     const c = all[(Math.random() * all.length) | 0]!;
-    if (!opts.some(o => o.sv === c.sv)) opts.push(c);
+    if (!opts.some(o => nat(o) === nat(c))) opts.push(c);
   }
-  options.value = shuffle(opts).map(o => o.sv);
-  if (listen.value) voice.sayWord(word.value.et);
+  options.value = shuffle(opts).map(o => nat(o));
+  if (listen.value) voice.sayWord(tgt(word.value));
 }
 makeOptions();
 
-function answer(sv: string) {
+function answer(opt: string) {
   if (answered.value) return;
-  answered.value = sv;
-  const ok = sv === word.value.sv;
+  answered.value = opt;
+  const ok = opt === nat(word.value);
   if (ok) {
     right.value++;
     sndOk();
   } else sndNo();
   wmemHit(profile.state, word.value.et, ok, "choose", word.value.sv);
   profile.save();
-  voice.sayWord(word.value.et);
+  voice.sayWord(tgt(word.value));
   setTimeout(() => {
     answered.value = null;
     if (index.value + 1 >= words.value.length) return finish();
@@ -90,11 +92,14 @@ function again() {
   makeOptions();
 }
 
-const diplomaSVG = computed(() => (result.value ? dipSVG(theme, result.value.seals, profile.state.name || "") : ""));
-const optionClass = (sv: string) => {
+/* diplomet skriver temats namn på det språk barnet lär sig överst */
+const diplomaSVG = computed(() =>
+  result.value ? dipSVG({ et: tgt(theme), sv: nat(theme) }, result.value.seals, profile.state.name || "") : "",
+);
+const optionClass = (opt: string) => {
   if (!answered.value) return "";
-  if (sv === word.value.sv) return "diploma-quiz__opt--right";
-  return sv === answered.value ? "diploma-quiz__opt--wrong" : "";
+  if (opt === nat(word.value)) return "diploma-quiz__opt--right";
+  return opt === answered.value ? "diploma-quiz__opt--wrong" : "";
 };
 </script>
 
@@ -103,7 +108,7 @@ const optionClass = (sv: string) => {
     <template v-if="!result">
       <div class="diploma-quiz__zone">
         <span
-          >📜 <b>Diplom</b> · <span lang="et">{{ theme.et }}</span></span
+          >📜 <b>Diplom</b> · <span :lang="tgtLang()">{{ tgt(theme) }}</span></span
         >
         <span>{{ index + 1 }} / {{ words.length }}</span>
       </div>
@@ -116,39 +121,45 @@ const optionClass = (sv: string) => {
       </div>
       <UiAppCard>
         <template v-if="listen">
-          <h2 class="diploma-quiz__q">Lyssna — vad betyder ordet?</h2>
+          <h2 class="diploma-quiz__q">{{ L("Lyssna — vad betyder ordet?", "Kuula — mida see sõna tähendab?") }}</h2>
           <div class="diploma-quiz__center">
             <button
               class="diploma-quiz__say diploma-quiz__say--big"
-              aria-label="Hör ordet"
-              @click="voice.sayWord(word.et)"
+              :aria-label="L('Hör ordet', 'Kuula sõna')"
+              @click="voice.sayWord(tgt(word))"
             >
               🔊
             </button>
           </div>
         </template>
         <template v-else>
-          <h2 class="diploma-quiz__q">Vad betyder</h2>
-          <div class="diploma-quiz__word" lang="et">{{ word.et }}</div>
+          <h2 class="diploma-quiz__q">{{ L("Vad betyder", "Mida tähendab") }}</h2>
+          <div class="diploma-quiz__word" :lang="tgtLang()">{{ tgt(word) }}</div>
           <div class="diploma-quiz__center">
-            <button class="diploma-quiz__say" aria-label="Hör ordet" @click="voice.sayWord(word.et)">🔊</button>
+            <button
+              class="diploma-quiz__say"
+              :aria-label="L('Hör ordet', 'Kuula sõna')"
+              @click="voice.sayWord(tgt(word))"
+            >
+              🔊
+            </button>
           </div>
         </template>
         <div class="diploma-quiz__opts">
           <button
-            v-for="sv in options"
-            :key="sv"
+            v-for="opt in options"
+            :key="opt"
             class="diploma-quiz__opt"
-            :class="optionClass(sv)"
+            :class="optionClass(opt)"
             :disabled="!!answered"
-            @click="answer(sv)"
+            @click="answer(opt)"
           >
-            {{ sv }}
+            {{ opt }}
           </button>
         </div>
         <div class="diploma-quiz__feedback" aria-live="polite">
-          <b v-if="answered && answered === word.sv" class="diploma-quiz__ok">Õige!</b>
-          <b v-else-if="answered">{{ word.et }} = {{ word.sv }}</b>
+          <b v-if="answered && answered === nat(word)" class="diploma-quiz__ok">{{ L("Õige!", "Rätt!") }}</b>
+          <b v-else-if="answered">{{ tgt(word) }} = {{ nat(word) }}</b>
         </div>
       </UiAppCard>
     </template>
@@ -156,11 +167,20 @@ const optionClass = (sv: string) => {
     <UiAppCard v-else class="diploma-quiz__end">
       <p class="diploma-quiz__kicker">📜 Diplom</p>
       <div v-html="diplomaSVG" />
-      <p class="diploma-quiz__sub">{{ right }} av 10 rätt · ⭐ +{{ result.gain }}</p>
-      <p v-if="result.seals < 3" class="diploma-quiz__sub">Gör om det när du vill — bästa resultatet räknas.</p>
+      <p class="diploma-quiz__sub">
+        {{ L(`${right} av 10 rätt`, `Õigeid vastuseid: ${right}/10`) }} · ⭐ +{{ result.gain }}
+      </p>
+      <p v-if="result.seals < 3" class="diploma-quiz__sub">
+        {{
+          L(
+            "Gör om det när du vill — bästa resultatet räknas.",
+            "Proovi uuesti, millal tahad — arvesse läheb parim tulemus.",
+          )
+        }}
+      </p>
       <div class="diploma-quiz__row">
-        <UiAppButton variant="primary" big @click="again">Gör om</UiAppButton>
-        <UiAppButton variant="green" @click="emit('room')">Till rummet 🏠</UiAppButton>
+        <UiAppButton variant="primary" big @click="again">{{ L("Gör om", "Proovi uuesti") }}</UiAppButton>
+        <UiAppButton variant="green" @click="emit('room')">{{ L("Till rummet 🏠", "Tuppa 🏠") }}</UiAppButton>
       </div>
     </UiAppCard>
   </div>

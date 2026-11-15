@@ -31,6 +31,7 @@ const props = defineProps<{
 }>();
 const emit = defineEmits<{ close: []; buy: [] }>();
 const voice = useSiiriVoice();
+const { L, tgt, nat, tgtLang } = useLang();
 
 const title = computed(() => (props.kind === "wear" ? props.wearItem! : props.furnItem!));
 const em = computed(() => (props.kind === "wear" ? props.wearItem!.em : null));
@@ -38,7 +39,9 @@ const em = computed(() => (props.kind === "wear" ? props.wearItem!.em : null));
 /* vissa saker har en egen kulturell/historisk historia (ROOM_LORE i app/utils/room-lore.ts) -
    visa den redan här, innan man köper, inte bara när man råkar trycka på den sen i rummet. */
 const lore = computed(() => ROOM_LORE[title.value.id] || null);
-const loreShowEt = ref(true);
+/* först på språket man lär sig, knappen växlar till det egna */
+const loreShowTgt = ref(true);
+const loreLang = computed(() => (loreShowTgt.value ? tgtLang() : tgtLang() === "et" ? "sv" : "et"));
 
 /* ---------- plagg: Siiri med det på, utan att röra profilen ---------- */
 const previewWear = computed<Wear>(
@@ -59,13 +62,13 @@ const previewRoomHtml = computed(() =>
 const afford = computed(() => props.stars >= title.value.price);
 const buyLabel = computed(() => {
   if (props.kind === "wear") {
-    if (props.owns) return props.worn ? "Ta av" : "Ta på";
-    if (afford.value) return `Köp för ⭐ ${props.wearItem!.price.toLocaleString("sv-SE")}`;
-    return `🔒 ⭐ ${(props.wearItem!.price - props.stars).toLocaleString("sv-SE")} kvar`;
+    if (props.owns) return props.worn ? L("Ta av", "Võta ära") : L("Ta på", "Pane Siirile");
+    if (afford.value) return `${L("Köp för", "Osta")} ⭐ ${props.wearItem!.price.toLocaleString("sv-SE")}`;
+    return `🔒 ⭐ ${(props.wearItem!.price - props.stars).toLocaleString("sv-SE")} ${L("kvar", "puudu")}`;
   }
-  if (props.own) return props.on ? "Insatt ✓" : "Sätt in";
-  if (!props.cant) return `Köp för ⭐ ${props.furnItem!.price.toLocaleString("sv-SE")}`;
-  return `🔒 ⭐ ${(props.furnItem!.price - props.stars).toLocaleString("sv-SE")} kvar`;
+  if (props.own) return props.on ? L("Insatt ✓", "Paigas ✓") : L("Sätt in", "Pane tuppa");
+  if (!props.cant) return `${L("Köp för", "Osta")} ⭐ ${props.furnItem!.price.toLocaleString("sv-SE")}`;
+  return `🔒 ⭐ ${(props.furnItem!.price - props.stars).toLocaleString("sv-SE")} ${L("kvar", "puudu")}`;
 });
 const buyDisabled = computed(() => (props.kind === "wear" ? !props.owns && !afford.value : !props.own && !!props.cant));
 </script>
@@ -73,26 +76,37 @@ const buyDisabled = computed(() => (props.kind === "wear" ? !props.owns && !affo
 <template>
   <div class="shop-preview" role="dialog" aria-modal="true">
     <div class="shop-preview__card">
-      <button class="shop-preview__close" aria-label="Stäng förhandsgranskningen" @click="emit('close')">✕</button>
-      <p class="shop-preview__kicker">Förhandsgranskning</p>
+      <button
+        class="shop-preview__close"
+        :aria-label="L('Stäng förhandsgranskningen', 'Sulge eelvaade')"
+        @click="emit('close')"
+      >
+        ✕
+      </button>
+      <p class="shop-preview__kicker">{{ L("Förhandsgranskning", "Eelvaade") }}</p>
       <div v-if="kind === 'wear'" class="shop-preview__wear">
         <UiSiiriPortrait size="big" :preview-wear="previewWear" :preview-owned="previewOwnedIds" />
       </div>
       <div v-else class="shop-preview__room" v-html="previewRoomHtml" />
       <span v-if="em" class="shop-preview__em" aria-hidden="true">{{ em }}</span>
-      <h3 lang="et">{{ title.et }}</h3>
-      <p>{{ title.sv }}</p>
-      <button v-if="kind === 'wear'" class="shop-preview__say" aria-label="Hör ordet" @click="voice.sayWord(title.et)">
+      <h3 :lang="tgtLang()">{{ tgt(title) }}</h3>
+      <p>{{ nat(title) }}</p>
+      <button
+        v-if="kind === 'wear'"
+        class="shop-preview__say"
+        :aria-label="L('Hör ordet', 'Kuula sõna')"
+        @click="voice.sayWord(tgt(title))"
+      >
         🔊
       </button>
       <div v-if="lore" class="shop-preview__lore">
-        <p :lang="loreShowEt ? 'et' : 'sv'">{{ loreShowEt ? lore.factEt : lore.fact }}</p>
-        <button class="shop-preview__lore-toggle" @click="loreShowEt = !loreShowEt">
-          {{ loreShowEt ? "🇸🇪 På svenska" : "🇪🇪 Eesti keeles" }}
+        <p :lang="loreLang">{{ loreLang === "et" ? lore.factEt : lore.fact }}</p>
+        <button class="shop-preview__lore-toggle" @click="loreShowTgt = !loreShowTgt">
+          {{ loreLang === "et" ? "🇸🇪 På svenska" : "🇪🇪 Eesti keeles" }}
         </button>
       </div>
       <div class="shop-preview__actions">
-        <UiAppButton variant="ghost" @click="emit('close')">Stäng</UiAppButton>
+        <UiAppButton variant="ghost" @click="emit('close')">{{ L("Stäng", "Sulge") }}</UiAppButton>
         <UiAppButton variant="primary" :disabled="buyDisabled" @click="emit('buy')">{{ buyLabel }}</UiAppButton>
       </div>
     </div>

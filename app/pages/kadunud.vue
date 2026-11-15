@@ -16,6 +16,11 @@ const { tone, buzz, fanfare } = useSiiriSound();
 const { burst } = useConfetti();
 const { addXp } = useRewards();
 const { mood, dance } = useSiiri();
+/* estniskt läge (profile.state.home === "et"): Siiri säger allt på svenska och valknapparna
+   visar det svenska ordet ("matta"), estniskan är den lilla hjälpraden */
+const { L, tgt, nat, tgtLang, isEt } = useLang();
+/* hjälpradens språk: inget lang-attribut i svenskt läge (som förut) */
+const natLang = () => (isEt() ? "et" : undefined);
 
 /* ---------- rummet ---------- */
 const furnOwnedIds = computed(() => s.furnOwned as string[] | undefined);
@@ -46,13 +51,21 @@ const sparkle = ref<{ x: number; y: number; n: number } | null>(null);
 let lastKey = "";
 
 async function sayLines(lines: string[]) {
+  if (isEt()) return saySv(lines);
   const clips = (await Promise.all(lines.map(l => findWordClip(l)))).filter(Boolean).map(c => c!.src);
   if (clips.length) voice.say(clips);
   else if (lines[0]) voice.sayWord(lines[0]);
 }
+/* estniskt läge: Sofies svenska klipp; saknas något av dem läses allt av enhetens svenska röst
+   (sayWord), så att ingen rad hoppas över */
+async function saySv(lines: string[]) {
+  const clips = await Promise.all(lines.map(l => findSvClip(l)));
+  if (clips.length && clips.every(Boolean)) voice.say(clips.map(c => c!.src));
+  else if (lines.length) voice.sayWord(lines.join(" "));
+}
 function show(line: KadLine, extra: string[] = [], after: string[] = []) {
   said.value = line;
-  sayLines([...extra, line.et, ...after]);
+  sayLines([...extra, tgt(line), ...after]);
 }
 
 onMounted(async () => {
@@ -75,7 +88,7 @@ function ready() {
   mood("");
   tone(392, 0.12, 0);
   tone(294, 0.18, 0.1);
-  show(KAD_CLOSE, [], KAD_COUNT);
+  show(KAD_CLOSE, [], isEt() ? KAD_COUNT_SV : KAD_COUNT);
   /* bakom ögonlocken: välj saken och låt den försvinna */
   setTimeout(() => {
     const pool = things.value.filter(t => t.key !== lastKey);
@@ -88,7 +101,8 @@ function ready() {
       el.style.opacity = "0";
     }
     const n = s.diff === "svar" ? 3 : 2;
-    const others = things.value.filter(x => x.key !== t.key && x.et !== t.et);
+    /* inga dubbletter av samma ord på knapparna (två tavlor, två lampor) */
+    const others = things.value.filter(x => x.key !== t.key && (isEt() ? x.svWord !== t.svWord : x.et !== t.et));
     const pick = shuffle(others).slice(0, n);
     choices.value = shuffle([t, ...pick]);
     missed.value = false;
@@ -97,7 +111,7 @@ function ready() {
     lids.value = false;
     phase.value = "find";
     mood("think");
-    show(KAD_WHAT, [KAD_OPEN.et]);
+    show(KAD_WHAT, [tgt(KAD_OPEN)]);
   }, 3600);
 }
 
@@ -119,7 +133,7 @@ function choose(t: KadThing) {
   tone(262, 0.14, 0.08);
   mood("oops");
   glow(t);
-  show(KAD_STILL);
+  show(isEt() ? kadStill(t) : KAD_STILL);
 }
 
 /* tryck i rummet: där saken stod räknas som rätt, en annan sak som "den finns kvar" */
@@ -167,7 +181,7 @@ function found() {
   tone(1046, 0.12, 0.08);
   tone(1318, 0.16, 0.16);
   burst(50);
-  show(kadGone(t), [], [KAD_HERE.et]);
+  show(kadGone(t), [], [isEt() ? kadHere(t).sv : KAD_HERE.et]);
 }
 
 function next() {
@@ -188,7 +202,7 @@ function finish() {
   fanfare(2);
   burst(120);
   setTimeout(() => addXp(5 * KAD_ROUNDS), 1500);
-  show({ et: "Tubli!", sv: "Bra gjort!" });
+  show(KAD_DONE);
 }
 
 function again() {
@@ -206,14 +220,14 @@ function again() {
 <template>
   <UiAppShell active="home" wide>
     <main class="kad">
-      <a class="kad__back" href="/">← Tillbaka</a>
+      <a class="kad__back" href="/">{{ L("← Tillbaka", "← Tagasi") }}</a>
 
       <div class="kad__top">
         <UiSiiriPortrait size="small" class="kad__siiri" />
         <button class="kad__bubble" @click="show(said)">
-          <b lang="et">{{ said.et }}</b>
-          <small v-if="showSv">{{ said.sv }}</small>
-          <small v-else>🔊 Tryck för att höra igen</small>
+          <b :lang="tgtLang()">{{ tgt(said) }}</b>
+          <small v-if="showSv" :lang="natLang()">{{ nat(said) }}</small>
+          <small v-else>{{ L("🔊 Tryck för att höra igen", "🔊 Vajuta, et uuesti kuulata") }}</small>
         </button>
       </div>
 
@@ -224,7 +238,7 @@ function again() {
           :class="{ on: i < round || (i === round && (phase === 'found' || phase === 'done')) }"
           >●</span
         >
-        Runda {{ Math.min(round, KAD_ROUNDS) }} av {{ KAD_ROUNDS }}
+        {{ L("Runda", "Voor") }} {{ Math.min(round, KAD_ROUNDS) }} {{ L("av", "/") }} {{ KAD_ROUNDS }}
       </p>
 
       <!-- rummet -->
@@ -246,32 +260,39 @@ function again() {
 
       <!-- vad man gör nu -->
       <UiAppButton v-if="phase === 'look'" variant="green" wide big @click="ready">
-        👀 Valmis! · Jag har tittat!
+        {{ L("👀 Valmis! · Jag har tittat!", "👀 Klar! · Valmis!") }}
       </UiAppButton>
 
       <div v-else-if="phase === 'find'" class="kad__choices">
         <button v-for="c in choices" :key="c.key" class="kad__choice" @click="choose(c)">
-          <b lang="et">{{ c.et }}</b>
-          <small v-if="showSv">{{ c.sv }}</small>
+          <b :lang="tgtLang()">{{ isEt() ? c.svWord : c.et }}</b>
+          <small v-if="showSv" :lang="natLang()">{{ isEt() ? c.et : c.sv }}</small>
         </button>
       </div>
 
       <UiAppButton v-else-if="phase === 'found'" variant="green" wide big @click="next">
-        {{ round >= KAD_ROUNDS ? "🎉 Klart!" : "➡️ Järgmine · Nästa" }}
+        {{ round >= KAD_ROUNDS ? L("🎉 Klart!", "🎉 Valmis!") : L("➡️ Järgmine · Nästa", "➡️ Nästa · Järgmine") }}
       </UiAppButton>
 
       <UiAppCard v-else-if="phase === 'done'" class="kad__done">
-        <h2>Tubli! <small>Bra gjort!</small></h2>
-        <p>Du hittade {{ firstTry }} av {{ KAD_ROUNDS }} på första försöket.</p>
+        <h2 :lang="isEt() ? tgtLang() : undefined">
+          {{ tgt(KAD_DONE) }} <small :lang="natLang()">{{ nat(KAD_DONE) }}</small>
+        </h2>
+        <p v-if="isEt()">Esimese korraga leidsid {{ firstTry }} asja {{ KAD_ROUNDS }}-st.</p>
+        <p v-else>Du hittade {{ firstTry }} av {{ KAD_ROUNDS }} på första försöket.</p>
         <p class="kad__stars">+{{ stars }} ⭐</p>
         <div class="kad__row">
-          <UiAppButton variant="green" big @click="again">🔄 Igen</UiAppButton>
-          <a class="kad__home" href="/">Hem</a>
+          <UiAppButton variant="green" big @click="again">{{ L("🔄 Igen", "🔄 Uuesti") }}</UiAppButton>
+          <a class="kad__home" href="/">{{ L("Hem", "Koju") }}</a>
         </div>
       </UiAppCard>
 
-      <p v-if="phase === 'find'" class="kad__hint">Välj ordet – eller tryck där saken stod.</p>
-      <button v-if="!showSv && phase !== 'done'" class="kad__sv" @click="showSv = true">🇸🇪 Visa på svenska</button>
+      <p v-if="phase === 'find'" class="kad__hint">
+        {{ L("Välj ordet – eller tryck där saken stod.", "Vali sõna – või vajuta sinna, kus asi oli.") }}
+      </p>
+      <button v-if="!showSv && phase !== 'done'" class="kad__sv" @click="showSv = true">
+        {{ L("🇸🇪 Visa på svenska", "🇪🇪 Näita eesti keeles") }}
+      </button>
     </main>
   </UiAppShell>
 </template>

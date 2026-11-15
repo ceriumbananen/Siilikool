@@ -188,13 +188,14 @@ export function medalStyleOf(mstyle: Record<string, MedalStyle> | undefined, ran
  * märke ("🍃 Lätt" osv) - porterat ur DIFFS i public/legacy/app.js (rad 1903-1938). De
  * övriga DIFFS-fälten (mult/opts/types m.fl.) hör till själva spelrundorna och porteras när
  * den logiken migreras. */
-const DIFFICULTY_LABELS: Record<MedalStyle, { em: string; sv: string }> = {
-  latt: { em: "🍃", sv: "Lätt" },
-  lagom: { em: "⭐", sv: "Lagom" },
-  svar: { em: "🔥", sv: "Svår" },
+const DIFFICULTY_LABELS: Record<MedalStyle, { em: string; sv: string; et: string }> = {
+  latt: { em: "🍃", sv: "Lätt", et: "Kerge" },
+  lagom: { em: "⭐", sv: "Lagom", et: "Keskmine" },
+  svar: { em: "🔥", sv: "Svår", et: "Raske" },
 };
 
-export function difficultyLabel(style: MedalStyle): string {
+/** et = true ger namnet på estniska (samma ord som DIFFS i praise.ts), för estniskt läge. */
+export function difficultyLabel(style: MedalStyle, et = false): string {
   const d = DIFFICULTY_LABELS[style];
-  return `${d.em} ${d.sv}`;
+  return `${d.em} ${et ? d.et : d.sv}`;
 }

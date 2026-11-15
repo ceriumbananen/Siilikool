@@ -13,13 +13,14 @@ const {
 }>();
 
 /* unika id:n per instans så flera medaljer på samma sida inte delar <defs> */
+const { nat } = useLang();
 const uid = useId().replace(/[^a-zA-Z0-9]/g, "");
 const gradientId = `medal-gradient-${uid}`;
 const clipId = `medal-clip-${uid}`;
 </script>
 
 <template>
-  <svg class="medal-badge" viewBox="0 0 120 150" role="img" :aria-label="rank.sv">
+  <svg class="medal-badge" viewBox="0 0 120 150" role="img" :aria-label="nat(rank)">
     <defs>
       <radialGradient :id="gradientId" cx="35%" cy="28%" r="85%">
         <stop offset="0%" stop-color="#FFFFFF" stop-opacity=".75" />

@@ -18,6 +18,8 @@ const { active = null, wide = false } = defineProps<{
 }>();
 
 const profile = useProfileStore();
+/* bara L här - tgt/nat i bottenmenyn är de två-argumentsvarianterna i app/utils/lang.ts */
+const { L } = useLang();
 const ri = computed(() => rankIndex(profile.state.xp));
 const rank = computed(() => RANKS[ri.value]!);
 const nextRank = computed(() => RANKS[ri.value + 1]);
@@ -55,18 +57,36 @@ function tapStars() {
   <div class="app-shell">
     <div class="app-shell__content" :class="{ 'app-shell__content--wide': wide }">
       <div class="app-shell__topbar">
-        <a class="app-shell__iconbtn" href="/" aria-label="Till startskärmen">←</a>
-        <a class="app-shell__chip app-shell__chip--me" href="/profile" aria-label="Öppna din profil">
+        <a class="app-shell__iconbtn" href="/" :aria-label="L('Till startskärmen', 'Avalehele')">←</a>
+        <a
+          class="app-shell__chip app-shell__chip--me"
+          href="/profile"
+          :aria-label="L('Öppna din profil', 'Ava oma profiil')"
+        >
           <i aria-hidden="true">{{ profile.state.avatar || "🦔" }}</i>
-          <b>{{ profile.state.name || "Profil" }}</b>
+          <b>{{ profile.state.name || L("Profil", "Profiil") }}</b>
         </a>
-        <a class="app-shell__chip app-shell__chip--rank" href="/trophy" aria-label="Öppna skattkammaren">
+        <a
+          class="app-shell__chip app-shell__chip--rank"
+          href="/trophy"
+          :aria-label="L('Öppna skattkammaren', 'Ava aarded')"
+        >
           <UiMedalBadge :rank="rank" :locked="false" :medal-style="medalStyleOf(profile.state.mstyle, rank.id)" />
         </a>
-        <button v-if="active === 'shop'" class="app-shell__chip" aria-label="Dina stjärnor" @click="tapStars">
+        <button
+          v-if="active === 'shop'"
+          class="app-shell__chip"
+          :aria-label="L('Dina stjärnor', 'Sinu tähed')"
+          @click="tapStars"
+        >
           ⭐ <b>{{ profile.state.stars.toLocaleString("sv-SE") }}</b>
         </button>
-        <a v-else class="app-shell__chip" href="/shop" aria-label="Dina stjärnor – öppna marknaden">
+        <a
+          v-else
+          class="app-shell__chip"
+          href="/shop"
+          :aria-label="L('Dina stjärnor – öppna marknaden', 'Sinu tähed – ava laat')"
+        >
           ⭐ <b>{{ profile.state.stars.toLocaleString("sv-SE") }}</b>
         </a>
         <span class="app-shell__spacer" />
@@ -74,7 +94,11 @@ function tapStars() {
       </div>
       <div class="app-shell__meter">
         <div class="app-shell__meter-top">
-          <span>{{ nextRank ? `Nästa märke: ${nextRank.et} · ${nextRank.sv}` : `Högsta märket! ${rank.et}` }}</span>
+          <span>{{
+            nextRank
+              ? L(`Nästa märke: ${nextRank.et} · ${nextRank.sv}`, `Järgmine märk: ${nextRank.sv} · ${nextRank.et}`)
+              : L(`Högsta märket! ${rank.et}`, `Kõrgeim märk! ${rank.sv}`)
+          }}</span>
           <span>
             {{
               nextRank

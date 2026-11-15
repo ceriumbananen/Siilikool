@@ -107,27 +107,27 @@ export type FurnItem = (typeof FURN)[number];
 
 /** Var på Siiri ett plagg sitter - hyllorna i Laat i den här ordningen. */
 export const WEAR_SLOTS = [
-  { id: "head", sv: "På huvudet" },
-  { id: "outfit", sv: "Dräkt" },
-  { id: "neck", sv: "Runt halsen" },
-  { id: "hand", sv: "I tassen" },
-  { id: "back", sv: "På ryggen" },
-  { id: "aura", sv: "Runt Siiri" },
-  { id: "scene", sv: "Bakom Siiri" },
+  { id: "head", sv: "På huvudet", et: "Peas" },
+  { id: "outfit", sv: "Dräkt", et: "Rõivad" },
+  { id: "neck", sv: "Runt halsen", et: "Kaelas" },
+  { id: "hand", sv: "I tassen", et: "Käpas" },
+  { id: "back", sv: "På ryggen", et: "Seljas" },
+  { id: "aura", sv: "Runt Siiri", et: "Siiri ümber" },
+  { id: "scene", sv: "Bakom Siiri", et: "Siiri taga" },
 ];
 
-/** Platserna i Siiris rum: [id, namn, emoji]. */
-export const FURN_SLOTS: [string, string, string][] = [
-  ["wall", "Vägg", "🎨"],
-  ["floor", "Golv", "🪵"],
-  ["rug", "Matta", "🟣"],
-  ["left", "Möbel vänster", "🪑"],
-  ["right", "Möbel höger", "📚"],
-  ["art", "På väggen", "🖼️"],
-  ["lamp", "Lampa", "💡"],
-  ["plant", "Växt", "🪴"],
-  ["view", "Utsikt", "🪟"],
-  ["pet", "Husdjur", "🐾"],
+/** Platserna i Siiris rum: [id, namn, emoji, namn på estniska]. */
+export const FURN_SLOTS: [string, string, string, string][] = [
+  ["wall", "Vägg", "🎨", "Sein"],
+  ["floor", "Golv", "🪵", "Põrand"],
+  ["rug", "Matta", "🟣", "Vaip"],
+  ["left", "Möbel vänster", "🪑", "Mööbel vasakul"],
+  ["right", "Möbel höger", "📚", "Mööbel paremal"],
+  ["art", "På väggen", "🖼️", "Seinal"],
+  ["lamp", "Lampa", "💡", "Lamp"],
+  ["plant", "Växt", "🪴", "Taim"],
+  ["view", "Utsikt", "🪟", "Vaade aknast"],
+  ["pet", "Husdjur", "🐾", "Lemmikloom"],
 ];
 
 /** Säsongs-, högtids- och svår-nivå-varor - syns bara ibland. */

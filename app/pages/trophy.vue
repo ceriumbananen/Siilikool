@@ -13,6 +13,7 @@
    fem flikarna representerar den här sidan mer exakt förrän spelet har en riktig router. */
 
 const profile = useProfileStore();
+const { L, TL, tgt, nat, tgtLang, isEt } = useLang();
 
 const ri = computed(() => rankIndex(profile.state.xp));
 const nextRank = computed(() => RANKS[ri.value + 1]);
@@ -71,14 +72,32 @@ const badgeRows = computed(() =>
 <template>
   <UiAppShell active="me">
     <main class="trophy-page">
-      <UiPageHero emoji="🏆" title="Aarded" subtitle="Skattkammaren" tone="gold" />
+      <UiPageHero
+        emoji="🏆"
+        :title="TL('Aarded', 'Skattkammaren')"
+        :subtitle="L('Skattkammaren', 'Aarded')"
+        tone="gold"
+      />
 
       <UiAppCard class="trophy-page__section">
-        <p>
+        <p v-if="isEt()">
+          {{ RANKS.length }} märki kogumiseks, pronkssiilist kuningsiilini 100 000 punktiga. Medal näeb välja isemoodi,
+          olenevalt sellest, mis tasemel sa mängisid, kui selle said: 🍃 roheline leht, ⭐ punane pael või 🔥 lilla
+          täht.
+        </p>
+        <p v-else>
           {{ RANKS.length }} märken att samla, från bronsigelkotten till kungsigelkotten på 100 000 poäng. Medaljen ser
           olika ut beroende på vilken nivå du spelade när du tog den: 🍃 grönt löv, ⭐ rött band eller 🔥 lila stjärna.
         </p>
-        <p>
+        <p v-if="isEt()">
+          <b>{{ profile.state.xp.toLocaleString("sv-SE") }}</b> punkti ·
+          <template v-if="nextRank"
+            >järgmise märgini veel
+            <b>{{ (nextRank.xp - profile.state.xp).toLocaleString("sv-SE") }}</b> punkti</template
+          >
+          <template v-else>sul on kõik märgid!</template>
+        </p>
+        <p v-else>
           <b>{{ profile.state.xp.toLocaleString("sv-SE") }}</b> poäng ·
           <template v-if="nextRank"
             >nästa märke om <b>{{ (nextRank.xp - profile.state.xp).toLocaleString("sv-SE") }}</b> poäng</template
@@ -100,18 +119,23 @@ const badgeRows = computed(() =>
             >
               <UiMedalBadge :rank="rank" :locked="i > ri" :medal-style="medalStyleOf(profile.state.mstyle, rank.id)" />
             </div>
-            <b lang="et">{{ rank.et }}</b>
-            <span>{{ rank.sv }}</span>
+            <b :lang="tgtLang()">{{ tgt(rank) }}</b>
+            <span>{{ nat(rank) }}</span>
             <span>{{
-              i > ri ? `${rank.xp} poäng` : difficultyLabel(medalStyleOf(profile.state.mstyle, rank.id))
+              i > ri
+                ? `${rank.xp} ${L("poäng", "punkti")}`
+                : difficultyLabel(medalStyleOf(profile.state.mstyle, rank.id), isEt())
             }}</span>
           </li>
         </ul>
       </UiAppCard>
 
       <UiAppCard class="trophy-page__section">
-        <h2>{{ quest.quest.em }} Dagens utmaning</h2>
-        <p>{{ quest.quest.sv }} – {{ quest.value }} av {{ quest.quest.goal }}{{ quest.done ? " ✓ klar!" : "" }}</p>
+        <h2>{{ quest.quest.em }} {{ L("Dagens utmaning", "Tänane ülesanne") }}</h2>
+        <p>
+          {{ L(quest.quest.sv, quest.quest.et) }} – {{ quest.value }} {{ L("av", "/") }} {{ quest.quest.goal
+          }}{{ quest.done ? L(" ✓ klar!", " ✓ tehtud!") : "" }}
+        </p>
         <div
           class="trophy-page__quest-bar"
           role="progressbar"
@@ -124,7 +148,7 @@ const badgeRows = computed(() =>
       </UiAppCard>
 
       <UiAppCard v-if="duelRows.length" class="trophy-page__section">
-        <h2>⚔️ Duellhyllan</h2>
+        <h2>{{ L("⚔️ Duellhyllan", "⚔️ Duelliriiul") }}</h2>
         <ul class="trophy-page__duels">
           <li v-for="row in duelRows" :key="row.rival.id" class="trophy-page__duel">
             <span class="trophy-page__duel-emoji" aria-hidden="true">
@@ -133,8 +157,13 @@ const badgeRows = computed(() =>
               <span v-if="(row.record?.w || 0) >= 5" class="trophy-page__duel-cup" aria-hidden="true">🏆</span>
             </span>
             <span>
-              <b lang="et">{{ row.rival.et }}</b>
-              <small>
+              <b :lang="tgtLang()">{{ tgt(row.rival) }}</b>
+              <small v-if="isEt()">
+                {{ row.record?.w || 0 }} {{ row.record?.w === 1 ? "võit" : "võitu" }} · {{ row.record?.l || 0 }}
+                {{ row.record?.l === 1 ? "kaotus" : "kaotust" }}
+                <template v-if="row.record?.best">· parim {{ starRating(row.record.best) }}</template>
+              </small>
+              <small v-else>
                 {{ row.record?.w || 0 }} vinster · {{ row.record?.l || 0 }} förluster
                 <template v-if="row.record?.best">· bästa {{ starRating(row.record.best) }}</template>
               </small>
@@ -144,7 +173,7 @@ const badgeRows = computed(() =>
       </UiAppCard>
 
       <UiAppCard class="trophy-page__section">
-        <h2>{{ profile.state.name ? `${profile.state.name}s bragder` : "Dina bragder" }}</h2>
+        <h2>{{ L(profile.state.name ? `${profile.state.name}s bragder` : "Dina bragder", "Sinu saavutused") }}</h2>
         <section class="trophy-page__badges">
           <UiBadgeChip
             v-for="row in badgeRows"
@@ -154,7 +183,11 @@ const badgeRows = computed(() =>
             :progress="row.progress"
           />
         </section>
-        <p class="trophy-page__stats">
+        <p v-if="isEt()" class="trophy-page__stats">
+          ⭐ {{ profile.state.stars }} tähte · {{ profile.state.correct }} õiget vastust · 🔥 parim seeria:
+          {{ profile.state.bestcombo || 0 }} järjest
+        </p>
+        <p v-else class="trophy-page__stats">
           ⭐ {{ profile.state.stars }} stjärnor · {{ profile.state.correct }} rätta svar · 🔥 bästa kombo:
           {{ profile.state.bestcombo || 0 }} i rad
         </p>

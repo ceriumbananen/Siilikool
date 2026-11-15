@@ -9,9 +9,14 @@ const { item, tier } = defineProps<{
 }>();
 const emit = defineEmits<{ close: [] }>();
 const voice = useSiiriVoice();
+const { L, tgt, nat, tgtLang } = useLang();
 
 const kicker = computed(() =>
-  tier >= 3 ? "✨ En dröm gick i uppfyllelse!" : tier === 2 ? "⭐ Ny skatt!" : "Nytt plagg!",
+  tier >= 3
+    ? L("✨ En dröm gick i uppfyllelse!", "✨ Unistus läks täide!")
+    : tier === 2
+      ? L("⭐ Ny skatt!", "⭐ Uus aare!")
+      : L("Nytt plagg!", "Uus riideese!"),
 );
 </script>
 
@@ -22,21 +27,25 @@ const kicker = computed(() =>
       <div class="buy-overlay__emoji" :class="{ 'buy-overlay__emoji--dream': tier >= 3 }" aria-hidden="true">
         {{ item.em }}
       </div>
-      <h3 lang="et">{{ item.et }}</h3>
-      <p>{{ item.sv }}</p>
+      <h3 :lang="tgtLang()">{{ tgt(item) }}</h3>
+      <p>{{ nat(item) }}</p>
       <div class="buy-overlay__speak">
-        <button class="buy-overlay__say" aria-label="Hör ordet" @click="voice.sayWord(item.et)">🔊</button>
+        <button class="buy-overlay__say" :aria-label="L('Hör ordet', 'Kuula sõna')" @click="voice.sayWord(tgt(item))">
+          🔊
+        </button>
         <button
           class="buy-overlay__say buy-overlay__say--slow"
-          aria-label="Hör ordet långsamt"
-          @click="voice.sayWord(item.et, true)"
+          :aria-label="L('Hör ordet långsamt', 'Kuula sõna aeglaselt')"
+          @click="voice.sayWord(tgt(item), true)"
         >
           🐢
         </button>
       </div>
-      <p v-if="item.slot === 'scene'" class="buy-overlay__note">Hela appen har bytt skepnad!</p>
+      <p v-if="item.slot === 'scene'" class="buy-overlay__note">
+        {{ L("Hela appen har bytt skepnad!", "Kogu äpp sai uue näo!") }}
+      </p>
       <UiAppButton variant="primary" wide big @click="emit('close')">{{
-        tier >= 3 ? "Wow! ✨" : "Snyggt!"
+        tier >= 3 ? L("Wow! ✨", "Vau! ✨") : L("Snyggt!", "Ilus!")
       }}</UiAppButton>
     </div>
   </div>

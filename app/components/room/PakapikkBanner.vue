@@ -3,9 +3,13 @@
    för i det, så att den aldrig täcker något man ska leta bakom (flaggan, gardinerna). */
 const pak = usePakapikk();
 const { test, stop } = usePakTest();
+const { L, tgt, nat, tgtLang, isEt } = useLang();
 const testDay = computed(() =>
   test.value
-    ? new Date(`${test.value.date}T12:00:00`).toLocaleDateString("sv-SE", { day: "numeric", month: "long" })
+    ? new Date(`${test.value.date}T12:00:00`).toLocaleDateString(L("sv-SE", "et-EE"), {
+        day: "numeric",
+        month: "long",
+      })
     : "",
 );
 </script>
@@ -13,28 +17,36 @@ const testDay = computed(() =>
 <template>
   <!-- testläget (Familjen → Konto): synligt så att ingen glömmer att det är på -->
   <div v-if="test && !pak.searching.value" class="pak-test-bar" role="status">
-    <span
+    <span v-if="isEt()"
+      >🧪 Testrežiim: tuba arvab, et täna on <b>{{ testDay }}</b
+      >. Midagi ei salvestata.</span
+    >
+    <span v-else
       >🧪 Testläge: rummet tror att det är <b>{{ testDay }}</b
       >. Inget sparas.</span
     >
-    <button class="pak-test-bar__off" @click="stop">Stäng av</button>
+    <button class="pak-test-bar__off" @click="stop">{{ L("Stäng av", "Lülita välja") }}</button>
   </div>
   <div v-if="pak.searching.value && pak.target.value" class="pak-banner">
-    <button class="pak-banner__say" aria-label="Läs upp igen" @click="pak.sayLine(pak.target.value.ask.et)">
+    <button
+      class="pak-banner__say"
+      :aria-label="L('Läs upp igen', 'Loe uuesti ette')"
+      @click="pak.sayLine(pak.target.value.ask)"
+    >
       <span aria-hidden="true">📜</span>
-      <b lang="et">{{ pak.target.value.ask.et }}</b>
-      <small v-if="pak.showSv.value">{{ pak.target.value.ask.sv }}</small>
-      <small v-else>Tryck för att höra igen</small>
+      <b :lang="tgtLang()">{{ tgt(pak.target.value.ask) }}</b>
+      <small v-if="pak.showSv.value">{{ nat(pak.target.value.ask) }}</small>
+      <small v-else>{{ L("Tryck för att höra igen", "Vajuta, et uuesti kuulata") }}</small>
     </button>
     <button
       v-if="!pak.showSv.value"
       class="pak-banner__btn"
-      aria-label="Visa på svenska"
+      :aria-label="L('Visa på svenska', 'Näita eesti keeles')"
       @click="pak.showSv.value = true"
     >
-      🇸🇪
+      {{ L("🇸🇪", "🇪🇪") }}
     </button>
-    <button class="pak-banner__btn" aria-label="Sluta leta" @click="pak.close()">✕</button>
+    <button class="pak-banner__btn" :aria-label="L('Sluta leta', 'Lõpeta otsimine')" @click="pak.close()">✕</button>
   </div>
 </template>
 

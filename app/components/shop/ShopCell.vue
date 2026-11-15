@@ -13,14 +13,15 @@ const { item, owned, worn, stars } = defineProps<{
 }>();
 
 const emit = defineEmits<{ preview: [] }>();
+const { L, tgt, nat, tgtLang } = useLang();
 
 const afford = computed(() => stars >= item.price);
 /* dyra plagg som inte går att köpa än visar hur långt det är kvar */
 const pct = computed(() => Math.min(100, Math.round((stars / item.price) * 100)));
 const costText = computed(() => {
-  if (owned) return worn ? "på ✓" : "i lådan";
+  if (owned) return worn ? L("på ✓", "Siiril ✓") : L("i lådan", "kastis");
   if (afford.value) return `⭐ ${item.price.toLocaleString("sv-SE")}`;
-  return `🔒 ⭐ ${(item.price - stars).toLocaleString("sv-SE")} kvar`;
+  return `🔒 ⭐ ${(item.price - stars).toLocaleString("sv-SE")} ${L("kvar", "puudu")}`;
 });
 </script>
 
@@ -28,7 +29,13 @@ const costText = computed(() => {
   <div class="shop-cell">
     <!-- buggrapport: "vill ha en preview på saker man kan köpa" - egen liten knapp, bredvid
          (inte inuti) köp-knappen, så den går att trycka på utan att plagget faktiskt köps. -->
-    <button class="shop-cell__preview" aria-label="Förhandsgranska" @click.stop="emit('preview')">👁</button>
+    <button
+      class="shop-cell__preview"
+      :aria-label="L('Förhandsgranska', 'Vaata lähemalt')"
+      @click.stop="emit('preview')"
+    >
+      👁
+    </button>
     <button
       class="shop-cell__main"
       :class="{
@@ -38,13 +45,13 @@ const costText = computed(() => {
       }"
     >
       <span class="shop-cell__em" aria-hidden="true">{{ item.em }}</span>
-      <b lang="et">{{ item.et }}</b>
-      <small>{{ item.sv }}</small>
+      <b :lang="tgtLang()">{{ tgt(item) }}</b>
+      <small>{{ nat(item) }}</small>
       <span class="shop-cell__cost" :class="{ 'shop-cell__cost--cant': !owned && !afford }">{{ costText }}</span>
       <span v-if="!owned && !afford && item.price >= 700" class="shop-cell__bar"
         ><i :style="{ width: `${pct}%` }"
       /></span>
-      <small v-if="isLimited(item) && !owned" class="shop-cell__season">säsong</small>
+      <small v-if="isLimited(item) && !owned" class="shop-cell__season">{{ L("säsong", "hooaeg") }}</small>
     </button>
   </div>
 </template>

@@ -787,12 +787,12 @@ export function dipSVG(th: { et: string; sv: string }, seals: number, name: stri
 
 /** Där dagens gömda sak kan ligga i rummet (procent från vänster/uppifrån). */
 export const HIDE_SPOTS = [
-  { id: "kardin", sv: "bakom gardinen", x: 7, y: 24 },
-  { id: "vaip", sv: "under mattan", x: 46, y: 92 },
-  { id: "riiul", sv: "på hyllan", x: 82, y: 41 },
-  { id: "kamin", sv: "vid brasan", x: 82, y: 61 },
-  { id: "lipp", sv: "bakom flaggan", x: 82, y: 17 },
-  { id: "aken", sv: "på fönsterbrädan", x: 16, y: 53 },
-  { id: "tool", sv: "vid möbeln", x: 12, y: 71 },
-  { id: "puud", sv: "i vedkorgen", x: 95, y: 68 },
+  { id: "kardin", sv: "bakom gardinen", et: "kardina taga", x: 7, y: 24 },
+  { id: "vaip", sv: "under mattan", et: "vaiba all", x: 46, y: 92 },
+  { id: "riiul", sv: "på hyllan", et: "riiuli peal", x: 82, y: 41 },
+  { id: "kamin", sv: "vid brasan", et: "kamina juures", x: 82, y: 61 },
+  { id: "lipp", sv: "bakom flaggan", et: "lipu taga", x: 82, y: 17 },
+  { id: "aken", sv: "på fönsterbrädan", et: "aknalaual", x: 16, y: 53 },
+  { id: "tool", sv: "vid möbeln", et: "mööbli juures", x: 12, y: 71 },
+  { id: "puud", sv: "i vedkorgen", et: "puukorvis", x: 95, y: 68 },
 ];

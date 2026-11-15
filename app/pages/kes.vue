@@ -16,6 +16,13 @@ const { tone, buzz, fanfare } = useSiiriSound();
 const { burst } = useConfetti();
 const { addXp } = useRewards();
 const { mood, dance } = useSiiri();
+/* estniskt läge (profile.state.home === "et"): det barnet lär sig är svenska - frågorna, Siiris
+   svar och djurens namn visas och sägs på svenska, estniskan är den lilla hjälpraden */
+const { L, tgt, nat, tgtLang, isEt } = useLang();
+/* hjälpradens språk: inget lang-attribut i svenskt läge (som förut) */
+const natLang = () => (isEt() ? "et" : undefined);
+/* frågan som par: i estniskt läge med askSv ("Har du päls?") istället för förklaringen */
+const askOf = (f: KesFeature) => (isEt() ? kesAsk(f) : f.ask);
 
 type Phase = "ask" | "recap" | "guess" | "won";
 const phase = ref<Phase>("ask");
@@ -31,13 +38,21 @@ const autoFade = s.diff !== "svar";
 
 /* ---------- ljud ---------- */
 async function sayLines(lines: string[]) {
+  if (isEt()) return saySv(lines);
   const clips = (await Promise.all(lines.map(l => findWordClip(l)))).filter(Boolean).map(c => c!.src);
   if (clips.length) voice.say(clips);
   else if (lines[0]) voice.sayWord(lines[0]);
 }
+/* estniskt läge: Sofies svenska klipp; saknas något av dem läses allt av enhetens svenska röst
+   (sayWord), så att ingen rad hoppas över */
+async function saySv(lines: string[]) {
+  const clips = await Promise.all(lines.map(l => findSvClip(l)));
+  if (clips.length && clips.every(Boolean)) voice.say(clips.map(c => c!.src));
+  else if (lines.length) voice.sayWord(lines.join(" "));
+}
 function show(line: KesLine, extra: string[] = []) {
   said.value = line;
-  sayLines([...extra, line.et]);
+  sayLines([...extra, tgt(line)]);
 }
 
 /* ---------- en ny runda ---------- */
@@ -74,7 +89,7 @@ function ask(f: KesFeature) {
   if (gone) buzz(10);
   mood(yes ? "cheer" : "");
   /* barnets fråga och Siiris svar, i följd */
-  show(yes ? f.yes : f.no, [f.ask.et]);
+  show(yes ? f.yes : f.no, [tgt(askOf(f))]);
 }
 
 /* ---------- "Ma tean!" och "Mida me teame?" ---------- */
@@ -95,7 +110,7 @@ function iKnow() {
   });
   phase.value = "recap";
   mood("think");
-  show(KES_RECAP, [KES_I_KNOW.et]);
+  show(KES_RECAP, [tgt(KES_I_KNOW)]);
 }
 const shake = ref("");
 function pickRecap(r: RecapItem, o: KesLine) {
@@ -134,7 +149,7 @@ function guess(a: KesAnimal) {
   tone(330, 0.1, 0);
   tone(262, 0.14, 0.08);
   mood("oops");
-  show({ et: a.notMe, sv: `Nej, jag är ingen ${a.sv}.` }, []);
+  show(kesNotMe(a), []);
   setTimeout(() => {
     if (phase.value !== "guess") return;
     if (autoFade && left.value.length === 1) return; /* bara ett djur kvar - gissa igen direkt */
@@ -155,7 +170,7 @@ function win() {
   dance(true);
   burst(120);
   fanfare(2);
-  show({ et: a.reveal, sv: `Jag är en ${a.sv}!` });
+  show(kesReveal(a));
   setTimeout(() => addXp(15), 1800);
 }
 </script>
@@ -163,7 +178,7 @@ function win() {
 <template>
   <UiAppShell active="home">
     <main class="kes">
-      <a class="kes__back" href="/">← Tillbaka</a>
+      <a class="kes__back" href="/">{{ L("← Tillbaka", "← Tagasi") }}</a>
 
       <!-- Siiri, det hon säger och det man vet: följer med när man scrollar, så att svaret syns
            även när man tryckt på en fråga längst ner på en telefon -->
@@ -171,9 +186,11 @@ function win() {
         <div class="kes__top">
           <UiSiiriPortrait size="small" class="kes__siiri" />
           <button class="kes__bubble" @click="show(said)">
-            <b lang="et">{{ said.et }}</b>
-            <small v-if="showSv">{{ said.sv }}</small>
-            <small v-else class="kes__hear">🔊 Tryck för att höra igen</small>
+            <b :lang="tgtLang()">{{ tgt(said) }}</b>
+            <small v-if="showSv" :lang="natLang()">{{ nat(said) }}</small>
+            <small v-else class="kes__hear">{{
+              L("🔊 Tryck för att höra igen", "🔊 Vajuta, et uuesti kuulata")
+            }}</small>
           </button>
         </div>
 
@@ -183,8 +200,10 @@ function win() {
             <span v-if="phase === 'won'" class="kes__reveal" aria-hidden="true">{{ secret.em }}</span>
             <span v-else class="kes__q" aria-hidden="true">?</span>
           </div>
-          <ul class="kes__facts" aria-label="Det vi vet">
-            <li v-if="!asked.length" class="kes__fact kes__fact--empty">Fråga Siiri – svaren hamnar här</li>
+          <ul class="kes__facts" :aria-label="L('Det vi vet', 'Mida me teame')">
+            <li v-if="!asked.length" class="kes__fact kes__fact--empty">
+              {{ L("Fråga Siiri – svaren hamnar här", "Küsi Siirilt – vastused tulevad siia") }}
+            </li>
             <li
               v-for="q in asked"
               :key="q.f.id"
@@ -202,21 +221,30 @@ function win() {
       <!-- vinst -->
       <UiAppCard v-if="phase === 'won'" class="kes__won">
         <h2>
-          <span lang="et">{{ secret.reveal }}</span> <small>Jag är en {{ secret.sv }}!</small>
+          <span :lang="tgtLang()">{{ tgt(kesReveal(secret)) }}</span>
+          <small :lang="natLang()">{{ nat(kesReveal(secret)) }}</small>
         </h2>
-        <p>Du klarade det med {{ asked.length }} {{ asked.length === 1 ? "fråga" : "frågor" }}.</p>
+        <p v-if="isEt()">Arvasid ära {{ asked.length }} küsimusega!</p>
+        <p v-else>Du klarade det med {{ asked.length }} {{ asked.length === 1 ? "fråga" : "frågor" }}.</p>
         <p class="kes__stars">+{{ reward }} ⭐</p>
         <div class="kes__row">
-          <UiAppButton variant="green" big @click="newRound">🔄 Uus loom · Nytt djur</UiAppButton>
-          <UiAppButton variant="ghost" @click="() => navigateTo('/', { external: true })">Hem</UiAppButton>
+          <UiAppButton variant="green" big @click="newRound">{{
+            L("🔄 Uus loom · Nytt djur", "🔄 Nytt djur · Uus loom")
+          }}</UiAppButton>
+          <UiAppButton variant="ghost" @click="() => navigateTo('/', { external: true })">{{
+            L("Hem", "Koju")
+          }}</UiAppButton>
         </div>
       </UiAppCard>
 
       <!-- Mida me teame? -->
       <UiAppCard v-else-if="phase === 'recap' && recapAt" class="kes__recap">
-        <h2><span lang="et">Mida me teame?</span> <small>Vad vet vi?</small></h2>
+        <h2>
+          <span :lang="tgtLang()">{{ tgt(KES_RECAP) }}</span> <small :lang="natLang()">{{ nat(KES_RECAP) }}</small>
+        </h2>
         <p class="kes__sub">
-          Frågan var <b lang="et">{{ asked[recapAt.i]!.f.ask.et }}</b> Vad stämmer?
+          {{ L("Frågan var", "Küsimus oli") }} <b :lang="tgtLang()">{{ tgt(askOf(asked[recapAt.i]!.f)) }}</b>
+          {{ L("Vad stämmer?", "Mis on õige?") }}
           <span class="kes__count">{{ recap.filter(r => r.done).length + 1 }} / {{ recap.length }}</span>
         </p>
         <div class="kes__options">
@@ -227,8 +255,8 @@ function win() {
             :class="{ 'kes__option--shake': shake === o.et }"
             @click="pickRecap(recapAt, o)"
           >
-            <b lang="et">{{ o.et }}</b>
-            <small v-if="showSv">{{ o.sv }}</small>
+            <b :lang="tgtLang()">{{ tgt(o) }}</b>
+            <small v-if="showSv" :lang="natLang()">{{ nat(o) }}</small>
           </button>
         </div>
       </UiAppCard>
@@ -247,31 +275,37 @@ function win() {
             'kes__animal--me': phase === 'won' && a.et === secret.et,
           }"
           :disabled="phase !== 'guess' || wrongGuesses.includes(a.et)"
-          :aria-label="`${a.et}, ${a.sv}`"
+          :aria-label="`${tgt(a)}, ${nat(a)}`"
           @click="guess(a)"
         >
           <span aria-hidden="true">{{ a.em }}</span>
-          <small lang="et">{{ a.et }}</small>
+          <small :lang="tgtLang()">{{ tgt(a) }}</small>
         </button>
       </div>
-      <p v-if="phase === 'guess'" class="kes__hint">Tryck på djuret du tror att Siiri är.</p>
+      <p v-if="phase === 'guess'" class="kes__hint">
+        {{ L("Tryck på djuret du tror att Siiri är.", "Vajuta loomale, kes Siiri sinu arvates on.") }}
+      </p>
 
       <!-- frågorna -->
       <template v-if="phase === 'ask'">
         <UiAppButton v-if="canGuess" variant="green" wide big class="kes__know" @click="iKnow">
-          💡 Ma tean! · Jag vet!
+          {{ L("💡 Ma tean! · Jag vet!", "💡 Jag vet! · Ma tean!") }}
         </UiAppButton>
-        <p v-else class="kes__hint">Ställ minst två frågor, sedan kan du gissa.</p>
+        <p v-else class="kes__hint">
+          {{ L("Ställ minst två frågor, sedan kan du gissa.", "Küsi vähemalt kaks küsimust, siis saad arvata.") }}
+        </p>
         <div class="kes__questions">
           <button v-for="f in open" :key="f.id" class="kes__ask" @click="ask(f)">
             <span class="kes__ask-em" aria-hidden="true">{{ f.em }}</span>
             <span>
-              <b lang="et">{{ f.ask.et }}</b>
-              <small v-if="showSv">{{ f.ask.sv }}</small>
+              <b :lang="tgtLang()">{{ tgt(askOf(f)) }}</b>
+              <small v-if="showSv" :lang="natLang()">{{ nat(askOf(f)) }}</small>
             </span>
           </button>
         </div>
-        <button v-if="!showSv" class="kes__sv" @click="showSv = true">🇸🇪 Visa på svenska</button>
+        <button v-if="!showSv" class="kes__sv" @click="showSv = true">
+          {{ L("🇸🇪 Visa på svenska", "🇪🇪 Näita eesti keeles") }}
+        </button>
       </template>
     </main>
   </UiAppShell>

@@ -11,6 +11,7 @@ const voice = useSiiriVoice();
 const { tone, buzz, fanfare, purr } = useSiiriSound();
 const { burst } = useConfetti();
 const { addXp } = useRewards();
+const { L, TL, tgt, nat, tgtLang, isEt } = useLang();
 
 const s = profile.state;
 const owned = computed(() => (s.owned as string[] | undefined) || []);
@@ -86,7 +87,9 @@ const FURN_SPOTS: Record<FurnSpotId, { slot: string; x: number; y: number; dir: 
   roomwall: { slot: "wall", x: 72, y: 14, dir: "up" },
 };
 const roomTurn: Partial<Record<RoomSpotId, number>> = {};
-const roomSaid = ref<{ et: string; sv: string; x: number; y: number; dir: "up" | "left" | "down" } | null>(null);
+/* pratbubblan: word = det barnet lär sig (stort), gloss = förklaringen på barnets eget språk */
+const roomSaid = ref<{ word: string; gloss: string; x: number; y: number; dir: "up" | "left" | "down" } | null>(null);
+const cap = (t: string) => `${t[0]!.toUpperCase()}${t.slice(1)}`;
 let roomSaidTimer: ReturnType<typeof setTimeout> | undefined;
 
 /* vissa saker har en egen kulturell/historisk historia (ROOM_LORE i app/utils/room-lore.ts) och
@@ -127,13 +130,14 @@ function loreFor(id: string): RoomLore | null {
   return null;
 }
 const lore = ref<RoomLore | null>(null);
+/* kortet öppnas på det språk barnet lär sig (estniska, eller svenska i estniskt läge) */
 const loreShowEt = ref(true);
 function openLore(entry: RoomLore) {
   lore.value = entry;
-  loreShowEt.value = true;
+  loreShowEt.value = !isEt();
   tone(260, 0.08, 0);
   tone(160, 0.16, 0.05);
-  voice.sayWord(entry.factEt);
+  voice.sayWord(loreShowEt.value ? entry.factEt : entry.fact);
 }
 function toggleLoreLang() {
   loreShowEt.value = !loreShowEt.value;
@@ -216,9 +220,9 @@ function touchRoomSpot(id: RoomSpotId, el: Element) {
   const turn = (roomTurn[id] || 0) % spot.words.length;
   roomTurn[id] = turn + 1;
   const word = spot.words[turn]!;
-  voice.sayWord(word.et);
-  const sv = id === "roompet" && petName.value ? petName.value : `${word.sv[0]!.toUpperCase()}${word.sv.slice(1)}!`;
-  roomSaid.value = { et: word.et, sv, x: spot.x, y: spot.y, dir: spot.dir };
+  voice.sayWord(tgt(word));
+  const gloss = id === "roompet" && petName.value ? petName.value : `${cap(nat(word))}!`;
+  roomSaid.value = { word: tgt(word), gloss, x: spot.x, y: spot.y, dir: spot.dir };
   clearTimeout(roomSaidTimer);
   roomSaidTimer = setTimeout(() => {
     roomSaid.value = null;
@@ -236,7 +240,7 @@ function touchFurnSpot(id: FurnSpotId, el: Element) {
   el.classList.add(litClass);
   tone(260, 0.08, 0);
   tone(160, 0.16, 0.05);
-  voice.sayWord(item.et);
+  voice.sayWord(tgt(item));
   /* växten flyttar med möbeln till höger (plantAnchor i room-svg.ts) - bubblan också */
   let { x, y } = spot;
   if (id === "roomplant") {
@@ -245,8 +249,8 @@ function touchFurnSpot(id: FurnSpotId, el: Element) {
     y = ((a.ty - 34 * a.s) / 270) * 100;
   }
   roomSaid.value = {
-    et: item.et,
-    sv: `${item.sv[0]!.toUpperCase()}${item.sv.slice(1)}!`,
+    word: tgt(item),
+    gloss: `${cap(nat(item))}!`,
     x,
     y,
     dir: spot.dir,
@@ -256,8 +260,26 @@ function touchFurnSpot(id: FurnSpotId, el: Element) {
     roomSaid.value = null;
   }, 1800);
 }
-const label = computed(
-  () => `${fur.value.sv} päls · ${eye.value.sv} ögon · ${owned.value.length} av ${SHOP.length} saker`,
+/* ögonfärgerna har bara svenska namn i EYES (id:t är estniskt, men utan stor bokstav och i
+   ett fall för kort) - estniska namnen för estniskt läge här */
+const EYE_ET: Record<string, string> = {
+  pruun: "Pruun",
+  merevaik: "Merevaik",
+  roheline: "Roheline",
+  sinine: "Sinine",
+  hall: "Hall",
+  lilla: "Lilla",
+  kuld: "Kuld",
+  punane: "Rubiinpunane",
+};
+const eyeName = (e: { id: string; sv: string }) => L(e.sv, EYE_ET[e.id] || e.sv);
+/* estniska: "1 asi", annars "2 asja" (partitiv efter räkneord) */
+const asju = (n: number) => `${n} ${n === 1 ? "asi" : "asja"}`;
+const label = computed(() =>
+  L(
+    `${fur.value.sv} päls · ${eye.value.sv} ögon · ${owned.value.length} av ${SHOP.length} saker`,
+    `Karv: ${fur.value.et.toLowerCase()} · silmad: ${eyeName(eye.value).toLowerCase()} · ${asju(owned.value.length)} ${SHOP.length}-st`,
+  ),
 );
 
 /* döp husdjuret - att få namnge något gör det till "mitt", inte bara "ett" husdjur */
@@ -290,15 +312,20 @@ const roomAccent = computed(
 
 /* Siiri kommenterar utseendet - päls/ögon/kläder ändrades innan bara tyst (en ton + konfetti),
    trots att hon redan har hela mood/reaktionssystemet. Återanvänder roomSaid-bubblan ovan. */
-const APPEARANCE_REACTIONS: { et: string; sv: (detail: string) => string }[] = [
-  { et: "Mulle meeldib!", sv: detail => `Jag gillar ${detail} på mig!` },
-  { et: "Kui ilus!", sv: detail => `Vad fint, jag har ${detail} nu!` },
-  { et: "Vaata mind!", sv: detail => `Titta, nu har jag ${detail}!` },
+/* svShort = repliken på svenska i estniskt läge (utan detaljen - estniskans kasus gör den svår
+   att foga in), et visas då som förklaring */
+const APPEARANCE_REACTIONS: { et: string; sv: (detail: string) => string; svShort: string }[] = [
+  { et: "Mulle meeldib!", sv: detail => `Jag gillar ${detail} på mig!`, svShort: "Jag gillar det!" },
+  { et: "Kui ilus!", sv: detail => `Vad fint, jag har ${detail} nu!`, svShort: "Vad fint!" },
+  { et: "Vaata mind!", sv: detail => `Titta, nu har jag ${detail}!`, svShort: "Titta på mig!" },
 ];
-function reactToLook(detailSv: string, wordEt?: string) {
-  if (wordEt) voice.sayWord(wordEt);
+/** word = ordet som sägs, på det språk barnet lär sig. */
+function reactToLook(detailSv: string, word?: string) {
+  if (word) voice.sayWord(word);
   const r = APPEARANCE_REACTIONS[(Math.random() * APPEARANCE_REACTIONS.length) | 0]!;
-  roomSaid.value = { et: r.et, sv: r.sv(detailSv), x: 50, y: 38, dir: "up" };
+  roomSaid.value = isEt()
+    ? { word: r.svShort, gloss: r.et, x: 50, y: 38, dir: "up" }
+    : { word: r.et, gloss: r.sv(detailSv), x: 50, y: 38, dir: "up" };
   clearTimeout(roomSaidTimer);
   roomSaidTimer = setTimeout(() => {
     roomSaid.value = null;
@@ -322,26 +349,29 @@ function findHidden() {
   s.stars += gain;
   profile.save();
   addXp(20);
-  voice.sayWord(t.word.et);
+  voice.sayWord(tgt(t.word));
   burst(140);
   fanfare(2);
   buzz(24);
-  foundPopup.value = { word: t.word, spot: t.spot.sv, gain };
+  foundPopup.value = { word: t.word, spot: L(t.spot.sv, t.spot.et), gain };
 }
 const foundIcon = computed(() => {
   const w = foundPopup.value?.word;
   if (!w || !hasPic(w)) return "";
   return wordArtSVG(w.et) || w.em || "";
 });
-const hideLast = computed(() => (s.hidelast as { et?: string; sv?: string } | undefined) || {});
+const hideLast = computed(() => {
+  const h = (s.hidelast as { et?: string; sv?: string } | undefined) || {};
+  return { et: h.et || "", sv: h.sv || "" };
+});
 
 /* ---------- flikarna ---------- */
 const TABS = [
-  ["varv", "🎨", "Färg"],
-  ["silmad", "👀", "Ögon"],
-  ["riided", "👕", "Kläder"],
-  ["sisu", "🛋️", "Möbler"],
-  ["diplom", "📜", "Diplom"],
+  ["varv", "🎨", "Färg", "Värv"],
+  ["silmad", "👀", "Ögon", "Silmad"],
+  ["riided", "👕", "Kläder", "Riided"],
+  ["sisu", "🛋️", "Möbler", "Mööbel"],
+  ["diplom", "📜", "Diplom", "Diplomid"],
 ] as const;
 const tab = computed(() => (s.roomTab as string | undefined) || "varv");
 function setTab(id: string) {
@@ -356,14 +386,14 @@ function pickFur(id: string) {
   tone(820, 0.08, 0);
   burst(24);
   const f = myFur(id);
-  reactToLook(`${f.sv.toLowerCase()} päls`, f.et);
+  reactToLook(`${f.sv.toLowerCase()} päls`, tgt(f));
 }
 function pickEye(id: string) {
   s.eye = id;
   profile.save();
   tone(900, 0.08, 0);
   const e = myEye(id);
-  reactToLook(`${e.sv.toLowerCase()} ögon`, e.id);
+  reactToLook(`${e.sv.toLowerCase()} ögon`, TL(e.id, e.sv));
 }
 
 /* kläderna barnet äger, per plats på Siiri */
@@ -378,7 +408,7 @@ function toggleWear(it: ShopItem) {
   s.wear = { ...wear.value, [it.slot]: on ? null : it.id };
   profile.save();
   if (!on) {
-    voice.sayWord(it.et);
+    voice.sayWord(tgt(it));
     tone(760, 0.09, 0);
     reactToLook(it.sv.charAt(0).toLowerCase() + it.sv.slice(1));
   } else tone(520, 0.09, 0);
@@ -386,9 +416,9 @@ function toggleWear(it: ShopItem) {
 
 /* möblerna barnet äger, per plats i rummet */
 const furnRows = computed(() =>
-  FURN_SLOTS.map(([id, sv, em]) => ({
+  FURN_SLOTS.map(([id, sv, em, et]) => ({
     id,
-    title: `${em} ${sv}`,
+    title: `${em} ${L(sv, et)}`,
     mine: FURN.filter(f => f.slot === id && furnOwned(f.id, furnOwnedIds.value)),
     locked: FURN.filter(f => f.slot === id && !furnOwned(f.id, furnOwnedIds.value)).length,
     current: furnOf(id, room.value, furnOwnedIds.value),
@@ -425,7 +455,12 @@ function backFromQuiz() {
         <UiPageHero
           emoji="🏠"
           title="Siiri tuba"
-          subtitle="Siiris rum — hon är din, gör henne till din egen"
+          :subtitle="
+            L(
+              'Siiris rum — hon är din, gör henne till din egen',
+              'Siiri on sinu oma — tee ta selliseks, nagu sulle meeldib',
+            )
+          "
           tone="amber"
         />
 
@@ -442,8 +477,8 @@ function backFromQuiz() {
               class="room-page__flip"
               role="button"
               tabindex="0"
-              title="Tryck på Siiri för att vända på henne"
-              aria-label="Tryck på Siiri för att vända på henne"
+              :title="L('Tryck på Siiri för att vända på henne', 'Vajuta Siirile, et ta ümber pöörata')"
+              :aria-label="L('Tryck på Siiri för att vända på henne', 'Vajuta Siirile, et ta ümber pöörata')"
               @click="flip"
               @keydown.enter.prevent="flip"
               @keydown.space.prevent="flip"
@@ -459,7 +494,7 @@ function backFromQuiz() {
             v-if="!found && !pak.searching.value"
             class="room-page__hidden"
             :style="{ left: `${hidden.spot.x}%`, top: `${hidden.spot.y}%` }"
-            aria-label="Något gömmer sig"
+            :aria-label="L('Något gömmer sig', 'Siin on midagi peidus')"
             @click.stop="findHidden"
           >
             <span>{{ hidden.word.em }}</span>
@@ -471,16 +506,24 @@ function backFromQuiz() {
             :class="`room-page__spot-bubble--${roomSaid.dir}`"
             :style="{ left: `${roomSaid.x}%`, top: `${roomSaid.y}%` }"
           >
-            <b lang="et">{{ roomSaid.et }}</b
-            ><span>{{ roomSaid.sv }}</span>
+            <b :lang="tgtLang()">{{ roomSaid.word }}</b
+            ><span>{{ roomSaid.gloss }}</span>
           </div>
         </div>
         <RoomPakapikkBanner />
         <p v-if="!pak.searching.value" class="room-page__note">
-          <template v-if="found">
+          <template v-if="found && isEt()">
+            🔍 Tänane asi on leitud: <b lang="sv">{{ hideLast.sv }}</b> — {{ hideLast.et }}. Homme on uus!
+          </template>
+          <template v-else-if="found">
             🔍 Dagens sak hittad: <b lang="et">{{ hideLast.et }}</b> — {{ hideLast.sv }}. Ny sak imorgon!
           </template>
-          <template v-else>🔍 Något litet gömmer sig i rummet idag. Hittar du det?</template>
+          <template v-else>{{
+            L(
+              "🔍 Något litet gömmer sig i rummet idag. Hittar du det?",
+              "🔍 Toas on täna midagi väikest peidus. Kas leiad selle üles?",
+            )
+          }}</template>
         </p>
         <RoomPakapikkCalendar />
         <RoomPakapikkLetter />
@@ -488,7 +531,7 @@ function backFromQuiz() {
         <!-- flikar -->
         <div class="room-page__tabs" role="tablist">
           <button
-            v-for="[id, em, sv] in TABS"
+            v-for="[id, em, sv, et] in TABS"
             :key="id"
             class="room-page__tab"
             :class="{ 'room-page__tab--on': tab === id }"
@@ -497,14 +540,21 @@ function backFromQuiz() {
             @click="setTab(id)"
           >
             <span aria-hidden="true">{{ em }}</span
-            ><b>{{ sv }}</b>
+            ><b>{{ L(sv, et) }}</b>
           </button>
         </div>
 
         <!-- Färg -->
         <UiAppCard v-if="tab === 'varv'">
-          <h2 class="room-page__slot">Karvavärv · Pälsfärg</h2>
-          <p class="room-page__sub">Färgen sätter sig på taggarna. Ansiktet och magen förblir gräddvita.</p>
+          <h2 class="room-page__slot">{{ L("Karvavärv · Pälsfärg", "Pälsfärg · Karvavärv") }}</h2>
+          <p class="room-page__sub">
+            {{
+              L(
+                "Färgen sätter sig på taggarna. Ansiktet och magen förblir gräddvita.",
+                "Värv tuleb okastele. Nägu ja kõht jäävad kreemjaks.",
+              )
+            }}
+          </p>
           <div class="room-page__swatches">
             <button
               v-for="f in FURS"
@@ -514,15 +564,15 @@ function backFromQuiz() {
               @click="pickFur(f.id)"
             >
               <span class="room-page__fur" :style="{ background: f.o ? f.c : '#F3EADB' }" />
-              <b>{{ f.sv }}</b
-              ><small lang="et">{{ f.et }}</small>
+              <b>{{ nat(f) }}</b
+              ><small :lang="tgtLang()">{{ tgt(f) }}</small>
             </button>
           </div>
         </UiAppCard>
 
         <!-- Ögon -->
         <UiAppCard v-else-if="tab === 'silmad'">
-          <h2 class="room-page__slot">Silmavärv · Ögonfärg</h2>
+          <h2 class="room-page__slot">{{ L("Silmavärv · Ögonfärg", "Ögonfärg · Silmavärv") }}</h2>
           <div class="room-page__swatches">
             <button
               v-for="e in EYES"
@@ -532,15 +582,18 @@ function backFromQuiz() {
               @click="pickEye(e.id)"
             >
               <span class="room-page__eye"><span :style="{ background: e.c }" /></span>
-              <b>{{ e.sv }}</b>
+              <b>{{ eyeName(e) }}</b>
             </button>
           </div>
         </UiAppCard>
 
         <!-- Möbler -->
         <UiAppCard v-else-if="tab === 'sisu'">
-          <h2 class="room-page__kicker">Sisusta tuba · Möblera rummet</h2>
-          <p class="room-page__sub">Byt fritt mellan det du äger. Nytt köper du i marknaden under <b>Rummet</b>.</p>
+          <h2 class="room-page__kicker">{{ L("Sisusta tuba · Möblera rummet", "Möblera rummet · Sisusta tuba") }}</h2>
+          <p v-if="isEt()" class="room-page__sub">Vaheta vabalt asju, mis sul juba on. Uusi asju leiad laadalt.</p>
+          <p v-else class="room-page__sub">
+            Byt fritt mellan det du äger. Nytt köper du i marknaden under <b>Rummet</b>.
+          </p>
           <template v-for="row in furnRows" :key="row.id">
             <h3 class="room-page__furn-title">{{ row.title }}</h3>
             <div class="room-page__furn-row">
@@ -551,19 +604,21 @@ function backFromQuiz() {
                 :class="{ 'room-page__furn--on': row.current === f.id }"
                 @click="placeFurn(f)"
               >
-                <b>{{ f.sv }}</b
-                ><small lang="et">{{ f.et }}</small>
+                <b>{{ nat(f) }}</b
+                ><small :lang="tgtLang()">{{ tgt(f) }}</small>
               </button>
-              <span v-if="row.locked" class="room-page__furn-lock">🔒 {{ row.locked }} till i marknaden</span>
+              <span v-if="row.locked" class="room-page__furn-lock">{{
+                L(`🔒 ${row.locked} till i marknaden`, `🔒 veel ${row.locked} laadal`)
+              }}</span>
             </div>
             <div v-if="row.id === 'pet' && row.current !== 'd-none'" class="room-page__pet-name">
-              <label for="petname">Ge husdjuret ett namn</label>
+              <label for="petname">{{ L("Ge husdjuret ett namn", "Pane lemmikloomale nimi") }}</label>
               <input
                 id="petname"
                 type="text"
                 maxlength="16"
                 :value="petName"
-                placeholder="t.ex. Nurr"
+                :placeholder="L('t.ex. Nurr', 'nt Nurr')"
                 @change="savePetName"
               />
             </div>
@@ -572,8 +627,12 @@ function backFromQuiz() {
 
         <!-- Diplom -->
         <UiAppCard v-else-if="tab === 'diplom'">
-          <h2 class="room-page__kicker">📜 Diplomid · Diplom</h2>
-          <p class="room-page__sub">
+          <h2 class="room-page__kicker">{{ L("📜 Diplomid · Diplom", "📜 Diplom · Diplomid") }}</h2>
+          <p v-if="isEt()" class="room-page__sub">
+            Kümme küsimust ühel teemal. Läbi kukkuda ei saa — proovi uuesti, millal tahad, arvesse läheb parim tulemus.
+            Diplomid ripuvad toa seinal.
+          </p>
+          <p v-else class="room-page__sub">
             Tio frågor på ett tema. Du kan inte misslyckas — gör om när du vill, bästa resultatet räknas. Diplomen
             hänger på väggen i rummet.
           </p>
@@ -586,9 +645,11 @@ function backFromQuiz() {
               @click="startQuiz(t as Theme)"
             >
               <span class="room-page__diploma-em" aria-hidden="true">{{ t.em }}</span>
-              <b lang="et">{{ t.et }}</b>
-              <small>{{ t.sv }}</small>
-              <small class="room-page__seals">{{ dipGet(t.id) ? "⭐".repeat(dipGet(t.id)) : "gör diplom" }}</small>
+              <b :lang="tgtLang()">{{ tgt(t) }}</b>
+              <small>{{ nat(t) }}</small>
+              <small class="room-page__seals">{{
+                dipGet(t.id) ? "⭐".repeat(dipGet(t.id)) : L("gör diplom", "tee diplom")
+              }}</small>
             </button>
           </div>
         </UiAppCard>
@@ -596,12 +657,19 @@ function backFromQuiz() {
         <!-- Kläder -->
         <template v-else>
           <UiAppCard v-if="!owned.length" class="room-page__empty">
-            <p>Garderoben är tom än. Allt du köper på marknaden hamnar här.</p>
+            <p>
+              {{
+                L(
+                  "Garderoben är tom än. Allt du köper på marknaden hamnar här.",
+                  "Riidekapp on veel tühi. Kõik, mis sa laadalt ostad, tuleb siia.",
+                )
+              }}
+            </p>
             <span class="room-page__pointer" aria-hidden="true">🎪</span>
-            <a class="room-page__to-shop" href="/shop">Till marknaden</a>
+            <a class="room-page__to-shop" href="/shop">{{ L("Till marknaden", "Laadale") }}</a>
           </UiAppCard>
           <UiAppCard v-for="w in wardrobe" :key="w.slot.id" class="room-page__section">
-            <h2 class="room-page__slot">{{ w.slot.sv }}</h2>
+            <h2 class="room-page__slot">{{ L(w.slot.sv, w.slot.et) }}</h2>
             <div class="room-page__shelf">
               <button
                 v-for="it in w.items"
@@ -611,16 +679,23 @@ function backFromQuiz() {
                 @click="toggleWear(it)"
               >
                 <span class="room-page__item-em" aria-hidden="true">{{ it.em }}</span>
-                <b lang="et">{{ it.et }}</b>
-                <small>{{ it.sv }}</small>
-                <small v-if="wear[it.slot] === it.id" class="room-page__worn">på ✓</small>
+                <b :lang="tgtLang()">{{ tgt(it) }}</b>
+                <small>{{ nat(it) }}</small>
+                <small v-if="wear[it.slot] === it.id" class="room-page__worn">{{ L("på ✓", "peal ✓") }}</small>
               </button>
             </div>
           </UiAppCard>
           <p v-if="owned.length && owned.length < SHOP.length" class="room-page__note">
-            {{ SHOP.length - owned.length }} saker väntar på marknaden.
+            {{
+              L(
+                `${SHOP.length - owned.length} saker väntar på marknaden.`,
+                `Laadal ootab veel ${asju(SHOP.length - owned.length)}.`,
+              )
+            }}
           </p>
-          <p v-if="owned.length === SHOP.length" class="room-page__note">Du äger allt som finns. Rummet är fullt!</p>
+          <p v-if="owned.length === SHOP.length" class="room-page__note">
+            {{ L("Du äger allt som finns. Rummet är fullt!", "Sul on kõik olemas. Tuba on täis!") }}
+          </p>
         </template>
       </template>
     </main>
@@ -628,14 +703,18 @@ function backFromQuiz() {
     <!-- dagens gömda sak hittad -->
     <div v-if="foundPopup" class="room-page__found" role="dialog" aria-modal="true">
       <div class="room-page__found-card">
-        <p class="room-page__found-kicker">🔍 Sa leidsid! · Du hittade den!</p>
+        <p class="room-page__found-kicker">
+          {{ L("🔍 Sa leidsid! · Du hittade den!", "🔍 Du hittade den! · Sa leidsid!") }}
+        </p>
         <div class="room-page__found-icon" aria-hidden="true" v-html="foundIcon" />
-        <h3 lang="et">{{ foundPopup.word.et }}</h3>
-        <p>{{ foundPopup.word.sv }} · låg {{ foundPopup.spot }}</p>
+        <h3 :lang="tgtLang()">{{ tgt(foundPopup.word) }}</h3>
+        <p>{{ nat(foundPopup.word) }} · {{ L("låg", "oli") }} {{ foundPopup.spot }}</p>
         <p class="room-page__sub">⭐ +{{ foundPopup.gain }}</p>
         <div class="room-page__found-row">
-          <UiAppButton variant="primary" @click="voice.sayWord(foundPopup.word.et)">🔊 Hör igen</UiAppButton>
-          <UiAppButton variant="green" @click="foundPopup = null">Aitäh!</UiAppButton>
+          <UiAppButton variant="primary" @click="voice.sayWord(tgt(foundPopup.word))">{{
+            L("🔊 Hör igen", "🔊 Kuula uuesti")
+          }}</UiAppButton>
+          <UiAppButton variant="green" @click="foundPopup = null">{{ TL("Aitäh!", "Tack!") }}</UiAppButton>
         </div>
       </div>
     </div>
@@ -648,14 +727,14 @@ function backFromQuiz() {
         <h3 :lang="loreShowEt ? 'et' : 'sv'">{{ loreShowEt ? lore.name.et : lore.name.sv }}</h3>
         <p :lang="loreShowEt ? 'et' : 'sv'">{{ loreShowEt ? lore.factEt : lore.fact }}</p>
         <div class="room-page__found-row">
-          <UiAppButton variant="primary" @click="voice.sayWord(loreShowEt ? lore.factEt : lore.fact)"
-            >🔊 Hör</UiAppButton
-          >
+          <UiAppButton variant="primary" @click="voice.sayWord(loreShowEt ? lore.factEt : lore.fact)">{{
+            L("🔊 Hör", "🔊 Kuula")
+          }}</UiAppButton>
           <UiAppButton variant="ghost" @click="toggleLoreLang">{{
-            loreShowEt ? "🇸🇪 På svenska" : "🇪🇪 Eesti keeles"
+            loreShowEt ? L("🇸🇪 På svenska", "🇸🇪 Rootsi keeles") : "🇪🇪 Eesti keeles"
           }}</UiAppButton>
         </div>
-        <UiAppButton variant="green" wide @click="lore = null">Stäng</UiAppButton>
+        <UiAppButton variant="green" wide @click="lore = null">{{ L("Stäng", "Sulge") }}</UiAppButton>
       </div>
     </div>
   </UiAppShell>

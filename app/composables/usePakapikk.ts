@@ -13,7 +13,7 @@ const day = ref(0); /* brevet som är öppet */
 const step = ref(0); /* vilken lapp i dagens kedja */
 const reread = ref(false); /* ett redan hittat brev som läses igen - ingen jakt */
 const wrong = ref(0); /* fel tryck på den här lappen - efter två glimtar rätt ställe till */
-const showSv = ref(false);
+const showSv = ref(false); /* hjälpöversättningen (svenska, eller estniska i estniskt läge) syns */
 const miss = ref<{ x: number; y: number; n: number } | null>(null);
 const reward = ref<{ stars: number; hat: boolean } | null>(null);
 /* XP delas ut först när barnet stängt dagens sak - annars kan "Nytt märke"-rutan hamna
@@ -78,6 +78,7 @@ export function usePakapikk() {
   const { burst } = useConfetti();
   const { addXp } = useRewards();
   const route = useRoute();
+  const { isEt, tgt } = useLang();
 
   /* testläget (se usePakTest) eller ?pakdate=2026-12-07 under utveckling provar ett annat datum */
   const testing = computed(() => !!pakTest.value);
@@ -108,11 +109,19 @@ export function usePakapikk() {
   });
   const searching = computed(() => mode.value === "search" || mode.value === "peek");
 
-  /* läser upp raderna i följd med Siiris inspelningar */
-  async function sayLines(lines: string[]) {
-    const clips = (await Promise.all(lines.map(l => findWordClip(l)))).filter(Boolean).map(c => c!.src);
+  /* läser upp raderna i följd med Siiris inspelningar. Estniskt läge (useLang): raderna läses
+     på svenska med Sofie-klippen - saknas något klipp läses allt av enhetens svenska röst. */
+  async function sayLines(lines: PakLine[]) {
+    if (isEt()) {
+      const sv = lines.map(l => l.sv);
+      const svClips = await Promise.all(sv.map(l => findSvClip(l)));
+      if (svClips.length && svClips.every(Boolean)) voice.say(svClips.map(c => c!.src));
+      else if (sv.length) voice.sayWord(sv.join(" "));
+      return;
+    }
+    const clips = (await Promise.all(lines.map(l => findWordClip(l.et)))).filter(Boolean).map(c => c!.src);
     if (clips.length) voice.say(clips);
-    else if (lines[0]) voice.sayWord(lines[0]);
+    else if (lines[0]) voice.sayWord(lines[0].et);
   }
   function letterLines(): PakLine[] {
     const c = current.value;
@@ -120,9 +129,9 @@ export function usePakapikk() {
     return [PAK_GREETING, c.story, target.value.ask, PAK_SIGNOFF];
   }
   function readAloud() {
-    if (mode.value === "note") return sayLines([PAK_WELL_DONE.et, target.value!.ask.et]);
-    if (mode.value === "done" && current.value) return sayLines([current.value.gift.et]);
-    sayLines(letterLines().map(l => l.et));
+    if (mode.value === "note") return sayLines([PAK_WELL_DONE, target.value!.ask]);
+    if (mode.value === "done" && current.value) return sayLines([current.value.gift]);
+    sayLines(letterLines());
   }
 
   function jingle() {
@@ -151,7 +160,7 @@ export function usePakapikk() {
     reward.value = null;
     mode.value = "done";
     jingle();
-    sayLines([pakDay(d).gift.et]);
+    sayLines([pakDay(d).gift]);
   }
   function openWaiting() {
     if (waiting.value) openLetter(waiting.value);
@@ -183,7 +192,7 @@ export function usePakapikk() {
     buzz(12);
     tone(330, 0.08, 0);
     tone(262, 0.12, 0.07);
-    voice.sayWord(PAK_WRONG.et);
+    voice.sayWord(tgt(PAK_WRONG));
     miss.value = { x, y, n: (miss.value?.n || 0) + 1 };
     clearTimeout(missTimer);
     missTimer = setTimeout(() => (miss.value = null), 1400);
@@ -201,7 +210,7 @@ export function usePakapikk() {
     miss.value = null;
     jingle();
     buzz(20);
-    sayLines([PAK_FOUND.et, t.at.et]);
+    sayLines([PAK_FOUND, t.at]);
     clearTimeout(peekTimer);
     peekTimer = setTimeout(() => {
       if (step.value < c.steps.length - 1) {
@@ -239,7 +248,7 @@ export function usePakapikk() {
     mode.value = "done";
     burst(c.day === PAK_DAYS ? 160 : 90);
     fanfare(c.day === PAK_DAYS ? 3 : 2);
-    sayLines([c.gift.et]);
+    sayLines([c.gift]);
   }
 
   /** Vad den tomma julstrumpan säger: sista veckan i november kommer nissen snart, i december
@@ -249,7 +258,7 @@ export function usePakapikk() {
   );
   function soon() {
     jingle();
-    voice.sayWord(emptyLine.value.et);
+    voice.sayWord(tgt(emptyLine.value));
   }
 
   return {
@@ -271,7 +280,8 @@ export function usePakapikk() {
     isFound,
     letterLines,
     readAloud,
-    sayLine: (et: string) => voice.sayWord(et),
+    /** En rad i brevet/lappen, på det språk barnet lär sig. */
+    sayLine: (l: PakLine) => voice.sayWord(tgt(l)),
     openLetter,
     openGift,
     openWaiting,
