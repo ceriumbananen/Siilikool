@@ -8389,9 +8389,16 @@
     var last = (S.challenges || [])[0];
     app.innerHTML =
       '<div class="zone map"><span class="zem">🤝</span><span><b>Väljakutse</b>' +
-      "<span>Utmana en vuxen — du väljer orden</span></span></div>" +
-      '<div class="card"><p class="qsub" style="text-align:left">Du väljer sex ord. Sedan lämnar du över telefonen ' +
-      "till en vuxen som får svara. Du ser hur det gick — och de får höra hur orden låter.</p>" +
+      "<span>" +
+      LT("Utmana en vuxen — du väljer orden", "Kutsu täiskasvanu välja — sina valid sõnad") +
+      "</span></span></div>" +
+      '<div class="card"><p class="qsub" style="text-align:left">' +
+      LT("Du väljer sex ord. Sedan lämnar du över telefonen ", "Sa valid kuus sõna. Siis annad telefoni ") +
+      LT(
+        "till en vuxen som får svara. Du ser hur det gick — och de får höra hur orden låter.",
+        "täiskasvanule, kes vastab. Sa näed, kuidas läks — ja nemad kuulevad, kuidas sõnad kõlavad.",
+      ) +
+      "</p>" +
       (function () {
         var l = (S.challenges || []).slice(0, 3),
           i,
@@ -8415,21 +8422,25 @@
       '<div class="center">' +
       siilSVG("small") +
       "</div>" +
-      '<button class="btn green big wide" id="pick">Välj sex ord →</button></div>';
+      '<button class="btn green big wide" id="pick">' +
+      LT("Välj sex ord →", "Vali kuus sõna →") +
+      "</button></div>";
     document.getElementById("pick").onclick = chWho;
   }
   var OPPONENTS = [
-    { id: "ema", em: "👩", sv: "Mamma" },
-    { id: "isa", em: "👨", sv: "Pappa" },
+    { id: "ema", em: "👩", sv: LT("Mamma", "Ema") },
+    { id: "isa", em: "👨", sv: LT("Pappa", "Isa") },
     { id: "vana", em: "👵", sv: "Mormor eller farmor" },
-    { id: "muu", em: "🧑", sv: "Någon annan" },
+    { id: "muu", em: "🧑", sv: LT("Någon annan", "Keegi teine") },
   ];
   function chWho() {
     screen = "chal";
     var i,
       html =
         '<div class="zone map"><span class="zem">🤝</span><span><b>Väljakutse</b>' +
-        '<span>Vem ska du utmana?</span></span></div><div class="card"><div class="whogrid">';
+        "<span>" +
+        LT("Vem ska du utmana?", "Keda sa välja kutsud?") +
+        '</span></span></div><div class="card"><div class="whogrid">';
     for (i = 0; i < OPPONENTS.length; i++) {
       html +=
         '<button class="whobtn" data-who="' +
@@ -8442,7 +8453,9 @@
         "</b>" +
         (function () {
           var r = (S.chalTop || {})[OPPONENTS[i].id + ":lagom"];
-          return r ? "<small>bästa: " + r + " av 6</small>" : "<small>har inte spelat än</small>";
+          return r
+            ? "<small>" + LT("bästa: ", "parim: ") + r + " av 6</small>"
+            : "<small>" + LT("har inte spelat än", "pole veel mänginud") + "</small>";
         })() +
         "</button>";
     }
@@ -8469,7 +8482,9 @@
     screen = "chal";
     var i,
       html =
-        '<div class="zone map"><span class="zem">🤝</span><span><b>Välj sex ord</b>' +
+        '<div class="zone map"><span class="zem">🤝</span><span><b>' +
+        LT("Välj sex ord", "Vali kuus sõna") +
+        "</b>" +
         "<span>" +
         CH.words.length +
         ' av 6 valda</span></span></div><div class="card"><div class="shelf">';
@@ -8485,15 +8500,22 @@
         '<span class="em">' +
         wIcon(w) +
         "</span><b>" +
-        esc(w.et) +
+        esc(tgt(w)) +
         "</b><small>" +
-        esc(w.sv) +
+        esc(nat(w)) +
         "</small></button>";
     }
     html += "</div></div>";
     if (CH.words.length === 6)
-      html += '<button class="btn green big wide" id="ready">Klart – lämna över telefonen 📱</button>';
-    else html += '<p class="note">Tryck på de ord du tror att en vuxen inte kan.</p>';
+      html +=
+        '<button class="btn green big wide" id="ready">' +
+        LT("Klart – lämna över telefonen 📱", "Valmis – anna telefon üle 📱") +
+        "</button>";
+    else
+      html +=
+        '<p class="note">' +
+        LT("Tryck på de ord du tror att en vuxen inte kan.", "Vajuta sõnu, mida täiskasvanu sinu arvates ei oska.") +
+        "</p>";
     app.innerHTML = html;
     var bs = app.querySelectorAll("[data-pick]"),
       k;
@@ -8505,7 +8527,7 @@
           if (at >= 0) CH.words.splice(at, 1);
           else if (CH.words.length < 6) {
             CH.words.push(w);
-            speak(w.et);
+            speak(tgt(w));
           }
           tone(760, 0.07, 0);
           chPickDraw();
@@ -8517,15 +8539,32 @@
   }
   var CHLEVELS = [
     { id: "latt", sv: "Lätt", em: "🙂", opts: 3, listen: 0, txt: "Tre svar, ordet syns" },
-    { id: "lagom", sv: "Lagom", em: "🧐", opts: 4, listen: 0.5, txt: "Fyra svar, varannan fråga bara ljud" },
-    { id: "svar", sv: "Svår", em: "😤", opts: 6, listen: 0.5, txt: "Sex svar, varannan fråga bara ljud" },
+    {
+      id: "lagom",
+      sv: "Lagom",
+      em: "🧐",
+      opts: 4,
+      listen: 0.5,
+      txt: LT("Fyra svar, varannan fråga bara ljud", "Neli vastust, iga teine küsimus ainult heliga"),
+    },
+    {
+      id: "svar",
+      sv: "Svår",
+      em: "😤",
+      opts: 6,
+      listen: 0.5,
+      txt: LT("Sex svar, varannan fråga bara ljud", "Kuus vastust, iga teine küsimus ainult heliga"),
+    },
     {
       id: "proff",
       sv: "Expert",
       em: "🔥",
       opts: 6,
       listen: 1,
-      txt: "Sex svar, allt bara ljud, tio sekunder per fråga",
+      txt: LT(
+        "Sex svar, allt bara ljud, tio sekunder per fråga",
+        "Kuus vastust, kõik ainult heliga, kümme sekundit küsimuse kohta",
+      ),
       time: 10,
     },
   ];
@@ -8540,7 +8579,9 @@
     var i,
       html =
         '<div class="zone map"><span class="zem">🤝</span><span><b>Väljakutse</b>' +
-        '<span>Hur svårt ska den vuxna ha det?</span></span></div><div class="card"><div class="lvlgrid">';
+        "<span>" +
+        LT("Hur svårt ska den vuxna ha det?", "Kui raske peaks täiskasvanul olema?") +
+        '</span></span></div><div class="card"><div class="lvlgrid">';
     for (i = 0; i < CHLEVELS.length; i++) {
       var L = CHLEVELS[i],
         best = (S.chalTop || {})[CH.foe.id + ":" + L.id];
@@ -8556,7 +8597,7 @@
         esc(L.txt) +
         "</small>" +
         '<small class="rec">' +
-        (best ? "bästa: " + best + " av 6" : "inte spelat än") +
+        (best ? LT("bästa: ", "parim: ") + best + " av 6" : LT("inte spelat än", "pole veel mänginud")) +
         "</small></button>";
     }
     html += "</div></div>";
@@ -8576,15 +8617,23 @@
     screen = "chal";
     app.innerHTML =
       '<div class="card" style="text-align:center"><div style="font-size:64px">📱</div>' +
-      '<p class="q">Lämna över telefonen</p>' +
-      '<p class="qsub">Ge den till en vuxen. ' +
+      '<p class="q">' +
+      LT("Lämna över telefonen", "Anna telefon üle") +
+      "</p>" +
+      '<p class="qsub">' +
+      LT("Ge den till en vuxen. ", "Anna see täiskasvanule. ") +
       (S.name ? esc(S.name) : "Barnet") +
-      " har valt sex ord — vi får se hur det går.</p>" +
+      LT(" har valt sex ord — vi får se hur det går.", " valis kuus sõna — vaatame, kuidas läheb.") +
+      "</p>" +
       '<div class="center">' +
       siilSVG("small") +
       "</div>" +
-      '<button class="btn green big wide" id="go">Jag är den vuxna – kör!</button>' +
-      '<button class="btn ghost wide" id="back2" style="margin-top:8px">Välj andra ord</button></div>';
+      '<button class="btn green big wide" id="go">' +
+      LT("Jag är den vuxna – kör!", "Mina olen täiskasvanu – läheme!") +
+      "</button>" +
+      '<button class="btn ghost wide" id="back2" style="margin-top:8px">' +
+      LT("Välj andra ord", "Vali teised sõnad") +
+      "</button></div>";
     document.getElementById("go").onclick = function () {
       CH.i = 0;
       CH.score = 0;
@@ -8615,12 +8664,14 @@
     }
     opts = shuffle(opts);
     var html =
-      '<div class="zone map"><span class="zem">🤝</span><span><b>Fråga ' +
+      '<div class="zone map"><span class="zem">🤝</span><span><b>' +
+      LT("Fråga ", "Küsimus ") +
       (CH.i + 1) +
       " av 6</b>" +
       "<span>" +
       CH.score +
-      " rätt hittills</span></span></div>" +
+      LT(" rätt hittills", " õiget siiani") +
+      "</span></span></div>" +
       '<div class="card">' +
       (listen
         ? '<p class="q">Lyssna — vad betyder ordet?</p>' +
@@ -8628,19 +8679,19 @@
           LT("Hör ordet", "Kuula sõna") +
           '">🔊</button></div>'
         : '<p class="q">Vad betyder</p><div class="bigword">' +
-          esc(w.et) +
+          esc(tgt(w)) +
           "</div>" +
           '<div class="center"><button class="speakbtn sm" id="say" aria-label="' +
           LT("Hör ordet", "Kuula sõna") +
           '">🔊</button></div>') +
       '<div class="opts">';
     for (i = 0; i < opts.length; i++)
-      html += '<button class="opt" data-sv="' + esc(opts[i].sv) + '">' + esc(opts[i].sv) + "</button>";
+      html += '<button class="opt" data-sv="' + esc(opts[i].sv) + '">' + esc(nat(opts[i])) + "</button>";
     html += '</div><div class="feedback" id="fb"></div></div>';
     app.innerHTML = html;
-    if (listen) speak(w.et);
+    if (listen) speak(tgt(w));
     document.getElementById("say").onclick = function () {
-      speak(w.et);
+      speak(tgt(w));
     };
     chStopTimer();
     if (L.time) {
@@ -8682,10 +8733,10 @@
           if (!ok) el.className = "opt wrong";
           if (ok) CH.score++;
           CH.log.push({ w: w, ok: ok });
-          speak(w.et);
+          speak(tgt(w));
           var fb = document.getElementById("fb");
           fb.className = "feedback " + (ok ? "ok" : "no");
-          fb.textContent = ok ? "Rätt!" : w.et + " = " + w.sv;
+          fb.textContent = ok ? LT("Rätt!", "Õige!") : tgt(w) + " = " + nat(w);
           CH.i++;
           setTimeout(function () {
             if (CH) chRound();
@@ -8703,7 +8754,7 @@
   function chTimeout() {
     if (!CH) return;
     var fb = document.getElementById("fb");
-    if (fb) fb.innerHTML = '<b style="color:var(--berry)">Tiden är ute!</b>';
+    if (fb) fb.innerHTML = '<b style="color:var(--berry)">' + LT("Tiden är ute!", "Aeg on läbi!") + "</b>";
     CH.log.push({ w: CH.words[CH.i], ok: false });
     CH.i++;
     setTimeout(function () {
@@ -8715,8 +8766,15 @@
     var s = CH.score,
       n = CH.words.length,
       i;
-    var who = s >= 6 ? "Mästaren!" : s >= 4 ? "Ganska bra" : s >= 2 ? "Lite kämpigt" : "Oj då";
-    var foe = CH.foe || { em: "🧑", sv: "Den vuxna", id: "muu" };
+    var who =
+      s >= 6
+        ? LT("Mästaren!", "Meister!")
+        : s >= 4
+          ? "Ganska bra"
+          : s >= 2
+            ? LT("Lite kämpigt", "Natuke raske")
+            : LT("Oj då", "Oi-oi");
+    var foe = CH.foe || { em: "🧑", sv: LT("Den vuxna", "Täiskasvanu"), id: "muu" };
     if (!S.chalTop) S.chalTop = {};
     if (s > (S.chalTop[foe.id] || 0)) S.chalTop[foe.id] = s;
     if (!S.challenges) S.challenges = [];
@@ -8740,38 +8798,50 @@
       " / " +
       n +
       '</div><p class="q">' +
-      esc(CH.foe ? CH.foe.sv : "Den vuxna") +
+      esc(CH.foe ? CH.foe.sv : LT("Den vuxna", "Täiskasvanu")) +
       ": " +
       esc(who) +
       "</p>" +
       (tricked.length
-        ? '<p class="qsub">Du lurade dem med ' + tricked.length + " ord!</p>"
-        : '<p class="qsub">Alla rätt — nästa gång får du välja svårare ord.</p>') +
+        ? '<p class="qsub">' +
+          LT("Du lurade dem med ", "Sa tegid nad lolliks ") +
+          tricked.length +
+          LT(" ord!", " sõnaga!") +
+          "</p>"
+        : '<p class="qsub">' +
+          LT("Alla rätt — nästa gång får du välja svårare ord.", "Kõik õiged — järgmine kord vali raskemad sõnad.") +
+          "</p>") +
       '<div class="center">' +
       siilSVG("small") +
       "</div>" +
-      '<p class="qsub">Du fick ⭐ ' +
+      '<p class="qsub">' +
+      LT("Du fick ⭐ ", "Said ⭐ ") +
       gain * starMult() +
-      " för att du lärde ut orden.</p></div>" +
-      '<div class="card"><p class="q" style="text-align:left">Så gick det</p>';
+      LT(" för att du lärde ut orden.", " sõnade õpetamise eest.") +
+      "</p></div>" +
+      '<div class="card"><p class="q" style="text-align:left">' +
+      LT("Så gick det", "Nii läks") +
+      "</p>";
     for (i = 0; i < CH.log.length; i++) {
       html +=
         '<div class="wordrow"><span class="em">' +
         (CH.log[i].ok ? "✅" : "❌") +
         "</span>" +
         '<span class="t"><b>' +
-        esc(CH.log[i].w.et) +
+        esc(tgt(CH.log[i].w)) +
         "</b><span>" +
-        esc(CH.log[i].w.sv) +
+        esc(nat(CH.log[i].w)) +
         "</span></span>" +
         '<button class="speakbtn sm" data-say="' +
-        esc(CH.log[i].w.et) +
+        esc(tgt(CH.log[i].w)) +
         '" aria-label="' +
         LT("Hör ordet", "Kuula sõna") +
         '">🔊</button></div>';
     }
     html +=
-      '</div><div class="row"><button class="btn green big" id="again">Utmana igen 🤝</button>' +
+      '</div><div class="row"><button class="btn green big" id="again">' +
+      LT("Utmana igen 🤝", "Kutsu uuesti 🤝") +
+      "</button>" +
       '<button class="btn ghost big" id="home">Tillbaka</button></div>';
     app.innerHTML = html;
     CH = null;
@@ -9402,10 +9472,17 @@
     var i,
       html =
         '<div class="zone map"><span class="zem">⚔️</span><span><b>Duell</b>' +
-        "<span>Tävla mot ett djur — Siiri hejar på dig</span></span></div>";
+        "<span>" +
+        LT("Tävla mot ett djur — Siiri hejar på dig", "Võistle loomaga — Siiri ergutab sind") +
+        "</span></span></div>";
     html +=
-      '<div class="card"><p class="qsub" style="text-align:left">Tolv frågor i tre ronder. ' +
-      "Ni får samma fråga, och den som har flest rätt vinner. Ingen klocka, och du kan aldrig förlora stjärnor du redan har.</p></div>";
+      '<div class="card"><p class="qsub" style="text-align:left">' +
+      LT("Tolv frågor i tre ronder. ", "Kaksteist küsimust kolmes voorus. ") +
+      LT(
+        "Ni får samma fråga, och den som har flest rätt vinner. Ingen klocka, och du kan aldrig förlora stjärnor du redan har.",
+        "Te saate sama küsimuse ja kellel on rohkem õigeid, see võidab. Kella pole ja sa ei saa kunagi kaotada tähti, mis sul juba on.",
+      ) +
+      "</p></div>";
     for (i = 0; i < RIVALS.length; i++) {
       var r = RIVALS[i],
         open = rivalOpen(r),
@@ -9428,8 +9505,13 @@
         "</small>" +
         "<small>" +
         (open
-          ? "🏆 " + rec.w + " vinster · " + rec.l + " förluster" + (rec.best ? " · bästa " + starStr(rec.best) : "")
-          : "öppnas vid ort " + (r.need + 1) + " på resan") +
+          ? "🏆 " +
+            rec.w +
+            " vinster · " +
+            rec.l +
+            LT(" förluster", " kaotust") +
+            (rec.best ? LT(" · bästa ", " · parim ") + starStr(rec.best) : "")
+          : LT("öppnas vid ort ", "avaneb paigas ") + (r.need + 1) + LT(" på resan", " reisil")) +
         "</small></span></button>";
     }
     app.innerHTML = html;
@@ -9446,9 +9528,19 @@
   /* rivalen minns förra mötet - inget facit ändras, bara en replik innan matchen (skilt från
      taunt() som redan spelar upp en replik efteråt, i duelEnd()) */
   function rivalMemoryLine(r, rec) {
-    if (rec.last === "rivalWon") return { et: "Mina võitsin viimati!", sv: r.sv + " vann senast — dags för revansch?" };
+    if (rec.last === "rivalWon")
+      return {
+        et: "Mina võitsin viimati!",
+        sv: r.sv + LT(" vann senast — dags för revansch?", " võitis viimati — kas revanš?"),
+      };
     if (rec.last === "childWon")
-      return { et: "Sina võitsid viimati!", sv: "Du vann senast mot " + r.sv.toLowerCase() + " — kan du upprepa det?" };
+      return {
+        et: "Sina võitsid viimati!",
+        sv:
+          LT("Du vann senast mot ", "Sa võitsid viimati ") +
+          r.sv.toLowerCase() +
+          LT(" — kan du upprepa det?", " vastu — kas suudad seda korrata?"),
+      };
     return null;
   }
   function duelSetup(id) {
@@ -9478,22 +9570,36 @@
       rivalIcon(r, 44) +
       "</span></div>" +
       (mem
-        ? '<p class="qsub" style="font-weight:600"><span lang="et">' + esc(mem.et) + "</span> — " + esc(mem.sv) + "</p>"
+        ? '<p class="qsub" style="font-weight:600"><span lang="' +
+          tgtLang() +
+          '">' +
+          esc(tgt(mem)) +
+          "</span> — " +
+          esc(nat(mem)) +
+          "</p>"
         : "") +
-      '<p class="qsub">Potten är <b>⭐ ' +
+      '<p class="qsub">' +
+      LT("Potten är <b>⭐ ", "Pott on <b>⭐ ") +
       pot +
-      "</b>. Vinst ger hela, förlust halva — du kan inte förlora något du redan samlat.</p>" +
+      LT(
+        "</b>. Vinst ger hela, förlust halva — du kan inte förlora något du redan samlat.",
+        "</b>. Võit annab kogu poti, kaotus poole — sa ei saa kaotada midagi, mis sul juba on.",
+      ) +
+      "</p>" +
       '<button class="btn ghost wide" id="handi">🤝 Ge ' +
       esc(r.et) +
-      " två poängs försprång (+50% stjärnor)</button>" +
+      LT(" två poängs försprång (+50% stjärnor)", " kahe punkti edumaa (+50% tähti)") +
+      "</button>" +
       '<p class="qsub" id="handit">&nbsp;</p>' +
-      '<button class="btn green big wide" id="go">⚔️ Sätt igång</button></div>';
-    if (mem) speak(mem.et);
+      '<button class="btn green big wide" id="go">' +
+      LT("⚔️ Sätt igång", "⚔️ Alusta") +
+      "</button></div>";
+    if (mem) speak(tgt(mem));
     var handi = false;
     document.getElementById("handi").onclick = function () {
       handi = !handi;
       this.className = handi ? "btn wide" : "btn ghost wide";
-      document.getElementById("handit").textContent = handi ? "Försprång på: modigt!" : "";
+      document.getElementById("handit").textContent = handi ? LT("Försprång på: modigt!", "Edumaa sisse: julge!") : "";
       tone(handi ? 900 : 600, 0.08, 0);
     };
     document.getElementById("go").onclick = function () {
@@ -9602,7 +9708,8 @@
       "</span><span><b>Rond " +
       Math.min(3, rnd) +
       " av 3</b>" +
-      "<span>fråga " +
+      "<span>" +
+      LT("fråga ", "küsimus ") +
       (DU.i + 1) +
       " av " +
       DU.n +
@@ -9610,21 +9717,35 @@
       '<div class="card">' +
       duelTrack() +
       (DU.i === DU.n - 1
-        ? '<p class="qsub" style="color:var(--berry);font-weight:700">' + esc(taunt("last").et) + " · sista frågan</p>"
+        ? '<p class="qsub" style="color:var(--berry);font-weight:700">' +
+          esc(taunt("last").et) +
+          LT(" · sista frågan", " · viimane küsimus") +
+          "</p>"
         : "") +
       (DU.rivalDbl === "now"
         ? '<p class="qsub" style="color:var(--honey-deep);font-weight:700">⭐ ' + esc(DU.r.et) + ": Topeltpunkt!</p>"
         : "") +
       (listen
-        ? '<p class="q">Lyssna och välj</p>' +
+        ? '<p class="q">' +
+          LT("Lyssna och välj", "Kuula ja vali") +
+          "</p>" +
           '<div class="center"><button class="speakbtn big" id="hear" aria-label="' +
           LT("Hör ordet", "Kuula sõna") +
           '">🔊</button></div>' +
-          '<p class="qsub">Tryck igen om du vill höra en gång till</p>'
-        : '<p class="q">Vad heter</p>' + promptHtml(w, w.sv)) +
+          '<p class="qsub">' +
+          LT("Tryck igen om du vill höra en gång till", "Vajuta uuesti, kui tahad veel kord kuulata") +
+          "</p>"
+        : '<p class="q">' + LT("Vad heter", "Mis on rootsi keeles") + "</p>" + promptHtml(w, nat(w))) +
       '<div class="opts" id="opts">';
     for (i = 0; i < opts.length; i++)
-      html += '<button class="opt" data-et="' + esc(opts[i].et) + '" lang="et">' + esc(opts[i].et) + "</button>";
+      html +=
+        '<button class="opt" data-et="' +
+        esc(opts[i].et) +
+        '" lang="' +
+        tgtLang() +
+        '">' +
+        esc(tgt(opts[i])) +
+        "</button>";
     html +=
       '</div><div class="row" style="margin-top:10px">' +
       '<button class="btn ghost" id="hint"' +
@@ -9638,11 +9759,11 @@
       "</div>";
     app.innerHTML = html;
     if (listen) {
-      speak(w.et);
+      speak(tgt(w));
       var hb = document.getElementById("hear");
       if (hb)
         hb.onclick = function () {
-          speak(w.et);
+          speak(tgt(w));
         };
     }
     if (DU.rivalDbl === "now" && !listen) speak(taunt("dbl").et);
@@ -9671,7 +9792,10 @@
       DU.dblNow = true;
       tone(1180, 0.12, 0);
       document.getElementById("fb").className = "feedback";
-      document.getElementById("fb").textContent = "Dubbelt om du har rätt — men missar du får " + DU.r.et + " poängen.";
+      document.getElementById("fb").textContent =
+        LT("Dubbelt om du har rätt — men missar du får ", "Topelt, kui vastad õigesti — aga kui eksid, saab ") +
+        DU.r.et +
+        LT(" poängen.", " punktid.");
     };
     var bs = app.querySelectorAll(".opt"),
       k2;
@@ -9747,7 +9871,7 @@
                 "<span><b>" +
                 esc(DU.r.et) +
                 " " +
-                (hit ? "svarade rätt" : "svarade fel") +
+                (hit ? LT("svarade rätt", "vastas õigesti") : "svarade fel") +
                 " " +
                 face +
                 "</b>" +
@@ -9792,7 +9916,8 @@
       setTimeout(function () {
         dance();
       }, 300);
-      if (firstDuelWin) celebrateFirst("⚔️", "Sinu esimene duellivõit!", "Din första duellvinst!");
+      if (firstDuelWin)
+        celebrateFirst("⚔️", "Sinu esimene duellivõit!", LT("Din första duellvinst!", "Sinu esimene duellivõit!"));
     } else {
       burst(80);
       sndLvl();
@@ -9814,29 +9939,39 @@
       starStr(st) +
       "</div>" +
       '<p class="q">' +
-      (won ? "Du vann mot " + esc(DU.r.et) + "!" : esc(DU.r.et) + " vann den här gången") +
+      (won
+        ? LT("Du vann mot ", "Sa võitsid ") + esc(DU.r.et) + "!"
+        : esc(DU.r.et) + LT(" vann den här gången", " võitis seekord")) +
       "</p>" +
       '<p class="qsub">' +
       (won
         ? DU.myMiss === 0
-          ? "Felfri match — tre stjärnor!"
+          ? LT("Felfri match — tre stjärnor!", "Veatu mäng — kolm tähte!")
           : margin >= 3
-            ? "Stor marginal — två stjärnor!"
-            : "En stjärna. Vinn med tre poängs marginal för två."
-        : "Du får ändå halva potten.") +
+            ? LT("Stor marginal — två stjärnor!", "Suur vahe — kaks tähte!")
+            : LT("En stjärna. Vinn med tre poängs marginal för två.", "Üks täht. Kahe tähe jaoks võida kolme punktiga.")
+        : LT("Du får ändå halva potten.", "Saad ikkagi poole potist.")) +
       "</p>" +
       '<p class="qsub">⭐ +' +
       gain +
-      (DU.handi ? " (försprångsbonus)" : "") +
+      (DU.handi ? LT(" (försprångsbonus)", " (edumaa boonus)") : "") +
       "</p>" +
-      (trophy ? '<p class="q" style="color:var(--honey-deep)">🏆 Fem vinster mot ' + esc(DU.r.et) + "!</p>" : "") +
+      (trophy
+        ? '<p class="q" style="color:var(--honey-deep)">' +
+          LT("🏆 Fem vinster mot ", "🏆 Viis võitu vastu: ") +
+          esc(DU.r.et) +
+          "!</p>"
+        : "") +
       '<div class="center">' +
       siilSVG("small") +
       "</div>" +
-      '<button class="btn green big wide" id="again">⚔️ En gång till mot ' +
+      '<button class="btn green big wide" id="again">' +
+      LT("⚔️ En gång till mot ", "⚔️ Veel kord vastu: ") +
       esc(DU.r.et) +
       "</button>" +
-      '<div class="row"><button class="btn ghost" id="other">Byt motståndare</button>' +
+      '<div class="row"><button class="btn ghost" id="other">' +
+      LT("Byt motståndare", "Vaheta vastast") +
+      "</button>" +
       '<button class="btn ghost" id="home">Menüü</button></div></div>';
     var r = DU.r;
     DU = null;
@@ -12858,16 +12993,18 @@
       "</div>" +
       '<p class="q">' +
       (rec
-        ? "Ditt bästa hittills" + (S.name ? ", " + esc(S.name) : "") + "!"
+        ? LT("Ditt bästa hittills", "Sinu parim siiani") + (S.name ? ", " + esc(S.name) : "") + "!"
         : st >= 2
           ? "Fint jobbat!"
-          : "Bra kämpat!") +
+          : LT("Bra kämpat!", "Hästi võideldud!")) +
       "</p>" +
-      '<p class="qsub">Bästa kombo: ' +
+      '<p class="qsub">' +
+      LT("Bästa kombo: ", "Parim seeria: ") +
       bc +
       " i rad · " +
       sc +
-      " poäng samlade</p>" +
+      LT(" poäng samlade", " punkti kogutud") +
+      "</p>" +
       '<div class="center">' +
       siilSVG("small") +
       "</div>";
@@ -12879,7 +13016,9 @@
       html += "</div>";
     }
     html +=
-      '<div class="row"><button class="btn green big" id="again">En runda till 🎲</button>' +
+      '<div class="row"><button class="btn green big" id="again">' +
+      LT("En runda till 🎲", "Veel üks voor 🎲") +
+      "</button>" +
       '<button class="btn ghost big" id="home">Tillbaka</button></div></div>';
     app.innerHTML = html;
     mood("cheer");
