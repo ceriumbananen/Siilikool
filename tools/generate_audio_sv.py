@@ -14,16 +14,26 @@ Azure-nyckeln läses från .env (gitignorerad, hamnar aldrig i appen):
 Gratisnivån (F0) ger 500 000 tecken per månad - hela appens innehåll är en bråkdel av det.
 Skriptet räknar tecknen före och stannar om en körning skulle gå över gränsen nedan.
 
-Kräver macOS (afconvert) och:  pip install lameenc numpy
+Utan Azure-nyckel: --edge hämtar samma röst via Microsoft Edges uppläsningstjänst (paketet
+edge-tts). Det är en inofficiell väg utan konto - bra medan estniskt läge är i beta, men byt
+gärna till Azure-klipp (kör om utan --edge efter att ha tömt public/audio/sv) innan läget
+öppnas för alla.
+
+Kräver macOS (afconvert) och:  pip install lameenc numpy   (för --edge även: pip install edge-tts)
 Kör från repots rot:
     python3 tools/generate_audio_sv.py --dry-run ord "hund" "katt"     # räknar bara tecken
     python3 tools/generate_audio_sv.py ord "hund" "katt" "Jag har en stor hund."
     python3 tools/generate_audio_sv.py ord --file ord.txt              # en text per rad
+    python3 tools/generate_audio_sv.py --edge ord --file ord.txt       # utan Azure-nyckel
 """
+import asyncio
 import json
 import os
+import subprocess
 import sys
+import tempfile
 import time
+from concurrent.futures import ThreadPoolExecutor
 import urllib.request
 from xml.sax.saxutils import escape
 
@@ -78,10 +88,40 @@ def synth(text, kind, key, region):
     raise SystemExit("Azure svarar inte för: " + text)
 
 
+def synth_edge(text, kind):
+    """Samma röst via edge-tts (mp3) - görs om till wav så att resten av kedjan är densamma."""
+    import edge_tts
+
+    # tjänsten svarar ibland "No audio was received", oftast för korta ord i långsam takt -
+    # då hjälper det att vänta och, sista försöken, sänka takten lite mindre
+    # och för enstaka korta ord ("hej") att skriva dem som ett utrop ("Hej!") - samma ord, men
+    # då vill tjänsten läsa dem
+    r = RATE[kind]
+    excl = text[:1].upper() + text[1:] + "!" if text[-1:].isalnum() else text
+    tries = [(text, r), (text, r), (excl, r), (text + ",", r), (excl, r)]
+    if kind == "slow":
+        tries += [(text, "-25%"), (excl, "-25%"), (text, "-15%")]
+    with tempfile.TemporaryDirectory() as d:
+        mp3, wav = os.path.join(d, "in.mp3"), os.path.join(d, "out.wav")
+        for attempt, (say, rate) in enumerate(tries):
+            try:
+                asyncio.run(edge_tts.Communicate(say, VOICE, rate=rate).save(mp3))
+                if os.path.getsize(mp3) > 0:
+                    break
+            except Exception as e:  # nätverk / tillfälligt fel
+                print("  försöker igen (%s): %s" % (str(e)[:40], text))
+            time.sleep(1 + attempt)
+        else:
+            raise RuntimeError("edge-tts svarar inte för: " + text)
+        subprocess.run(["afconvert", "-f", "WAVE", "-d", "LEI16@24000", "-c", "1", mp3, wav], check=True)
+        return open(wav, "rb").read()
+
+
 def main():
     args = sys.argv[1:]
     dry = "--dry-run" in args
-    args = [a for a in args if a != "--dry-run"]
+    edge = "--edge" in args
+    args = [a for a in args if a not in ("--dry-run", "--edge")]
     if not args:
         raise SystemExit(__doc__)
     part, rest = args[0], args[1:]
@@ -100,27 +140,43 @@ def main():
 
     todo = [t for t in texts if t not in index]
     chars = sum(len(t) for t in todo) * 2  # vanlig + långsam
-    print("%d texter, %d saknar ljud, %d tecken hos Azure" % (len(texts), len(todo), chars))
+    print("%d texter, %d saknar ljud, %d tecken%s" % (len(texts), len(todo), chars, "" if edge else " hos Azure"))
     if dry or not todo:
         return
-    if chars > MAX_CHARS_PER_RUN:
+    if not edge and chars > MAX_CHARS_PER_RUN:
         raise SystemExit("För många tecken i en körning (%d) - dela upp listan." % chars)
 
     os.makedirs("audio/sv", exist_ok=True)
-    e = env()
-    key, region = e.get("AZURE_SPEECH_KEY"), e.get("AZURE_SPEECH_REGION")
-    if not key or not region:
-        raise SystemExit("Saknar AZURE_SPEECH_KEY / AZURE_SPEECH_REGION i .env")
+    if edge:
+        get = synth_edge
+    else:
+        e = env()
+        key, region = e.get("AZURE_SPEECH_KEY"), e.get("AZURE_SPEECH_REGION")
+        if not key or not region:
+            raise SystemExit("Saknar AZURE_SPEECH_KEY / AZURE_SPEECH_REGION i .env")
+        get = lambda t, kind: synth(t, kind, key, region)  # noqa: E731
 
-    for t in todo:
+    def render(t):
+        try:
+            return {kind: to_mp3(shape(to_pcm16k(get(t, kind)), kind)) for kind in ("normal", "slow")}
+        except RuntimeError as e:  # hoppa över - kör om skriptet senare, då görs bara det som saknas
+            print("  HOPPAR ÖVER: %s" % e)
+            return None
+
+    # några texter åt gången (nätverket är flaskhalsen), men filerna skrivs i ordning här
+    pool = ThreadPoolExecutor(max_workers=2)
+    skipped = []
+    for t, clips in zip(todo, pool.map(render, todo)):
+        if clips is None:
+            skipped.append(t)
+            continue
         for kind in ("normal", "slow"):
             base = "audio/clips/sv/%s/%s" % (kind, slug(t))
             out, n = base + ".mp3", 2
             while os.path.exists(out):
                 out, n = "%s-%d.mp3" % (base, n), n + 1
-            a = shape(to_pcm16k(synth(t, kind, key, region)), kind)
             os.makedirs(os.path.dirname(out), exist_ok=True)
-            open(out, "wb").write(to_mp3(a))
+            open(out, "wb").write(clips[kind])
             data.setdefault(kind, {})[t] = out
         index[t] = part
         print("  %-28s %s" % (t, data["normal"][t]))
@@ -129,6 +185,8 @@ def main():
             f.write("window.addAudio(%s,%s);" % (json.dumps("sv/" + part), json.dumps(data, ensure_ascii=False)))
         json.dump(index, open(index_path, "w", encoding="utf-8"), ensure_ascii=False, indent=0, sort_keys=True)
     print("Klart: public/%s och public/%s uppdaterade." % (partfile, index_path))
+    if skipped:
+        print("%d texter saknar fortfarande ljud - kör samma kommando igen: %s" % (len(skipped), ", ".join(skipped)))
 
 
 if __name__ == "__main__":
