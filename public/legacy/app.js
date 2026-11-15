@@ -3982,6 +3982,7 @@
       { k: "rain", em: "🌧️", et: "Sõnasadu", sv: "Ordregnet", grp: "gör" },
       { k: "boat", em: "🛶", et: "Paadisõit", sv: "Barkbåten", grp: "gör" },
       { k: "kok", em: "🥨", et: "Siiri köök", sv: "Siiri kök", grp: "gör" },
+      { k: "kad", em: "🙈", et: "Kadunud asi", sv: "Vad försvann?", grp: "gör" },
       { k: "speed", em: "🎲", et: esc(UI.mix.et), sv: esc(UI.mix.sv), grp: "öva" },
       { k: "sent", em: "🧩", et: esc(UI.sent.et), sv: esc(UI.sent.sv), grp: "öva" },
       { k: "talk", em: "💬", et: esc(UI.talk.et), sv: esc(UI.talk.sv), grp: "öva" },
@@ -4330,8 +4331,12 @@
       kes: function () {
         location.href = "/kes";
       },
+      /* Kadunud asi också (app/pages/kadunud.vue) */
+      kad: function () {
+        location.href = "/kadunud";
+      },
     };
-    var keys = ["speed", "sent", "talk", "mem", "rain", "boat", "kok", "duel", "chal", "otsi", "kes"];
+    var keys = ["speed", "sent", "talk", "mem", "rain", "boat", "kok", "duel", "chal", "otsi", "kes", "kad"];
     for (i = 0; i < keys.length; i++) {
       (function (k) {
         var el = app.querySelector('[data-go="' + k + '"]');
@@ -4349,6 +4354,7 @@
               chal: "Väljakutse",
               otsi: "Otsi!",
               kes: "Kes ma olen?",
+              kad: "Kadunud asi",
             }[k];
             S.tried[k] = (S.tried[k] || 0) + 1;
             save();

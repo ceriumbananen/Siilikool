@@ -211,7 +211,7 @@ function fLamp(id: string | null) {
     /* illustrerad bild istället för handritad SVG (public/images/room/lamp-lantern.webp) -
        lyktan är inte tryckbar (bara taklampan/golvlampan har lampglow/#roomlamp). */
     return (
-      '<g transform="translate(298,74)">' +
+      '<g data-kad="lamp" transform="translate(298,74)">' +
       '<ellipse cx="0" cy="30" rx="15" ry="4" fill="#2A1B0C" opacity=".24"/>' +
       '<image href="/images/room/lamp-lantern.webp" x="-13" y="-2" width="25.7" height="32"/>' +
       '<ellipse cx="-3" cy="14" rx="12" ry="10" fill="#FFE9A8" opacity=".3"/></g>'
@@ -251,6 +251,9 @@ function fPlant(id: string | null) {
   }
   return "";
 }
+/* data-kad: fågeln, igelkottsungen och lyktan har inga egna id:n (de är inte tryckbara i
+   rummet) - attributet låter Kadunud asi (app/pages/kadunud.vue) hitta dem ändå. */
+
 /** Var växten står beroende på möbeln till höger. Växterna ritas alla kring samma golvpunkt
  * (ca x366, nederkant y246 - se fPlant/fPlantExtra), och samma hörn används av de flesta
  * höger-möblerna. Buggrapport: krukväxten svävade framför bokhyllan i stället för att stå på
@@ -514,7 +517,7 @@ function fPet(id: string | null) {
     /* illustrerad fågel istället för handritad SVG (public/images/room/bird.webp) - buren
        (pinne, tak, galler, sittpinne) är kvar som vektor, bara fågeln själv är utbytt. */
     return (
-      '<g transform="translate(78,192)">' +
+      '<g data-kad="pet" transform="translate(78,192)">' +
       '<ellipse cx="0" cy="62" rx="18" ry="5" fill="#2A1B0C" opacity=".24"/>' +
       '<rect x="-1.6" y="48" width="3.2" height="14" fill="#8A7A5E"/>' +
       '<path d="M-10 62 h20 l-2 -4 h-16 z" fill="#8A7A5E"/>' +
@@ -530,7 +533,7 @@ function fPet(id: string | null) {
     /* illustrerad valp istället för handritad SVG (public/images/room/hedgehog-pup.webp),
        samma mönster som katten/fågeln - en egen liten figur, inte Siiri själv. */
     return (
-      '<g transform="translate(320,234)">' +
+      '<g data-kad="pet" transform="translate(320,234)">' +
       '<ellipse cx="-2" cy="5" rx="18" ry="5" fill="#2A1B0C" opacity=".2"/>' +
       '<image href="/images/room/hedgehog-pup.webp" x="-19" y="-26.6" width="34" height="31.6"/>' +
       "</g>"
