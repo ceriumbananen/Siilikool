@@ -3985,6 +3985,7 @@
       { k: "speed", em: "🎲", et: esc(UI.mix.et), sv: esc(UI.mix.sv), grp: "öva" },
       { k: "sent", em: "🧩", et: esc(UI.sent.et), sv: esc(UI.sent.sv), grp: "öva" },
       { k: "talk", em: "💬", et: esc(UI.talk.et), sv: esc(UI.talk.sv), grp: "öva" },
+      { k: "kes", em: "🤔", et: "Kes ma olen?", sv: "Gissa djuret", grp: "öva" },
       { k: "duel", em: "⚔️", et: "Duell", sv: "Tävla mot ett djur", grp: "tävla" },
       { k: "chal", em: "🤝", et: "Väljakutse", sv: "Utmana en vuxen", grp: "tävla" },
     ];
@@ -4325,8 +4326,12 @@
       duel: duelIntro,
       chal: chIntro,
       otsi: otsiIntro,
+      /* Kes ma olen? är en egen Nuxt-sida (app/pages/kes.vue) */
+      kes: function () {
+        location.href = "/kes";
+      },
     };
-    var keys = ["speed", "sent", "talk", "mem", "rain", "boat", "kok", "duel", "chal", "otsi"];
+    var keys = ["speed", "sent", "talk", "mem", "rain", "boat", "kok", "duel", "chal", "otsi", "kes"];
     for (i = 0; i < keys.length; i++) {
       (function (k) {
         var el = app.querySelector('[data-go="' + k + '"]');
@@ -4343,6 +4348,7 @@
               duel: "Duell",
               chal: "Väljakutse",
               otsi: "Otsi!",
+              kes: "Kes ma olen?",
             }[k];
             S.tried[k] = (S.tried[k] || 0) + 1;
             save();
