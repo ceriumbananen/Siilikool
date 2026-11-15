@@ -4592,6 +4592,22 @@
   function setNav(which) {
     var nav = document.getElementById("nav");
     if (!nav) return;
+    /* menyns etiketter står som "estniska stort, svenska under" i LegacyApp.vue - i estniskt
+       läge byter de plats (det barnet lär sig stort), en gång */
+    if (isEt() && !nav.getAttribute("data-flipped")) {
+      nav.setAttribute("data-flipped", "1");
+      var nb = nav.querySelectorAll("button"),
+        q;
+      for (q = 0; q < nb.length; q++) {
+        var bb = nb[q].querySelector("b"),
+          sm = nb[q].querySelector("small");
+        if (bb && sm) {
+          var tmp = bb.textContent;
+          bb.textContent = sm.textContent;
+          sm.textContent = tmp;
+        }
+      }
+    }
     nav.hidden = !S.setupdone;
     var bs = nav.querySelectorAll("[data-nav]"),
       i;
@@ -15739,6 +15755,16 @@
   setTimeout(nightOwl, 1000);
   if (!S.setupdone) {
     btnBack.hidden = true;
+    /* valt redan på välkomstskärmen (WelcomeGate.vue, siiri-home-pending)? då frågar vi inte igen */
+    var pendingHome = null;
+    try {
+      pendingHome = localStorage.getItem("siiri-home-pending");
+    } catch (e) {}
+    if (!S.homePicked && langBeta() && (pendingHome === "et" || pendingHome === "sv")) {
+      S.home = pendingHome;
+      S.homePicked = 1;
+      save();
+    }
     if (!S.homePicked && langBeta()) langScreen();
     else setupScreen(true);
   } else {

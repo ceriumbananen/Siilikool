@@ -185,11 +185,21 @@ export function useSiiriVoice() {
    * inspelningen används en estnisk systemröst om enheten har en - annars blir det tyst. */
   async function sayWord(et: string, slow = false) {
     if (!profile.state.sound) return;
+    /* estniskt läge (app/utils/lang.ts): svenska texter läses av Sofie-klippen, och utan klipp
+       av enhetens svenska röst. Estniska texter (Siiris egna repliker) läses fortfarande av Mari. */
+    const svMode = profile.state.home === "et";
+    if (svMode) {
+      const sv = await findSvClip(et, slow);
+      if (sv) return say([sv.src], slow && !sv.isSlow ? 0.72 : 1);
+    }
     const clip = await findWordClip(et, slow);
     if (clip) return say([clip.src], slow && !clip.isSlow ? 0.72 : 1);
     const synth = window.speechSynthesis;
     if (!synth) return;
-    const etVoice = (await getVoicesAsync(synth)).find(v => /^et\b|^et-/i.test(v.lang));
+    const voices = await getVoicesAsync(synth);
+    const etVoice = svMode
+      ? voices.find(v => /^sv\b|^sv-/i.test(v.lang))
+      : voices.find(v => /^et\b|^et-/i.test(v.lang));
     if (!etVoice) return;
     hush();
     const u = new SpeechSynthesisUtterance(et);

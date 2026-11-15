@@ -68,3 +68,26 @@ export async function findWordClip(et: string, slow = false): Promise<{ src: str
   const fromPart = part ? (await loadPart(part))?.normal[et] : undefined;
   return fromPart ? { src: abs(fromPart), isSlow: false } : null;
 }
+
+/* ---------- svenska (estniskt läge) ----------
+   Sofie-klippen från tools/generate_audio_sv.py: public/audio/sv/index.json säger vilken del
+   (public/audio/sv/<del>.js, samma addAudio-format) en text ligger i. Samma uppslag som
+   speakSv() i public/legacy/app.js. */
+let svIndexPromise: Promise<Record<string, string>> | null = null;
+function loadSvIndex() {
+  if (!svIndexPromise)
+    svIndexPromise = fetch("/audio/sv/index.json")
+      .then(r => (r.ok ? r.json() : {}))
+      .catch(() => ({}));
+  return svIndexPromise;
+}
+
+/** Sofies inspelning av en svensk text, eller null (då får enhetens svenska röst ta den). */
+export async function findSvClip(sv: string, slow = false): Promise<{ src: string; isSlow: boolean } | null> {
+  const part = (await loadSvIndex())[sv];
+  if (!part) return null;
+  const data = await loadPart(`sv/${part}`);
+  const abs = (p: string) => (p.startsWith("/") ? p : `/${p}`);
+  if (slow && data?.slow[sv]) return { src: abs(data.slow[sv]), isSlow: true };
+  return data?.normal[sv] ? { src: abs(data.normal[sv]), isSlow: false } : null;
+}

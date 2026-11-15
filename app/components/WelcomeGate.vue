@@ -38,19 +38,67 @@ const codeMode = ref(false),
 const childOpen = ref(false),
   childCode = ref("");
 
+/* Estniskt läge (beta, se LANG_BETA_KEY i public/legacy/app.js): på enheter där det slagits på
+   kan välkomstskärmen visas på estniska, och valet följer med in i spelet (siiri-home-pending
+   läses av langScreen/start i app.js). w(sv, et) väljer text. */
+const langBeta = ref(false);
+const etUi = ref(false);
+onMounted(() => {
+  try {
+    langBeta.value = localStorage.getItem("siiri-lang-beta") === "1";
+    etUi.value = langBeta.value && localStorage.getItem("siiri-home-pending") === "et";
+  } catch {
+    /* privat läge o.d. */
+  }
+});
+function setUiLang(et: boolean) {
+  etUi.value = et;
+  try {
+    localStorage.setItem("siiri-home-pending", et ? "et" : "sv");
+  } catch {
+    /* privat läge o.d. */
+  }
+}
+const w = (sv: string, et: string) => (etUi.value ? et : sv);
+
 /* Supabase svarar på engelska - översätt det barn och föräldrar faktiskt kan råka ut för */
 function swedish(e: unknown): Error {
   const m = e instanceof Error ? e.message : String(e);
   if (/invalid login credentials/i.test(m))
     return new Error(
-      "Fel e-post eller lösenord. Har du bara loggat in med kod tidigare? Välj ”Logga in med kod i stället”.",
+      w(
+        "Fel e-post eller lösenord. Har du bara loggat in med kod tidigare? Välj ”Logga in med kod i stället”.",
+        "Vale e-post või parool. Kas oled varem sisse loginud ainult koodiga? Vali „Logi sisse koodiga”.",
+      ),
     );
-  if (/email not confirmed/i.test(m)) return new Error("Bekräfta din e-post först – klicka på länken i mejlet.");
+  if (/email not confirmed/i.test(m))
+    return new Error(
+      w(
+        "Bekräfta din e-post först – klicka på länken i mejlet.",
+        "Kinnita kõigepealt oma e-post – klõpsa e-kirjas olevat linki.",
+      ),
+    );
   if (/already registered|already been registered/i.test(m))
-    return new Error("Det finns redan ett konto med den e-posten. Logga in i stället.");
-  if (/rate limit|too many/i.test(m)) return new Error("För många försök på kort tid. Vänta en stund och prova igen.");
+    return new Error(
+      w(
+        "Det finns redan ett konto med den e-posten. Logga in i stället.",
+        "Selle e-postiga konto on juba olemas. Logi hoopis sisse.",
+      ),
+    );
+  if (/rate limit|too many/i.test(m))
+    return new Error(
+      w(
+        "För många försök på kort tid. Vänta en stund och prova igen.",
+        "Liiga palju katseid lühikese ajaga. Oota natuke ja proovi uuesti.",
+      ),
+    );
   if (/password/i.test(m) && /characters|short|weak/i.test(m))
-    return new Error("Lösenordet är för kort eller för enkelt. Välj minst 8 tecken.");
+    return new Error(
+      w(
+        "Lösenordet är för kort eller för enkelt. Välj minst 8 tecken.",
+        "Parool on liiga lühike või lihtne. Vali vähemalt 8 tähemärki.",
+      ),
+    );
   return e instanceof Error ? e : new Error(m);
 }
 const act = (fn: () => Promise<void>) =>
@@ -92,7 +140,10 @@ const login = () =>
   });
 const forgot = () =>
   act(async () => {
-    if (!emailOk.value) throw new Error("Skriv din e-post först, så skickar vi en länk.");
+    if (!emailOk.value)
+      throw new Error(
+        w("Skriv din e-post först, så skickar vi en länk.", "Kirjuta kõigepealt oma e-post, siis saadame lingi."),
+      );
     await api.sendPasswordReset(email.value);
     msg.value = `Vi har skickat en länk till ${email.value.trim()}. Öppna den för att välja ett nytt lösenord.`;
   });
@@ -110,9 +161,10 @@ const verifyCode = () =>
 
 const create = () =>
   act(async () => {
-    if (!adultName.value.trim()) throw new Error("Skriv ditt namn.");
-    if (!invite && !familyName.value.trim()) throw new Error("Skriv familjens namn.");
-    if (password.value.length < 8) throw new Error("Välj ett lösenord på minst 8 tecken.");
+    if (!adultName.value.trim()) throw new Error(w("Skriv ditt namn.", "Kirjuta oma nimi."));
+    if (!invite && !familyName.value.trim()) throw new Error(w("Skriv familjens namn.", "Kirjuta pere nimi."));
+    if (password.value.length < 8)
+      throw new Error(w("Välj ett lösenord på minst 8 tecken.", "Vali vähemalt 8 tähemärgi pikkune parool."));
     if (!invite) savePendingFamily({ familyName: familyName.value.trim(), adultName: adultName.value.trim() });
     const { loggedIn } = await api.signUp(email.value, password.value, invite ? to : "/familj?ny=1");
     if (loggedIn) return afterLogin();
@@ -126,8 +178,14 @@ function goChild() {
 
 const lead = computed(() =>
   invite
-    ? "Du är inbjuden till en familj. Logga in, eller skapa ett eget konto, så går du med."
-    : "Lär dig estniska med igelkotten Siiri. Logga in, eller skapa ett konto för familjen.",
+    ? w(
+        "Du är inbjuden till en familj. Logga in, eller skapa ett eget konto, så går du med.",
+        "Sind on kutsutud perre. Logi sisse või loo oma konto, siis liitud.",
+      )
+    : w(
+        "Lär dig estniska med igelkotten Siiri. Logga in, eller skapa ett konto för familjen.",
+        "Õpi rootsi keelt siil Siiriga. Logi sisse või loo perele konto.",
+      ),
 );
 
 function setMode(m: "login" | "create") {
@@ -141,6 +199,15 @@ function setMode(m: "login" | "create") {
   <main class="welcome">
     <section class="welcome__card" aria-labelledby="welcome-title">
       <img class="welcome__siiri" src="/images/siiri/siiri-body.webp" alt="" width="120" height="120" />
+      <!-- estniskt läge (beta): välkomstskärmens språk, följer med in i spelet -->
+      <div v-if="langBeta" class="welcome__langs">
+        <button type="button" :class="{ 'welcome__lang--on': !etUi }" class="welcome__lang" @click="setUiLang(false)">
+          🇸🇪 Svenska
+        </button>
+        <button type="button" :class="{ 'welcome__lang--on': etUi }" class="welcome__lang" @click="setUiLang(true)">
+          🇪🇪 Eesti
+        </button>
+      </div>
       <h1 id="welcome-title">Siilikool</h1>
       <p class="welcome__lead">{{ lead }}</p>
 
@@ -152,7 +219,7 @@ function setMode(m: "login" | "create") {
           class="welcome__tab"
           @click="setMode('login')"
         >
-          Logga in
+          {{ w("Logga in", "Logi sisse") }}
         </button>
         <button
           role="tab"
@@ -161,7 +228,7 @@ function setMode(m: "login" | "create") {
           class="welcome__tab"
           @click="setMode('create')"
         >
-          Skapa konto
+          {{ w("Skapa konto", "Loo konto") }}
         </button>
       </div>
 
@@ -169,7 +236,7 @@ function setMode(m: "login" | "create") {
       <form v-if="mode === 'login' && !codeMode" class="welcome__form" @submit.prevent="login">
         <label class="welcome__label" for="w-email">E-post</label>
         <input id="w-email" v-model="email" class="welcome__field" type="email" autocomplete="email" required />
-        <label class="welcome__label" for="w-pw">Lösenord</label>
+        <label class="welcome__label" for="w-pw">{{ w("Lösenord", "Parool") }}</label>
         <input
           id="w-pw"
           v-model="password"
@@ -178,11 +245,15 @@ function setMode(m: "login" | "create") {
           autocomplete="current-password"
           required
         />
-        <button class="welcome__primary" type="submit" :disabled="busy || !emailOk || !password">Logga in</button>
+        <button class="welcome__primary" type="submit" :disabled="busy || !emailOk || !password">
+          {{ w("Logga in", "Logi sisse") }}
+        </button>
         <div class="welcome__links">
-          <button type="button" class="welcome__link" :disabled="busy" @click="forgot">Glömt lösenordet?</button>
+          <button type="button" class="welcome__link" :disabled="busy" @click="forgot">
+            {{ w("Glömt lösenordet?", "Unustasid parooli?") }}
+          </button>
           <button type="button" class="welcome__link" @click="((codeMode = true), (msg = ''), (err = ''))">
-            Logga in med kod i stället
+            {{ w("Logga in med kod i stället", "Logi sisse koodiga") }}
           </button>
         </div>
       </form>
@@ -190,12 +261,17 @@ function setMode(m: "login" | "create") {
       <!-- logga in med kod i mejlet -->
       <form v-else-if="mode === 'login'" class="welcome__form" @submit.prevent="codeSent ? verifyCode() : sendCode()">
         <p class="welcome__hint">
-          Vi skickar en kod till din e-post. Efter inloggningen kan du välja ett lösenord under Familjen → Konto.
+          {{
+            w(
+              "Vi skickar en kod till din e-post. Efter inloggningen kan du välja ett lösenord under Familjen → Konto.",
+              "Saadame koodi sinu e-postile. Pärast sisselogimist saad parooli valida: Perekond → Konto.",
+            )
+          }}
         </p>
         <label class="welcome__label" for="w-email2">E-post</label>
         <input id="w-email2" v-model="email" class="welcome__field" type="email" autocomplete="email" required />
         <template v-if="codeSent">
-          <label class="welcome__label" for="w-code">Kod från mejlet</label>
+          <label class="welcome__label" for="w-code">{{ w("Kod från mejlet", "Kood e-kirjast") }}</label>
           <input
             id="w-code"
             v-model="code"
@@ -206,18 +282,18 @@ function setMode(m: "login" | "create") {
           />
         </template>
         <button class="welcome__primary" type="submit" :disabled="busy || !emailOk || (codeSent && code.length < 6)">
-          {{ codeSent ? "Logga in med koden" : "Skicka kod" }}
+          {{ codeSent ? w("Logga in med koden", "Logi koodiga sisse") : w("Skicka kod", "Saada kood") }}
         </button>
         <div class="welcome__links">
           <button type="button" class="welcome__link" @click="((codeMode = false), (msg = ''), (err = ''))">
-            Logga in med lösenord
+            {{ w("Logga in med lösenord", "Logi sisse parooliga") }}
           </button>
         </div>
       </form>
 
       <!-- skapa konto -->
       <form v-else class="welcome__form" @submit.prevent="create">
-        <label class="welcome__label" for="w-name">Ditt namn</label>
+        <label class="welcome__label" for="w-name">{{ w("Ditt namn", "Sinu nimi") }}</label>
         <input
           id="w-name"
           v-model="adultName"
@@ -225,18 +301,18 @@ function setMode(m: "login" | "create") {
           type="text"
           maxlength="40"
           autocomplete="given-name"
-          placeholder="t.ex. Laura"
+          :placeholder="w('t.ex. Laura', 'nt Laura')"
           required
         />
         <template v-if="!invite">
-          <label class="welcome__label" for="w-fam">Familjens namn</label>
+          <label class="welcome__label" for="w-fam">{{ w("Familjens namn", "Pere nimi") }}</label>
           <input
             id="w-fam"
             v-model="familyName"
             class="welcome__field"
             type="text"
             maxlength="60"
-            placeholder="t.ex. Familjen Ek"
+            :placeholder="w('t.ex. Familjen Ek', 'nt Tamme pere')"
             required
           />
         </template>
@@ -252,11 +328,18 @@ function setMode(m: "login" | "create") {
           minlength="8"
           required
         />
-        <p v-if="invite" class="welcome__hint">Minst 8 tecken.</p>
+        <p v-if="invite" class="welcome__hint">{{ w("Minst 8 tecken.", "Vähemalt 8 tähemärki.") }}</p>
         <p v-else class="welcome__hint">
-          Minst 8 tecken. Barnen behöver inget konto – du lägger till dem i familjen, och de går in med familjekoden.
+          {{
+            w(
+              "Minst 8 tecken. Barnen behöver inget konto – du lägger till dem i familjen, och de går in med familjekoden.",
+              "Vähemalt 8 tähemärki. Lapsed ei vaja kontot – lisad nad perre ja nad sisenevad perekoodiga.",
+            )
+          }}
         </p>
-        <button class="welcome__primary" type="submit" :disabled="busy || !emailOk">Skapa konto</button>
+        <button class="welcome__primary" type="submit" :disabled="busy || !emailOk">
+          {{ w("Skapa konto", "Loo konto") }}
+        </button>
       </form>
 
       <p v-if="msg" class="welcome__msg" role="status">{{ msg }}</p>
@@ -265,10 +348,12 @@ function setMode(m: "login" | "create") {
       <!-- barn -->
       <div v-if="!invite" class="welcome__child">
         <button v-if="!childOpen" type="button" class="welcome__link" @click="childOpen = true">
-          🧒 Är du ett barn med en familjekod? Skriv den här
+          {{
+            w("🧒 Är du ett barn med en familjekod? Skriv den här", "🧒 Oled laps ja sul on perekood? Kirjuta see siia")
+          }}
         </button>
         <form v-else class="welcome__child-form" @submit.prevent="goChild">
-          <label class="welcome__label" for="w-child">Familjekod</label>
+          <label class="welcome__label" for="w-child">{{ w("Familjekod", "Perekood") }}</label>
           <input
             id="w-child"
             v-model="childCode"
@@ -278,20 +363,56 @@ function setMode(m: "login" | "create") {
             maxlength="7"
             placeholder="ABC-234"
           />
-          <button class="welcome__secondary" type="submit" :disabled="!childCodeOk">Fortsätt</button>
+          <button class="welcome__secondary" type="submit" :disabled="!childCodeOk">
+            {{ w("Fortsätt", "Jätka") }}
+          </button>
         </form>
       </div>
 
       <template v-if="!invite">
-        <div class="welcome__divider"><span>eller</span></div>
-        <button type="button" class="welcome__secondary" @click="emit('local')">{{ localLabel }}</button>
-        <p class="welcome__hint welcome__hint--center">{{ localHint }}</p>
+        <div class="welcome__divider">
+          <span>{{ w("eller", "või") }}</span>
+        </div>
+        <button type="button" class="welcome__secondary" @click="emit('local')">
+          {{ etUi && localLabel === "Spela utan konto" ? "Mängi ilma kontota" : localLabel }}
+        </button>
+        <p class="welcome__hint welcome__hint--center">
+          {{
+            etUi && localLabel === "Spela utan konto"
+              ? "Salvestatakse ainult selles seadmes. Mängu saab hiljem perekontoga siduda."
+              : localHint
+          }}
+        </p>
       </template>
     </section>
   </main>
 </template>
 
 <style lang="scss" scoped>
+.welcome__langs {
+  display: flex;
+  justify-content: center;
+  gap: $spacing-2;
+  margin-bottom: $spacing-2;
+}
+
+.welcome__lang {
+  border: $border-width solid var(--line);
+  border-radius: $radius-pill;
+  background: var(--card);
+  color: var(--ink);
+  font: inherit;
+  font-weight: 700;
+  padding: 0.25rem 0.75rem;
+  cursor: pointer;
+  @include focus-visible;
+
+  &--on {
+    border-color: var(--moss);
+    box-shadow: 0 0 0 0.125rem var(--moss);
+  }
+}
+
 .welcome {
   min-height: 100dvh;
   display: flex;

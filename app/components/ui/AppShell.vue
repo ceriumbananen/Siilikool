@@ -94,7 +94,8 @@ function tapStars() {
         <span class="app-shell__nav-emoji" aria-hidden="true">
           <svg viewBox="0 0 24 24"><path d="M5 4.5l13 7.5-13 7.5z" fill="currentColor" /></svg>
         </span>
-        <b>Mängi</b><small>Spela</small>
+        <b>{{ tgt(profile.state, { et: "Mängi", sv: "Spela" }) }}</b
+        ><small>{{ nat(profile.state, { et: "Mängi", sv: "Spela" }) }}</small>
       </a>
       <a href="/" :class="{ 'app-shell__nav-btn--on': active === 'trip' }" class="app-shell__nav-btn">
         <span class="app-shell__nav-emoji" aria-hidden="true">
@@ -103,7 +104,8 @@ function tapStars() {
             <path d="M9 3v16l6 2V5z" fill="currentColor" />
           </svg>
         </span>
-        <b>Teekond</b><small>Resan</small>
+        <b>{{ tgt(profile.state, { et: "Teekond", sv: "Resan" }) }}</b
+        ><small>{{ nat(profile.state, { et: "Teekond", sv: "Resan" }) }}</small>
       </a>
       <a
         href="/"
@@ -117,7 +119,8 @@ function tapStars() {
             <path d="M20 5.5A2.5 2.5 0 0017.5 3H13v17h4.5a2.5 2.5 0 002.5-2.5z" fill="currentColor" />
           </svg>
         </span>
-        <b>Sõnastik</b><small>Ordlistan</small>
+        <b>{{ tgt(profile.state, { et: "Sõnastik", sv: "Ordlistan" }) }}</b
+        ><small>{{ nat(profile.state, { et: "Sõnastik", sv: "Ordlistan" }) }}</small>
       </a>
       <a href="/shop" :class="{ 'app-shell__nav-btn--on': active === 'shop' }" class="app-shell__nav-btn">
         <span class="app-shell__nav-emoji" aria-hidden="true">
@@ -126,13 +129,15 @@ function tapStars() {
             <path d="M4 9h16v10a2 2 0 01-2 2H6a2 2 0 01-2-2z" fill="currentColor" />
           </svg>
         </span>
-        <b>Laat</b><small>Marknaden</small>
+        <b>{{ tgt(profile.state, { et: "Laat", sv: "Marknaden" }) }}</b
+        ><small>{{ nat(profile.state, { et: "Laat", sv: "Marknaden" }) }}</small>
       </a>
       <a href="/room" :class="{ 'app-shell__nav-btn--on': active === 'room' }" class="app-shell__nav-btn">
         <span class="app-shell__nav-emoji" aria-hidden="true">
           <svg viewBox="0 0 24 24"><path d="M12 3l9 8h-3v9H6v-9H3z" fill="currentColor" /></svg>
         </span>
-        <b>Tuba</b><small>Rummet</small>
+        <b>{{ tgt(profile.state, { et: "Tuba", sv: "Rummet" }) }}</b
+        ><small>{{ nat(profile.state, { et: "Tuba", sv: "Rummet" }) }}</small>
       </a>
       <a href="/profile" :class="{ 'app-shell__nav-btn--on': active === 'me' }" class="app-shell__nav-btn">
         <span class="app-shell__nav-emoji" aria-hidden="true">
@@ -141,7 +146,8 @@ function tapStars() {
             <path d="M4 21a8 8 0 0116 0z" fill="currentColor" opacity=".6" />
           </svg>
         </span>
-        <b>Profiil</b><small>Profil</small>
+        <b>{{ tgt(profile.state, { et: "Profiil", sv: "Profil" }) }}</b
+        ><small>{{ nat(profile.state, { et: "Profiil", sv: "Profil" }) }}</small>
       </a>
     </nav>
     <!-- konfetti, "Nytt märke upplåst!" och "Hemlighet!" - samma lager som spelets egna skärmar har -->
