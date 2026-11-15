@@ -700,6 +700,8 @@ function backFromQuiz() {
 
   &__siiri {
     position: absolute;
+    /* över nissen när han tittar fram bakom hennes rygg (PakapikkStage, .pak-peek--behind) */
+    z-index: 2;
     left: 0;
     right: 0;
     bottom: 9%;

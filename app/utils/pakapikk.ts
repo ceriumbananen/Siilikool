@@ -19,9 +19,13 @@ export type PakTarget = {
   ask: PakLine; /* instruktionen i brevet */
   at: PakLine; /* var saken låg - lägesordet i grundform */
   rects: [x: number, y: number, w: number, h: number][];
-  /* var nissen tittar fram, i procent */
-  peek: [x: number, y: number];
+  /* var nissen tittar fram: bakom en kant i rummet (rummets koordinater, viewBox 0 0 400 270).
+     x = mitten, edge = kantens överkant (där vantarna vilar), w = nissens bredd. Siiri har
+     ingen fast kant - där räknas platsen fram ur hennes storlek (PakapikkStage). */
+  peek: PakPeek;
 };
+
+export type PakPeek = { x: number; edge: number; w: number };
 
 export const PAK_TARGETS: Record<PakTargetId, PakTarget> = {
   vaip: {
@@ -29,7 +33,7 @@ export const PAK_TARGETS: Record<PakTargetId, PakTarget> = {
     ask: { et: "Vaata vaiba alla!", sv: "Titta under mattan!" },
     at: { et: "Vaiba all!", sv: "Under mattan!" },
     rects: [[15, 77, 43, 13]],
-    peek: [24, 84],
+    peek: { x: 92, edge: 250, w: 36 } /* mattans framkant - tills det finns en liggande pose */,
   },
   kardin: {
     id: "kardin",
@@ -41,21 +45,21 @@ export const PAK_TARGETS: Record<PakTargetId, PakTarget> = {
       [39, 11, 5.5, 29],
       [53.5, 11, 5.5, 29],
     ],
-    peek: [5, 36],
+    peek: { x: 26, edge: 108, w: 36 } /* på fönsterbrädan, bredvid gardinen */,
   },
   lipp: {
     id: "lipp",
     ask: { et: "Vaata lipu taha!", sv: "Titta bakom flaggan!" },
     at: { et: "Lipu taga!", sv: "Bakom flaggan!" },
     rects: [[74, 8, 15, 20]],
-    peek: [88, 24],
+    peek: { x: 325, edge: 29, w: 32 } /* över flaggramens överkant */,
   },
   riiul: {
     id: "riiul",
     ask: { et: "Vaata riiuli peale!", sv: "Titta på hyllan!" },
     at: { et: "Riiuli peal!", sv: "På hyllan!" },
     rects: [[69, 33, 25, 11]],
-    peek: [76, 37],
+    peek: { x: 318, edge: 96, w: 36 } /* bakom översta hyllan */,
   },
   aken: {
     id: "aken",
@@ -65,21 +69,21 @@ export const PAK_TARGETS: Record<PakTargetId, PakTarget> = {
       [8, 12, 9, 28],
       [44.5, 12, 9, 28],
     ],
-    peek: [49, 30],
+    peek: { x: 197, edge: 108, w: 38 } /* utanför fönstret, över fönsterbrädan */,
   },
   kamin: {
     id: "kamin",
     ask: { et: "Vaata kamina juurde!", sv: "Titta vid brasan!" },
     at: { et: "Kamina juures!", sv: "Vid brasan!" },
     rects: [[73, 52, 15, 24]],
-    peek: [72, 70],
+    peek: { x: 322, edge: 151, w: 36 } /* bakom spiselkransen */,
   },
   siiri: {
     id: "siiri",
     ask: { et: "Pööra Siiri ümber!", sv: "Vänd på Siiri!" },
     at: { et: "Siiri selja taga!", sv: "Bakom Siiris rygg!" },
     rects: [],
-    peek: [63, 62],
+    peek: { x: 0, edge: 0, w: 0 } /* räknas fram ur Siiris storlek */,
   },
 };
 

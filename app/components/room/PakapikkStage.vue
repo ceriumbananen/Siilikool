@@ -17,6 +17,48 @@ function box(d: PakDrop, vw: number, vh: number) {
   return { x: d.x - d.w / 2, y: d.y - h, width: d.w, height: h };
 }
 
+/* nissen (public/images/room/pak-elf.webp, 520x562): kanten han lutar sig mot ligger 82,35 %
+   ner i bilden - under den syns bara vanten som hänger över kanten */
+const ELF_RATIO = 562 / 520,
+  ELF_EDGE = 0.8235;
+const peekBox = ref<{
+  left: number;
+  top: number;
+  width: number;
+  behind: boolean;
+  bubble: "center" | "start" | "end" | "side";
+} | null>(null);
+/* var nissen tittar fram, i procent av scenen (rummet är 400x270 enheter). Vid Siiri finns
+   ingen fast kant - hon skalar inte med rummet - så där räknas den fram ur hennes faktiska
+   storlek, och nissen ritas bakom henne och tittar fram över hennes axel. */
+watch(
+  () => pak.mode.value,
+  m => {
+    if (m !== "peek" || !pak.target.value) return;
+    let { x, edge, w } = pak.target.value.peek;
+    let behind = false;
+    if (pak.target.value.id === "siiri") {
+      const siiri = document.querySelector(".room-page__flip");
+      const stage = siiri?.closest(".room-page__stage");
+      if (siiri && stage) {
+        const r = siiri.getBoundingClientRect(),
+          st = stage.getBoundingClientRect(),
+          u = 400 / st.width;
+        w = r.width * u * 0.5;
+        x = (r.left - st.left + r.width * 0.78) * u;
+        edge = (r.top - st.top + r.height * 0.36) * u;
+        behind = true;
+      }
+    }
+    const h = w * ELF_RATIO;
+    const top = ((edge - h * ELF_EDGE) / 270) * 100;
+    /* pratbubblan ska inte hamna utanför rummet: vid överkanten (flaggan) åt sidan, vid
+       sidokanterna (gardinen) inåt i stället för centrerad */
+    const bubble = top < 14 ? "side" : x < 70 ? "start" : x > 330 ? "end" : "center";
+    peekBox.value = { left: ((x - w / 2) / 400) * 100, top, width: (w / 400) * 100, behind, bubble };
+  },
+);
+
 const targets = computed(() => Object.values(PAK_TARGETS).filter(t => t.rects.length));
 const hint = computed(() => pak.wrong.value >= 2);
 
@@ -127,24 +169,17 @@ function tap(id: PakTargetId, e: MouseEvent, rect: [number, number, number, numb
       <span>{{ PAK_WRONG.sv }}</span>
     </div>
 
-    <!-- nissen tittar fram där saken låg -->
+    <!-- nissen tittar fram bakom en kant där saken låg (bilden: vantarna vilar på kanten,
+         resten av kroppen är bakom den) -->
     <div
-      v-if="pak.mode.value === 'peek'"
+      v-if="pak.mode.value === 'peek' && peekBox"
       class="pak-peek"
-      :style="{ left: `${pak.target.value.peek[0]}%`, top: `${pak.target.value.peek[1]}%` }"
+      :class="[`pak-peek--bubble-${peekBox.bubble}`, { 'pak-peek--behind': peekBox.behind }]"
+      :style="{ left: `${peekBox.left}%`, top: `${peekBox.top}%`, width: `${peekBox.width}%` }"
     >
-      <svg class="pak-peek__elf" viewBox="0 0 60 72" aria-hidden="true">
-        <path d="M9 36 Q22 -4 50 8 Q42 18 51 36 Z" fill="#c8352e" stroke="#8e211c" stroke-width="1.5" />
-        <circle cx="50" cy="8" r="4.5" fill="#fbf7ef" />
-        <rect x="7" y="31" width="46" height="9" rx="4.5" fill="#fbf7ef" stroke="#d9cfbf" />
-        <circle cx="30" cy="48" r="12" fill="#f4c9a8" />
-        <path d="M17 50 Q19 70 30 71 Q41 70 43 50 Q37 56 30 56 Q23 56 17 50 Z" fill="#fbf7ef" stroke="#d9cfbf" />
-        <circle cx="25" cy="45" r="1.8" fill="#3a2a20" />
-        <circle cx="35" cy="45" r="1.8" fill="#3a2a20" />
-        <circle cx="30" cy="50" r="3.6" fill="#e58f7a" />
-        <circle cx="21" cy="50" r="2.2" fill="#ef9c8f" opacity="0.6" />
-        <circle cx="39" cy="50" r="2.2" fill="#ef9c8f" opacity="0.6" />
-      </svg>
+      <div class="pak-peek__clip">
+        <img class="pak-peek__elf" src="/images/room/pak-elf.webp" alt="" />
+      </div>
       <div class="pak-peek__bubble">
         <b lang="et">{{ pak.target.value.at.et }}</b>
         <span>{{ pak.target.value.at.sv }}</span>
@@ -263,21 +298,52 @@ function tap(id: PakTargetId, e: MouseEvent, rect: [number, number, number, numb
   pointer-events: none;
   line-height: normal;
 
+  /* bakom Siiri (room.vue ger henne z-index 2) */
+  &--behind {
+    z-index: 1;
+  }
+
+  &__clip {
+    aspect-ratio: 520 / 562;
+    overflow: hidden;
+    filter: drop-shadow(0 1px 2px rgba(40, 25, 10, 0.35));
+    /* medan han reser sig och sjunker klipps han vid kanten, så att kroppen aldrig syns
+       framför den - vanten som hänger över kanten kommer fram först när han står still */
+    animation: pak-peek-clip 2.3s linear forwards;
+  }
+
   &__elf {
-    position: absolute;
-    width: clamp(2.75rem, 12vw, 3.75rem);
-    max-width: none; /* den globala max-width: 100% (legacy/style.css) gör den 0 bred här */
+    display: block;
+    width: 100%;
+    max-width: none;
     height: auto;
-    transform: translate(-50%, -100%);
-    transform-origin: 50% 100%;
     animation: pak-peek-up 2.3s cubic-bezier(0.34, 1.5, 0.5, 1) forwards;
-    filter: drop-shadow(0 2px 3px rgba(40, 25, 10, 0.35));
+  }
+
+  &--bubble-start &__bubble {
+    left: 0;
+    transform: none;
+  }
+
+  &--bubble-end &__bubble {
+    left: auto;
+    right: 0;
+    transform: none;
+  }
+
+  &--bubble-side &__bubble {
+    left: auto;
+    right: 100%;
+    bottom: 30%;
+    margin: 0 0.25rem 0 0;
+    transform: none;
   }
 
   &__bubble {
     position: absolute;
-    bottom: clamp(3.5rem, 15vw, 4.75rem);
-    left: 0;
+    bottom: 100%;
+    left: 50%;
+    margin-bottom: 0.25rem;
     transform: translateX(-50%);
     white-space: nowrap;
     background: #fffaf0;
@@ -366,42 +432,55 @@ function tap(id: PakTargetId, e: MouseEvent, rect: [number, number, number, numb
   }
 }
 
-@keyframes pak-peek-up {
-  0% {
-    opacity: 0;
-    transform: translate(-50%, -40%) scale(0.4);
+@keyframes pak-peek-clip {
+  0%,
+  19% {
+    clip-path: inset(-50% -50% 17.65% -50%);
   }
-  18% {
-    opacity: 1;
-    transform: translate(-50%, -100%) scale(1);
+  20%,
+  85% {
+    clip-path: inset(-50% -50% 0 -50%);
   }
-  30% {
-    transform: translate(-50%, -100%) rotate(-8deg);
-  }
-  42% {
-    transform: translate(-50%, -100%) rotate(8deg);
-  }
-  54%,
-  86% {
-    transform: translate(-50%, -100%) rotate(0);
-    opacity: 1;
-  }
+  86%,
   100% {
-    opacity: 0;
-    transform: translate(-50%, -60%) scale(0.7);
+    clip-path: inset(-50% -50% 17.65% -50%);
   }
 }
 
+/* nissen reser sig bakom kanten, vinkar och sjunker ner igen */
+@keyframes pak-peek-up {
+  0% {
+    transform: translateY(100%);
+  }
+  20% {
+    transform: translateY(0);
+  }
+  32% {
+    transform: translateY(0) rotate(-3deg);
+  }
+  44% {
+    transform: translateY(0) rotate(3deg);
+  }
+  56%,
+  86% {
+    transform: translateY(0) rotate(0);
+  }
+  100% {
+    transform: translateY(100%);
+  }
+}
+
+/* bara opacitet och skala (egen egenskap), så att bubblans placering (transform) får vara kvar */
 @keyframes pak-pop {
   0%,
   14% {
     opacity: 0;
-    transform: translateX(-50%) scale(0.8);
+    scale: 0.8;
   }
   24%,
   86% {
     opacity: 1;
-    transform: translateX(-50%) scale(1);
+    scale: 1;
   }
   100% {
     opacity: 0;
