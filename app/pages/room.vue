@@ -30,11 +30,14 @@ const roomHtml = computed(() =>
 );
 const backHtml = computed(() => siiriBackSVG(fur.value, wear.value as Wear, owned.value));
 const turned = ref(false);
+/* Päkapiku kirjad (december): toffeln, jakten och brevet - app/composables/usePakapikk.ts */
+const pak = usePakapikk();
 /* vänd på Siiri: CSS-flippen sköter animationen */
 function flip() {
   turned.value = !turned.value;
   tone(520, 0.08, 0);
   tone(720, 0.1, 0.07);
+  pak.onSiiriFlip();
 }
 /* saker i rummet man kan trycka på: katten spinner, brasan, lampan, fönstret och katten
    säger var sitt ord (samma pop-bubbla-mönster, så de känns som en familj av reaktioner) */
@@ -437,8 +440,9 @@ function backFromQuiz() {
               <div class="room-page__face room-page__face--back" v-html="backHtml" />
             </div>
           </div>
+          <RoomPakapikkStage />
           <button
-            v-if="!found"
+            v-if="!found && !pak.searching.value"
             class="room-page__hidden"
             :style="{ left: `${hidden.spot.x}%`, top: `${hidden.spot.y}%` }"
             aria-label="Något gömmer sig"
@@ -457,12 +461,15 @@ function backFromQuiz() {
             ><span>{{ roomSaid.sv }}</span>
           </div>
         </div>
-        <p class="room-page__note">
+        <RoomPakapikkBanner />
+        <p v-if="!pak.searching.value" class="room-page__note">
           <template v-if="found">
             🔍 Dagens sak hittad: <b lang="et">{{ hideLast.et }}</b> — {{ hideLast.sv }}. Ny sak imorgon!
           </template>
           <template v-else>🔍 Något litet gömmer sig i rummet idag. Hittar du det?</template>
         </p>
+        <RoomPakapikkCalendar />
+        <RoomPakapikkLetter />
 
         <!-- flikar -->
         <div class="room-page__tabs" role="tablist">

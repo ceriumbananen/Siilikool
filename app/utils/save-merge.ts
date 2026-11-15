@@ -13,7 +13,7 @@
 type Save = Record<string, any>;
 
 const COUNTERS = ["stars", "xp", "correct", "spoken", "typed", "perfect", "lessons", "hardWins", "tripDone"];
-const SETS = ["owned", "badges", "secrets", "furnOwned", "schoolDoneSets"];
+const SETS = ["owned", "badges", "secrets", "furnOwned", "schoolDoneSets", "pakFound"];
 const BEST_MAPS = ["best", "bestRight", "chalTop", "diplomas", "tried"];
 const LOW_MAPS = ["memBestLv"]; /* antal drag – färre är bättre */
 const BEST_NUMS = ["bestcombo", "sentbest", "mixbest", "rank", "songDone"];
