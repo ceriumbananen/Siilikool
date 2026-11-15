@@ -112,6 +112,7 @@ function pick(d: number, state: string) {
     .pak-cal__img {
       width: 1.625rem;
       height: 1.625rem;
+      object-fit: contain;
     }
 
     &--found {

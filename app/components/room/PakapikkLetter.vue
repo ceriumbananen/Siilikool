@@ -215,6 +215,7 @@ const hatItem = computed(() => SHOP.find(it => it.id === PAK_FINAL_ITEM));
     img {
       width: 5rem;
       height: 5rem;
+      object-fit: contain;
       margin: 0.25rem 0;
       animation: pak-bounce 0.9s cubic-bezier(0.34, 1.6, 0.5, 1);
     }

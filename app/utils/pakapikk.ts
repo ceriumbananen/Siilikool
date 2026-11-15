@@ -96,13 +96,13 @@ export const PAK_SOON: PakLine = { et: "Päkapikud tulevad varsti!", sv: "Tomten
 export const PAK_FINAL_WISH: PakLine = { et: "Häid jõule!", sv: "God jul!" };
 export const PAK_TOMORROW: PakLine = { et: "Homme tuleb uus kiri!", sv: "I morgon kommer ett nytt brev!" };
 
-/** em = emoji; img = en egen bild när ingen emoji stämmer (🍪 är en chokladkaka, ingen pepparkaka). */
+/** em = emoji; img = en egen bild när ingen emoji stämmer (🍪 är en chokladkaka, 🌰 en kastanj). */
 export type PakGift = { et: string; sv: string; em: string; img?: string };
 const GIFTS: PakGift[] = [
   { et: "komm", sv: "godis", em: "🍬" },
-  { et: "piparkook", sv: "pepparkaka", em: "🍪", img: "/images/room/pak-piparkook.svg" },
+  { et: "piparkook", sv: "pepparkaka", em: "🍪", img: "/images/room/pak-piparkook.webp" },
   { et: "mandariin", sv: "mandarin", em: "🍊" },
-  { et: "pähkel", sv: "nöt", em: "🌰" },
+  { et: "pähkel", sv: "nöt", em: "🌰", img: "/images/room/pak-pahkel.webp" } /* 🌰 är en kastanj */,
   { et: "õun", sv: "äpple", em: "🍎" },
   { et: "kelluke", sv: "bjällra", em: "🔔" },
   { et: "küünal", sv: "ljus", em: "🕯️" },
