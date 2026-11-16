@@ -7,6 +7,7 @@ const { highlight = false } = defineProps<{
   highlight?: boolean;
 }>();
 const api = useParentApi();
+const { L } = useLang();
 const { busy, err, run } = useBusy();
 const open = ref(highlight),
   pw = ref(""),
@@ -25,8 +26,9 @@ onMounted(() => {
 
 const save = () =>
   run(async () => {
-    if (pw.value.length < 8) throw new Error("Välj ett lösenord på minst 8 tecken.");
-    if (pw.value !== pw2.value) throw new Error("Lösenorden är inte lika.");
+    if (pw.value.length < 8)
+      throw new Error(L("Välj ett lösenord på minst 8 tecken.", "Vali vähemalt 8 tähemärgi pikkune parool."));
+    if (pw.value !== pw2.value) throw new Error(L("Lösenorden är inte lika.", "Paroolid ei ole ühesugused."));
     await api.setPassword(pw.value);
     pw.value = pw2.value = "";
     done.value = true;
@@ -36,22 +38,31 @@ const save = () =>
 
 <template>
   <div ref="root" :class="[highlight && 'card', glow && 'pwcard--glow']">
-    <h2 v-if="highlight" class="q">Välj ett nytt lösenord</h2>
-    <p v-if="done" class="ok" role="status">Lösenordet är sparat. Nästa gång loggar du in med e-post och lösenord.</p>
+    <h2 v-if="highlight" class="q">{{ L("Välj ett nytt lösenord", "Vali uus parool") }}</h2>
+    <p v-if="done" class="ok" role="status">
+      {{
+        L(
+          "Lösenordet är sparat. Nästa gång loggar du in med e-post och lösenord.",
+          "Parool on salvestatud. Järgmine kord logid sisse e-posti ja parooliga.",
+        )
+      }}
+    </p>
     <button v-if="!open" class="btn ghost wide" @click="((open = true), (done = false))">
-      🔑 Välj eller byt lösenord
+      {{ L("🔑 Välj eller byt lösenord", "🔑 Vali või vaheta parool") }}
     </button>
     <form v-if="open" @submit.prevent="save">
       <label class="flabel"
-        >Nytt lösenord
+        >{{ L("Nytt lösenord", "Uus parool") }}
         <input v-model="pw" class="field" type="password" autocomplete="new-password" minlength="8" required
       /></label>
       <label class="flabel"
-        >Samma lösenord igen
+        >{{ L("Samma lösenord igen", "Sama parool uuesti") }}
         <input v-model="pw2" class="field" type="password" autocomplete="new-password" minlength="8" required
       /></label>
-      <p class="qsub">Minst 8 tecken.</p>
-      <button class="btn green wide" type="submit" :disabled="busy">Spara lösenordet</button>
+      <p class="qsub">{{ L("Minst 8 tecken.", "Vähemalt 8 tähemärki.") }}</p>
+      <button class="btn green wide" type="submit" :disabled="busy">
+        {{ L("Spara lösenordet", "Salvesta parool") }}
+      </button>
     </form>
     <p v-if="err" class="err" role="alert">{{ err }}</p>
   </div>

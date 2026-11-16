@@ -5,3 +5,13 @@
        eftersom den gamla appen bara kan starta en gång per sidladdning. -->
   <NuxtPage />
 </template>
+
+<script setup lang="ts">
+/* fliktiteln och sidans språk följer spelarens språkriktning (estniskt läge = lär sig svenska);
+   sidor med egen titel (t.ex. "Laat · Siilikool") skriver över titeln */
+const { isEt } = useLang();
+useHead({
+  title: () => (isEt() ? "Siilikool – õpi rootsi keelt" : "Siilikool – lär dig estniska"),
+  htmlAttrs: { lang: () => (isEt() ? "et" : "sv") },
+});
+</script>

@@ -12,7 +12,7 @@ const LIST_COLS = "id, member_id, name, words, days, created_at";
 
 export function useParentApi() {
   const sb = getSupabase();
-  if (!sb) throw new Error("Konton är inte påslagna");
+  if (!sb) throw new Error(useLang().L("Konton är inte påslagna", "Kontod pole sisse lülitatud"));
 
   return {
     /* ---------- inloggning med e-postlänk (eller koden i samma mejl) ---------- */

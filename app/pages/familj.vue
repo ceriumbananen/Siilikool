@@ -5,7 +5,8 @@
    vuxen-PIN – med en rad om vad varje kod är till för) och Konto (lösenord, logga ut, radera).
    Fliken och den öppna medlemmen står i adressen (?flik=…, ?m=…), så att bakåt fungerar. */
 
-useHead({ title: "Familjen · Siilikool" });
+const { L, isEt } = useLang();
+useHead({ title: () => L("Familjen · Siilikool", "Pere · Siilikool") });
 const profile = useProfileStore();
 const route = useRoute();
 const cloud = useCloudStore();
@@ -74,7 +75,11 @@ function onLocal() {
 /* spelaren på enheten när den inte är med i familjen (lokal): ett eget kort i Familjen, ?m=enheten */
 const localPlayer = computed(() =>
   !cloud.link && profile.playerUsed(profile.current)
-    ? { name: profile.state.name || "Spelaren", avatar: profile.state.avatar || "🦔", stars: profile.state.stars || 0 }
+    ? {
+        name: profile.state.name || L("Spelaren", "Mängija"),
+        avatar: profile.state.avatar || "🦔",
+        stars: profile.state.stars || 0,
+      }
     : null,
 );
 const deviceOpen = computed(() => route.query.m === "enheten" && !!localPlayer.value);
@@ -92,11 +97,11 @@ const flik = computed<Flik>(() => {
   const f = route.query.flik;
   return f === "koder" || f === "konto" ? f : "familj";
 });
-const flikar: { id: Flik; label: string }[] = [
-  { id: "familj", label: "Familjen" },
-  { id: "koder", label: "Koder" },
-  { id: "konto", label: "Konto" },
-];
+const flikar = computed<{ id: Flik; label: string }[]>(() => [
+  { id: "familj", label: L("Familjen", "Pere") },
+  { id: "koder", label: L("Koder", "Koodid") },
+  { id: "konto", label: L("Konto", "Konto") },
+]);
 const openMember = computed(() => members.value.find(m => m.id === route.query.m) || null);
 const goFlik = (f: Flik) => navigateTo({ query: f === "familj" ? {} : { flik: f } });
 const goMember = (m: Member) => navigateTo({ query: { m: m.id } });
@@ -132,8 +137,11 @@ const unlock = () =>
     if (!r.ok)
       throw new Error(
         r.error === "locked"
-          ? `För många fel försök. Vänta till ${new Date(r.until!).toLocaleTimeString("sv-SE", { hour: "2-digit", minute: "2-digit" })}.`
-          : "Fel PIN-kod.",
+          ? L(
+              `För många fel försök. Vänta till ${new Date(r.until!).toLocaleTimeString("sv-SE", { hour: "2-digit", minute: "2-digit" })}.`,
+              `Liiga palju valesid katseid. Oota kuni ${new Date(r.until!).toLocaleTimeString("et-EE", { hour: "2-digit", minute: "2-digit" })}.`,
+            )
+          : L("Fel PIN-kod.", "Vale PIN-kood."),
       );
     await load();
   });
@@ -143,7 +151,7 @@ const familyName = ref(""),
   adultName = ref("");
 const createFamily = () =>
   act("create", async () => {
-    if (!familyName.value.trim()) throw new Error("Skriv familjens namn.");
+    if (!familyName.value.trim()) throw new Error(L("Skriv familjens namn.", "Kirjuta pere nimi."));
     await api!.createFamily(familyName.value, adultName.value);
     await cloud.refreshSession();
     await load();
@@ -154,7 +162,7 @@ const newName = ref(""),
   newAvatar = ref("🦊");
 const addChild = () =>
   act("add", async () => {
-    if (!newName.value.trim()) throw new Error("Skriv barnets namn.");
+    if (!newName.value.trim()) throw new Error(L("Skriv barnets namn.", "Kirjuta lapse nimi."));
     await api!.addChild(family.value!.id, newName.value, newAvatar.value);
     newName.value = "";
     showAdd.value = false;
@@ -163,12 +171,19 @@ const addChild = () =>
 
 /* texterna ligger i skriptet i stället för i mallen – långa uttryck i {{ }} bryts annars fel av Prettier */
 const deviceNote = computed(() =>
-  cloud.family?.name ? `Enheten spelar i familjen ”${cloud.family.name}”.` : "Enheten spelar i en familj.",
+  cloud.family?.name
+    ? L(`Enheten spelar i familjen ”${cloud.family.name}”.`, `Seade kuulub perele: ${cloud.family.name}.`)
+    : L("Enheten spelar i en familj.", "Seade kuulub ühele perele."),
 );
-const addTitle = computed(() => (children.value.length ? "Lägg till ett barn" : "Lägg till ert första barn"));
-const familyNote = computed(
-  () =>
-    `${members.value.length} ${members.value.length === 1 ? "medlem" : "medlemmar"}. Tryck på någon för framsteg, glosor och PIN – eller för att spela som hen.`,
+const addTitle = computed(() =>
+  children.value.length
+    ? L("Lägg till ett barn", "Lisa laps")
+    : L("Lägg till ert första barn", "Lisa oma esimene laps"),
+);
+const familyNote = computed(() =>
+  isEt()
+    ? `Liikmeid: ${members.value.length}. Vajuta kellelegi, et näha edusamme, koolisõnu ja PIN-koodi – või mängida tema nimel.`
+    : `${members.value.length} ${members.value.length === 1 ? "medlem" : "medlemmar"}. Tryck på någon för framsteg, glosor och PIN – eller för att spela som hen.`,
 );
 
 /* ---------- konto ---------- */
@@ -182,9 +197,14 @@ const signOut = () =>
 const deleteQuestion = computed(
   () =>
     (lastAdult.value
-      ? "Du är den enda vuxna – hela familjen raderas: barnen, deras spel i kontot, glosor och enheter."
-      : "Ditt konto och ditt spel i kontot raderas. Familjen och de andra vuxna finns kvar.") +
-    " Spelen på enheterna finns kvar.",
+      ? L(
+          "Du är den enda vuxna – hela familjen raderas: barnen, deras spel i kontot, glosor och enheter.",
+          "Oled ainus täiskasvanu – kogu pere kustutatakse: lapsed, nende mängud kontol, koolisõnad ja seadmed.",
+        )
+      : L(
+          "Ditt konto och ditt spel i kontot raderas. Familjen och de andra vuxna finns kvar.",
+          "Sinu konto ja sinu mäng kontol kustutatakse. Pere ja teised täiskasvanud jäävad alles.",
+        )) + L(" Spelen på enheterna finns kvar.", " Mängud seadmetes jäävad alles."),
 );
 function deleteAccount() {
   return act("account", async () => {
@@ -194,7 +214,7 @@ function deleteAccount() {
     });
     family.value = null;
     members.value = [];
-    msg.value = "Kontot är raderat.";
+    msg.value = L("Kontot är raderat.", "Konto on kustutatud.");
   });
 }
 </script>
@@ -204,38 +224,63 @@ function deleteAccount() {
   <WelcomeGate
     v-if="cloud.enabled && ready && !cloud.session && !localView"
     to="/familj"
-    local-label="Utan konto: spelet på den här enheten"
-    local-hint="Framsteg, skolans glosor och säkerhetskopia för spelaren som inte är med i något familjekonto."
+    :local-label="L('Utan konto: spelet på den här enheten', 'Ilma kontota: mäng selles seadmes')"
+    :local-hint="
+      L(
+        'Framsteg, skolans glosor och säkerhetskopia för spelaren som inte är med i något familjekonto.',
+        'Edusammud, koolisõnad ja varukoopia mängijale, kes pole üheski perekontos.',
+      )
+    "
     @local="onLocal"
   />
   <div v-else class="wrap page">
     <header class="pagehead">
-      <a href="/" class="back">← Till spelet</a>
-      <h1>{{ family?.name || (cloud.session ? "Familjen" : "För vuxna") }}</h1>
-      <p>{{ family ? "Familjen i Siilikool" : "Framsteg, glosor och säkerhetskopia" }}</p>
+      <a href="/" class="back">{{ L("← Till spelet", "← Mängu juurde") }}</a>
+      <h1>{{ family?.name || (cloud.session ? L("Familjen", "Pere") : L("För vuxna", "Täiskasvanutele")) }}</h1>
+      <p>
+        {{
+          family
+            ? L("Familjen i Siilikool", "Pere Siilikoolis")
+            : L("Framsteg, glosor och säkerhetskopia", "Edusammud, koolisõnad ja varukoopia")
+        }}
+      </p>
     </header>
 
     <!-- utan familjekonton i den här versionen, eller utloggad och "Utan konto": spelet på enheten -->
     <ParentDevicePanel v-if="!cloud.enabled" />
     <template v-else-if="localView && !cloud.session">
       <div class="card">
-        <h2 class="q">Familjekonto</h2>
+        <h2 class="q">{{ L("Familjekonto", "Perekonto") }}</h2>
         <p class="qsub">
-          Med ett konto sparas spelet i familjen, följer med till andra enheter och glosorna kommer från de vuxna.
+          {{
+            L(
+              "Med ett konto sparas spelet i familjen, följer med till andra enheter och glosorna kommer från de vuxna.",
+              "Kontoga salvestatakse mäng pere juurde, see on olemas ka teistes seadmetes ja koolisõnad tulevad täiskasvanutelt.",
+            )
+          }}
         </p>
-        <button class="btn green wide" @click="localView = false">Logga in eller skapa konto</button>
+        <button class="btn green wide" @click="localView = false">
+          {{ L("Logga in eller skapa konto", "Logi sisse või loo konto") }}
+        </button>
       </div>
       <ParentDevicePanel />
     </template>
 
     <!-- barnens enhet -->
     <div v-else-if="cloud.isAnonymous" class="card">
-      <h2 class="q">Det här är en barnenhet</h2>
-      <p class="qsub">{{ deviceNote }} Familjen öppnar du på din egen enhet.</p>
+      <h2 class="q">{{ L("Det här är en barnenhet", "See on lapse seade") }}</h2>
+      <p class="qsub">
+        {{ deviceNote }} {{ L("Familjen öppnar du på din egen enhet.", "Pere lehe saad avada oma seadmes.") }}
+      </p>
       <ConfirmAction
-        label="Logga in som vuxen här ändå"
-        question="Om du loggar in som vuxen här tas barnen bort från enheten. Spelen finns kvar på enheten."
-        yes="Logga in som vuxen"
+        :label="L('Logga in som vuxen här ändå', 'Logi siin ikkagi sisse täiskasvanuna')"
+        :question="
+          L(
+            'Om du loggar in som vuxen här tas barnen bort från enheten. Spelen finns kvar på enheten.',
+            'Kui logid siin sisse täiskasvanuna, eemaldatakse lapsed sellest seadmest. Mängud jäävad seadmesse alles.',
+          )
+        "
+        :yes="L('Logga in som vuxen', 'Logi sisse täiskasvanuna')"
         wide
         :busy="busy"
         @confirm="leaveDeviceMode"
@@ -243,14 +288,21 @@ function deleteAccount() {
       <p v-if="err && errAt === 'device'" class="err" role="alert">{{ err }}</p>
     </div>
 
-    <p v-else-if="!ready" class="qsub">Hämtar …</p>
+    <p v-else-if="!ready" class="qsub">{{ L("Hämtar …", "Laadin …") }}</p>
 
     <!-- låst enhet -->
     <div v-else-if="cloud.isLocked" class="card">
-      <h2 class="q">🔒 Enheten är låst</h2>
-      <p class="qsub">Skriv vuxen-PIN-koden för att låsa upp Familjen på den här enheten.</p>
+      <h2 class="q">{{ L("🔒 Enheten är låst", "🔒 Seade on lukus") }}</h2>
+      <p class="qsub">
+        {{
+          L(
+            "Skriv vuxen-PIN-koden för att låsa upp Familjen på den här enheten.",
+            "Kirjuta täiskasvanu PIN-kood, et avada selles seadmes pere leht.",
+          )
+        }}
+      </p>
       <label class="flabel"
-        >Vuxen-PIN
+        >{{ L("Vuxen-PIN", "Täiskasvanu PIN") }}
         <input
           v-model="unlockPin"
           class="field code"
@@ -262,43 +314,60 @@ function deleteAccount() {
           placeholder="••••"
           @keydown.enter="unlock"
       /></label>
-      <button class="btn green wide" :disabled="busy || unlockPin.length < 4" @click="unlock">Lås upp</button>
+      <button class="btn green wide" :disabled="busy || unlockPin.length < 4" @click="unlock">
+        {{ L("Lås upp", "Ava lukk") }}
+      </button>
       <p v-if="err && errAt === 'unlock'" class="err" role="alert">{{ err }}</p>
       <details class="more">
-        <summary>Glömt vuxen-PIN?</summary>
-        <p class="qsub">
+        <summary>{{ L("Glömt vuxen-PIN?", "Unustasid täiskasvanu PIN-koodi?") }}</summary>
+        <p v-if="isEt()" class="qsub">
+          Logi välja ja logi uuesti sisse e-kirja lingiga. Uus sisselogimine on alati lukustamata. Seejärel vali uus
+          täiskasvanu PIN-kood: <b>Koodid → Täiskasvanu PIN</b>.
+        </p>
+        <p v-else class="qsub">
           Logga ut och logga in igen med e-postlänken. En ny inloggning är alltid olåst. Välj sedan en ny vuxen-PIN
           under
           <b>Lås den här enheten</b>.
         </p>
-        <button class="btn ghost wide" :disabled="busy" @click="signOut">Logga ut</button>
+        <button class="btn ghost wide" :disabled="busy" @click="signOut">{{ L("Logga ut", "Logi välja") }}</button>
       </details>
     </div>
 
-    <p v-else-if="!loaded" class="qsub">Hämtar familjen …</p>
+    <p v-else-if="!loaded" class="qsub">{{ L("Hämtar familjen …", "Laadin pere andmeid …") }}</p>
 
     <!-- ingen familj än -->
     <div v-else-if="!family" class="card">
-      <h2 class="q">Skapa er familj</h2>
+      <h2 class="q">{{ L("Skapa er familj", "Loo oma pere") }}</h2>
       <p class="qsub">
-        Familjen samlar alla: vuxna loggar in med e-post, barnen med familjekoden. Har du fått en inbjudan från en annan
-        vuxen? Öppna länken i den i stället.
+        {{
+          L(
+            "Familjen samlar alla: vuxna loggar in med e-post, barnen med familjekoden. Har du fått en inbjudan från en annan vuxen? Öppna länken i den i stället.",
+            "Pere ühendab kõiki: täiskasvanud logivad sisse e-postiga, lapsed perekoodiga. Kas said kutse teiselt täiskasvanult? Ava hoopis selles olev link.",
+          )
+        }}
       </p>
       <label class="flabel"
-        >Familjens namn
-        <input v-model="familyName" class="field" type="text" maxlength="60" placeholder="t.ex. Familjen Ek"
+        >{{ L("Familjens namn", "Pere nimi") }}
+        <input
+          v-model="familyName"
+          class="field"
+          type="text"
+          maxlength="60"
+          :placeholder="L('t.ex. Familjen Ek', 'nt Tamme pere')"
       /></label>
       <label class="flabel"
-        >Ditt namn i familjen
-        <input v-model="adultName" class="field" type="text" maxlength="40" placeholder="t.ex. Mamma"
+        >{{ L("Ditt namn i familjen", "Sinu nimi peres") }}
+        <input v-model="adultName" class="field" type="text" maxlength="40" :placeholder="L('t.ex. Mamma', 'nt Ema')"
       /></label>
-      <button class="btn green wide" :disabled="busy" @click="createFamily">Skapa familjen</button>
+      <button class="btn green wide" :disabled="busy" @click="createFamily">
+        {{ L("Skapa familjen", "Loo pere") }}
+      </button>
       <p v-if="err && errAt === 'create'" class="err" role="alert">{{ err }}</p>
     </div>
 
     <!-- spelaren på enheten som inte är med i familjen -->
     <div v-else-if="deviceOpen">
-      <button class="back familj__back" @click="goBack">← Familjen</button>
+      <button class="back familj__back" @click="goBack">{{ L("← Familjen", "← Pere") }}</button>
       <ParentDevicePanel />
     </div>
 
@@ -316,7 +385,7 @@ function deleteAccount() {
 
     <!-- familjen -->
     <template v-else>
-      <div class="tabs" role="tablist" aria-label="Familjen">
+      <div class="tabs" role="tablist" :aria-label="L('Familjen', 'Pere')">
         <button
           v-for="f in flikar"
           :key="f.id"
@@ -332,10 +401,15 @@ function deleteAccount() {
 
       <template v-if="flik === 'familj'">
         <p v-if="welcome" class="ok" role="status">
-          Välkommen! Familjen är skapad. Lägg till barnen nedan, så kan de spela med familjekoden.
+          {{
+            L(
+              "Välkommen! Familjen är skapad. Lägg till barnen nedan, så kan de spela med familjekoden.",
+              "Tere tulemast! Pere on loodud. Lisa allpool lapsed, siis saavad nad perekoodiga mängida.",
+            )
+          }}
         </p>
         <div class="card">
-          <h2 class="q">Alla i familjen</h2>
+          <h2 class="q">{{ L("Alla i familjen", "Kõik pereliikmed") }}</h2>
           <p class="qsub">{{ familyNote }}</p>
           <div class="members">
             <ParentMemberCard
@@ -350,11 +424,13 @@ function deleteAccount() {
             <button v-if="localPlayer" class="members__local" @click="navigateTo({ query: { m: 'enheten' } })">
               <span aria-hidden="true">{{ localPlayer.avatar }}</span>
               <b>{{ localPlayer.name }}</b>
-              <small>⭐ {{ localPlayer.stars }} · utan konto, spelar nu</small>
+              <small
+                >⭐ {{ localPlayer.stars }} · {{ L("utan konto, spelar nu", "ilma kontota, mängib praegu") }}</small
+              >
             </button>
             <button v-if="!showAdd" class="members__add" @click="showAdd = true">
               <span aria-hidden="true">➕</span>
-              <b>Lägg till barn</b>
+              <b>{{ L("Lägg till barn", "Lisa laps") }}</b>
             </button>
           </div>
         </div>
@@ -362,19 +438,27 @@ function deleteAccount() {
         <div v-if="showAdd || !children.length" class="card">
           <h2 class="q">{{ addTitle }}</h2>
           <label class="flabel"
-            >Barnets namn <input v-model="newName" class="field" type="text" maxlength="40" @keydown.enter="addChild"
+            >{{ L("Barnets namn", "Lapse nimi") }}
+            <input v-model="newName" class="field" type="text" maxlength="40" @keydown.enter="addChild"
           /></label>
           <AvatarPicker v-model="newAvatar" />
-          <button class="btn green wide" :disabled="busy" @click="addChild">Lägg till</button>
+          <button class="btn green wide" :disabled="busy" @click="addChild">{{ L("Lägg till", "Lisa") }}</button>
           <p v-if="err && errAt === 'add'" class="err" role="alert">{{ err }}</p>
-          <p class="qsub">PIN-kod sätter du på barnet efteråt (valfritt).</p>
+          <p class="qsub">
+            {{
+              L(
+                "PIN-kod sätter du på barnet efteråt (valfritt).",
+                "PIN-koodi saad lapsele panna hiljem (pole kohustuslik).",
+              )
+            }}
+          </p>
         </div>
 
         <ParentHandOverCard v-if="children.length" />
 
         <div v-if="children.length" class="card">
-          <h2 class="q">Glosor för alla barn</h2>
-          <ParentWordListEditor :family-id="family.id" :member-id="null" who="alla barn" />
+          <h2 class="q">{{ L("Glosor för alla barn", "Koolisõnad kõigile lastele") }}</h2>
+          <ParentWordListEditor :family-id="family.id" :member-id="null" :who="L('alla barn', 'kõik lapsed')" />
         </div>
 
         <ParentInviteCard />
@@ -382,8 +466,14 @@ function deleteAccount() {
 
       <template v-else-if="flik === 'koder'">
         <div class="card">
-          <h2 class="q">Koderna i familjen</h2>
-          <ul class="codes">
+          <h2 class="q">{{ L("Koderna i familjen", "Pere koodid") }}</h2>
+          <ul v-if="isEt()" class="codes">
+            <li><b>Parool</b> – sinu enda oma. Logid sisse e-posti ja parooliga.</li>
+            <li><b>Perekood</b> – laste seadmete jaoks: sellega valivad lapsed, kes mängib.</li>
+            <li><b>Lapse PIN</b> – pole kohustuslik. Vajalik, et valida laps lapse seadmes.</li>
+            <li><b>Täiskasvanu PIN</b> – ühine kõigile täiskasvanutele. Avab seadme, mis on lastele üle antud.</li>
+          </ul>
+          <ul v-else class="codes">
             <li><b>Lösenord</b> – ditt eget. Du loggar in med e-post och lösenord.</li>
             <li><b>Familjekod</b> – för barnens enheter: med den väljer barnen vem som spelar.</li>
             <li><b>Barnets PIN</b> – valfri. Behövs för att välja barnet på en barnenhet.</li>
@@ -393,22 +483,22 @@ function deleteAccount() {
         <ParentFamilyCodeCard :family="family" @rotated="load" />
         <ParentChildLinksCard v-if="children.length" :family="family" :children="children" />
         <div class="card">
-          <h2 class="q">Vuxen-PIN</h2>
+          <h2 class="q">{{ L("Vuxen-PIN", "Täiskasvanu PIN") }}</h2>
           <ParentAdultPinCard />
         </div>
       </template>
 
       <div v-else class="card">
-        <h2 class="q">Kontot</h2>
-        <p class="qsub">Inloggad som {{ userEmail }}</p>
+        <h2 class="q">{{ L("Kontot", "Konto") }}</h2>
+        <p class="qsub">{{ L("Inloggad som", "Sisse logitud:") }} {{ userEmail }}</p>
         <ParentPasswordCard :highlight="newPassword" />
-        <button class="btn ghost wide" :disabled="busy" @click="signOut">Logga ut</button>
+        <button class="btn ghost wide" :disabled="busy" @click="signOut">{{ L("Logga ut", "Logi välja") }}</button>
         <div class="dangerzone">
           <ConfirmAction
-            label="Radera kontot"
+            :label="L('Radera kontot', 'Kustuta konto')"
             :question="deleteQuestion"
-            yes="Radera kontot"
-            word="RADERA"
+            :yes="L('Radera kontot', 'Kustuta konto')"
+            :word="L('RADERA', 'KUSTUTA')"
             danger
             wide
             :busy="busy"

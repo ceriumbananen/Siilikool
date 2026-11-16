@@ -35,11 +35,12 @@ export function summarizeProgress(data: Record<string, any> | null | undefined):
   /* samma ord som barnet möter i spelet: hur många som inte övats än, och tema för tema */
   const words = allWords(s);
   const unseen = words.filter(w => !mem[mkey(w.et, w.sv)]).length;
-  const themes = (THEMES as { id: string; sv: string; em: string; words: WordItem[] }[]).map(t => {
+  const themes = (THEMES as { id: string; et: string; sv: string; em: string; words: WordItem[] }[]).map(t => {
     const strongIn = t.words.filter(w => num(mem[mkey(w.et, w.sv)]?.s) >= 2).length;
     const p = t.words.length ? strongIn / t.words.length : 0;
     return {
       id: t.id,
+      et: t.et,
       sv: t.sv,
       em: t.em,
       strong: strongIn,

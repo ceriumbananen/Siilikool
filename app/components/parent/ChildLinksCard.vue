@@ -2,6 +2,7 @@
 /* En egen länk (och QR-kod) per barn: öppnas den på barnets enhet hoppar den över "Vem spelar?" och
    går direkt till barnet – PIN-koden behövs fortfarande om barnet har en. */
 const props = defineProps<{ family: Family; children: Member[] }>();
+const { L } = useLang();
 const open = ref<string | null>(null),
   qr = ref(""),
   copied = ref<string | null>(null);
@@ -23,22 +24,29 @@ async function copy(m: Member) {
 
 <template>
   <div class="card">
-    <h2 class="q">Barnens egna länkar</h2>
+    <h2 class="q">{{ L("Barnens egna länkar", "Laste isiklikud lingid") }}</h2>
     <p class="qsub">
-      Öppna länken på barnets enhet (eller skanna QR-koden) så spelar barnet direkt – utan att skriva familjekoden.
+      {{
+        L(
+          "Öppna länken på barnets enhet (eller skanna QR-koden) så spelar barnet direkt – utan att skriva familjekoden.",
+          "Ava link lapse seadmes (või skanni QR-kood), siis saab laps kohe mängida – ilma perekoodi kirjutamata.",
+        )
+      }}
     </p>
     <div v-for="m in children" :key="m.id" class="clinks__row">
       <div class="devrow">
         <span>{{ m.avatar }} {{ m.name }}</span>
         <span class="clinks__btns">
-          <button class="btn ghost" @click="copy(m)">{{ copied === m.id ? "Kopierad ✓" : "Kopiera" }}</button>
+          <button class="btn ghost" @click="copy(m)">
+            {{ copied === m.id ? L("Kopierad ✓", "Kopeeritud ✓") : L("Kopiera", "Kopeeri") }}
+          </button>
           <button class="btn ghost" :aria-expanded="open === m.id" @click="toggle(m)">QR</button>
         </span>
       </div>
       <!-- SVG som QR-biblioteket ritar från appens egen adress -->
       <div v-if="open === m.id" class="qr" v-html="qr" />
     </div>
-    <p v-if="!children.length" class="qsub">Lägg till ett barn först.</p>
+    <p v-if="!children.length" class="qsub">{{ L("Lägg till ett barn först.", "Lisa kõigepealt laps.") }}</p>
   </div>
 </template>
 

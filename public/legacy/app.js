@@ -430,7 +430,11 @@
     }, 600);
     if (inRound()) {
       var rr = RANKS[newI];
-      pendAdd(rr.em, "Nytt märke: " + esc(rr.et), esc(rr.sv) + " · " + rr.xp.toLocaleString("sv-SE") + " poäng");
+      pendAdd(
+        rr.em,
+        LT("Nytt märke: ", "Uus märk: ") + esc(tgt(rr)),
+        esc(nat(rr)) + " · " + rr.xp.toLocaleString("sv-SE") + LT(" poäng", " punkti"),
+      );
       sndLvl();
       return;
     }
@@ -439,25 +443,29 @@
     S.mstyle[r.id] = diff().id;
     save();
     var d = overlay(
-      '<div class="oc"><p class="kicker">Nytt märke upplåst!</p>' +
+      '<div class="oc"><p class="kicker">' +
+        LT("Nytt märke upplåst!", "Uus märk avatud!") +
+        "</p>" +
         medalSVG(r, "ov", false, diff().id) +
-        "<h3>" +
-        esc(r.et) +
+        '<h3 lang="' +
+        tgtLang() +
+        '">' +
+        esc(tgt(r)) +
         "</h3><p>" +
-        esc(r.sv) +
+        esc(nat(r)) +
         " · " +
         diff().em +
         " " +
-        diff().sv +
+        nat(diff()) +
         "</p>" +
         '<p style="margin-top:8px">' +
-        (S.name ? esc(S.name) + " har" : "Du har") +
-        " klättrat till märke " +
-        (newI + 1) +
-        " av " +
-        RANKS.length +
-        ".</p>" +
-        '<button class="btn big wide" id="ocdone">Toppen! 🎉</button></div>',
+        (isEt()
+          ? (S.name ? esc(S.name) + " on nüüd märgil " : "Sa oled nüüd märgil ") + (newI + 1) + " / " + RANKS.length + "."
+          : (S.name ? esc(S.name) + " har" : "Du har") + " klättrat till märke " + (newI + 1) + " av " + RANKS.length + ".") +
+        "</p>" +
+        '<button class="btn big wide" id="ocdone">' +
+        LT("Toppen! 🎉", "Super! 🎉") +
+        "</button></div>",
     );
     sndLvl();
     burst(190);
@@ -1695,6 +1703,7 @@
   function speakTo(leadId) {
     var lead = LEADS[leadId];
     if (!lead) return;
+    if (isEt()) return speakToSv(lead);
     var np = partFor(nameKey()) || partFor(lead.et);
     if (np) {
       loadPart(np, function () {
@@ -1709,6 +1718,30 @@
       return;
     }
     speak(lead.et);
+  }
+  /* estniskt läge: "Hej, Kati!" - Sofies "Hej," följt av namnklippet (samma namnklipp som i
+     svenskt läge; finns inget läser enhetens svenska röst hela frasen) */
+  function speakToSv(lead) {
+    var np = partFor(nameKey());
+    if (np) {
+      loadPart(np, function () {
+        speakToSv(lead);
+      });
+      return;
+    }
+    svIndex(function (ix) {
+      var part = ix[lead.sv];
+      if (part && !window.AUDIO_PARTS.loaded["sv/" + part]) {
+        loadPart("sv/" + part, function () {
+          speakToSv(lead);
+        });
+        return;
+      }
+      var a = BANKS.sv[lead.sv],
+        b = nameClip();
+      if (a && b) return playChain([a, b]);
+      speak(lead.sv + (S.name ? " " + S.name : "") + "!");
+    });
   }
   var qlist = [];
   function playChain(srcs) {
@@ -4450,8 +4483,8 @@
     app.innerHTML = html;
     document.getElementById("play").onclick = startNext;
     document.getElementById("hello").onclick = function () {
-      if (isEt()) speak("Hej" + (S.name ? ", " + S.name : "") + "!");
-      else if (S.name) speakTo("tere");
+      if (S.name) speakTo("tere");
+      else if (isEt()) speak("Hej!");
       else speak("Tere! Mina olen Siiri.");
       mood("cheer");
     };
@@ -5080,12 +5113,12 @@
 
   /* ---------- PROFIL ---------- */
   var COLORS = [
-    { id: "skog", sv: "Skog", c1: "#EDF4E6", c2: "#2E6B45" },
-    { id: "rosa", sv: "Rosa", c1: "#FFF1F6", c2: "#E24D90" },
-    { id: "lila", sv: "Lila", c1: "#F5F0FF", c2: "#7B52D6" },
-    { id: "hav", sv: "Hav", c1: "#EBF6FF", c2: "#2B8CD9" },
-    { id: "sol", sv: "Sol", c1: "#FFF8E6", c2: "#DD8A12" },
-    { id: "mint", sv: "Mint", c1: "#EAFBF3", c2: "#12A97A" },
+    { id: "skog", sv: "Skog", et: "Mets", c1: "#EDF4E6", c2: "#2E6B45" },
+    { id: "rosa", sv: "Rosa", et: "Roosa", c1: "#FFF1F6", c2: "#E24D90" },
+    { id: "lila", sv: "Lila", et: "Lilla", c1: "#F5F0FF", c2: "#7B52D6" },
+    { id: "hav", sv: "Hav", et: "Meri", c1: "#EBF6FF", c2: "#2B8CD9" },
+    { id: "sol", sv: "Sol", et: "Päike", c1: "#FFF8E6", c2: "#DD8A12" },
+    { id: "mint", sv: "Mint", et: "Münt", c1: "#EAFBF3", c2: "#12A97A" },
   ];
   function applyScene() {
     var s = wearing("scene");
@@ -5197,7 +5230,7 @@
       '">';
     /* första gången: bara namnet, sedan rakt in i spelet. Figur, svårighet och färg väljs
        senare (hemskärmen föreslår det efter första rundan, och allt finns under Profil) */
-    if (!first) html += '<p class="qsub" style="margin-top:18px">Välj din figur</p><div class="avatars" id="avs">';
+    if (!first) html += '<p class="qsub" style="margin-top:18px">' + LT("Välj din figur", "Vali oma tegelane") + '</p><div class="avatars" id="avs">';
     for (var i = 0; !first && i < AVATARS.length; i++) {
       var avInfo = AVATAR_INFO[AVATARS[i]],
         avOn = AVATARS[i] === (S.avatar || "🦔");
@@ -5206,8 +5239,9 @@
         (avOn ? " on" : "") +
         '" data-av="' +
         AVATARS[i] +
-        '" aria-label="Välj ' +
-        esc(avInfo ? avInfo.sv : AVATARS[i]) +
+        '" aria-label="' +
+        LT("Välj ", "Vali ") +
+        esc(avInfo ? nat(avInfo) || avInfo.sv : AVATARS[i]) +
         '" aria-pressed="' +
         avOn +
         '">' +
@@ -5215,7 +5249,9 @@
         "</button>";
     }
     if (!first)
-      html += '</div><p class="qsub" style="margin-top:18px">Hur svårt ska det vara?</p><div class="diffs" id="dfs">';
+      html += '</div><p class="qsub" style="margin-top:18px">' +
+        LT("Hur svårt ska det vara?", "Kui raske see olema peab?") +
+        '</p><div class="diffs" id="dfs">';
     for (i = 0; !first && i < DIFFS.length; i++) {
       html +=
         '<button class="dif' +
@@ -5228,10 +5264,10 @@
         '<span class="de">' +
         DIFFS[i].em +
         "</span><b>" +
-        DIFFS[i].sv +
+        nat(DIFFS[i]) +
         "</b>" +
         "<small>" +
-        esc(DIFFS[i].txt) +
+        esc(isEt() ? DIFFS[i].txtEt : DIFFS[i].txt) +
         "</small></button>";
     }
     /* förslag: "en ruta bredvid Siiri på svår nivå där man kan cheka av om man vill ha
@@ -5244,8 +5280,10 @@
         ';align-items:center;gap:8px;margin-top:10px">' +
         '<input type="checkbox" id="shades" ' +
         (S.shades === false ? "" : "checked") +
-        '><label for="shades">😎 Siiri bär solglasögon på svår nivå</label></div>';
-    if (!first) html += '<p class="qsub" style="margin-top:18px">Välj färg på appen</p><div class="colors" id="cols">';
+        '><label for="shades">' +
+        LT("😎 Siiri bär solglasögon på svår nivå", "😎 Raskel tasemel kannab Siiri päikeseprille") +
+        "</label></div>";
+    if (!first) html += '<p class="qsub" style="margin-top:18px">' + LT("Välj färg på appen", "Vali äpi värv") + '</p><div class="colors" id="cols">';
     for (i = 0; !first && i < COLORS.length; i++) {
       html +=
         '<button class="col' +
@@ -5253,7 +5291,7 @@
         '" data-col="' +
         COLORS[i].id +
         '" aria-label="' +
-        COLORS[i].sv +
+        nat(COLORS[i]) +
         '" aria-pressed="' +
         (COLORS[i].id === (S.color || "skog")) +
         '">' +
@@ -5263,7 +5301,7 @@
         COLORS[i].c2 +
         ' 45%)"></span>' +
         "<b>" +
-        COLORS[i].sv +
+        nat(COLORS[i]) +
         "</b></button>";
     }
     html +=
@@ -8915,10 +8953,11 @@
     if (rd) rd.onclick = chPickLevel;
   }
   var CHLEVELS = [
-    { id: "latt", sv: "Lätt", em: "🙂", opts: 3, listen: 0, txt: "Tre svar, ordet syns" },
+    { id: "latt", sv: "Lätt", et: "Kerge", em: "🙂", opts: 3, listen: 0, txt: LT("Tre svar, ordet syns", "Kolm vastust, sõna on näha") },
     {
       id: "lagom",
       sv: "Lagom",
+      et: "Keskmine",
       em: "🧐",
       opts: 4,
       listen: 0.5,
@@ -8927,6 +8966,7 @@
     {
       id: "svar",
       sv: "Svår",
+      et: "Raske",
       em: "😤",
       opts: 6,
       listen: 0.5,
@@ -8969,12 +9009,12 @@
         L.em +
         "</span>" +
         "<b>" +
-        L.sv +
+        nat(L) +
         "</b><small>" +
         esc(L.txt) +
         "</small>" +
         '<small class="rec">' +
-        (best ? LT("bästa: ", "parim: ") + best + " av 6" : LT("inte spelat än", "pole veel mänginud")) +
+        (best ? LT("bästa: ", "parim: ") + best + LT(" av 6", " / 6") : LT("inte spelat än", "pole veel mänginud")) +
         "</small></button>";
     }
     html += "</div></div>";
@@ -10402,7 +10442,7 @@
       '<div class="row"><button class="btn ghost" id="other">' +
       LT("Byt motståndare", "Vaheta vastast") +
       "</button>" +
-      '<button class="btn ghost" id="home">Menüü</button></div></div>';
+      '<button class="btn ghost" id="home">' + TL("Menüü", "Meny") + "</button></div></div>";
     var r = DU.r;
     DU = null;
     mood(won ? "cheer" : "oops");
@@ -14994,7 +15034,7 @@
       " · " +
       diff().em +
       " " +
-      diff().sv +
+      nat(diff()) +
       "</p>" +
       '<div class="center">' +
       siilSVG() +
@@ -15064,7 +15104,7 @@
       esc(tgt(UI.again)) +
       LT(" · en gång till", " · veel kord") +
       "</button>" +
-      '<button class="btn ghost" id="home">Menüü · menyn</button></div></div>';
+      '<button class="btn ghost" id="home">' + LT("Menüü · menyn", "Meny · menüü") + "</button></div></div>";
     app.innerHTML = html;
     mood("cheer");
     document.getElementById("nextup").onclick = function () {

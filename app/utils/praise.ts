@@ -77,6 +77,7 @@ export const DIFFS = [
     hint: true,
     emoji: true,
     txt: "Tre svar att välja på, bilder som hjälp och uttalsstöd överallt.",
+    txtEt: "Kolm vastusevarianti, pildid abiks ja hääldus igal pool.",
     types: ["choose", "listen", "choose", "type"],
   },
   {
@@ -90,6 +91,7 @@ export const DIFFS = [
     hint: true,
     emoji: true,
     txt: "Fyra svar, blandade frågor och lite mer att skriva.",
+    txtEt: "Neli vastust, segatud küsimused ja natuke rohkem kirjutamist.",
     types: ["listen", "choose", "type", "speak"],
   },
   {
@@ -103,6 +105,7 @@ export const DIFFS = [
     hint: false,
     emoji: true,
     txt: "Sex svar, ingen svensk ledtråd, mest skriva och lyssna. Öppnar egna plagg och hemligheter.",
+    txtEt: "Kuus vastust, eestikeelset vihjet pole, peamiselt kirjutamine ja kuulamine. Avab omad riided ja saladused.",
     types: ["type", "listen", "speak", "type", "listen"],
   },
 ];

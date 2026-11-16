@@ -2,7 +2,8 @@
 /* En vuxen tar emot en inbjudan till familjen: logga in eller skapa ett eget konto (samma
    välkomstskärm som på startsidan, men utan familjenamn) → skriv sitt namn → med i familjen. */
 
-useHead({ title: "Inbjudan · Siilikool" });
+const { L } = useLang();
+useHead({ title: () => L("Inbjudan · Siilikool", "Kutse · Siilikool") });
 const cloud = useCloudStore();
 const api = cloud.enabled ? useParentApi() : null;
 const { busy, err, run } = useBusy();
@@ -31,33 +32,59 @@ onMounted(async () => {
   <WelcomeGate v-if="cloud.enabled && token && ready && !cloud.session" invite :to="back" />
   <div v-else class="wrap page">
     <header class="pagehead">
-      <a href="/" class="back">← Till spelet</a>
-      <h1>Inbjudan</h1>
-      <p>Gå med i familjen i Siilikool</p>
+      <a href="/" class="back">{{ L("← Till spelet", "← Mängu juurde") }}</a>
+      <h1>{{ L("Inbjudan", "Kutse") }}</h1>
+      <p>{{ L("Gå med i familjen i Siilikool", "Liitu perega Siilikoolis") }}</p>
     </header>
 
     <div v-if="!cloud.enabled || !token" class="card">
-      <p class="qsub">Inbjudan saknas eller går inte att läsa. Be om en ny länk.</p>
+      <p class="qsub">
+        {{
+          L(
+            "Inbjudan saknas eller går inte att läsa. Be om en ny länk.",
+            "Kutset pole või seda ei saa lugeda. Palu uut linki.",
+          )
+        }}
+      </p>
     </div>
-    <p v-else-if="!ready" class="qsub">Hämtar …</p>
+    <p v-else-if="!ready" class="qsub">{{ L("Hämtar …", "Laadin …") }}</p>
     <div v-else-if="cloud.isAnonymous" class="card">
       <p class="qsub">
-        Det här är en barnenhet i en familj. Öppna inbjudan på din egen enhet, eller logga in som vuxen i Familjen
-        först.
+        {{
+          L(
+            "Det här är en barnenhet i en familj. Öppna inbjudan på din egen enhet, eller logga in som vuxen i Familjen först.",
+            "See on pere lapse seade. Ava kutse oma seadmes või logi enne pere lehel täiskasvanuna sisse.",
+          )
+        }}
       </p>
-      <a href="/familj" class="btn ghost wide">Till Familjen</a>
+      <a href="/familj" class="btn ghost wide">{{ L("Till Familjen", "Pere lehele") }}</a>
     </div>
     <div v-else-if="cloud.me?.adult" class="card">
-      <p class="qsub">Du är redan med i en familj. En vuxen kan bara vara med i en familj.</p>
-      <a href="/familj" class="btn ghost wide">Till Familjen</a>
+      <p class="qsub">
+        {{
+          L(
+            "Du är redan med i en familj. En vuxen kan bara vara med i en familj.",
+            "Sa oled juba ühes peres. Täiskasvanu saab olla ainult ühes peres.",
+          )
+        }}
+      </p>
+      <a href="/familj" class="btn ghost wide">{{ L("Till Familjen", "Pere lehele") }}</a>
     </div>
     <div v-else class="card">
-      <h2 class="q">Gå med i familjen</h2>
+      <h2 class="q">{{ L("Gå med i familjen", "Liitu perega") }}</h2>
       <label class="flabel"
-        >Ditt namn i familjen <input v-model="name" class="field" type="text" maxlength="40" placeholder="t.ex. Pappa"
+        >{{ L("Ditt namn i familjen", "Sinu nimi peres") }}
+        <input v-model="name" class="field" type="text" maxlength="40" :placeholder="L('t.ex. Pappa', 'nt Isa')"
       /></label>
-      <button class="btn green wide" :disabled="busy" @click="accept">Gå med</button>
-      <p class="qsub">Inbjudan gäller i 7 dagar och kan användas en gång.</p>
+      <button class="btn green wide" :disabled="busy" @click="accept">{{ L("Gå med", "Liitu") }}</button>
+      <p class="qsub">
+        {{
+          L(
+            "Inbjudan gäller i 7 dagar och kan användas en gång.",
+            "Kutse kehtib 7 päeva ja seda saab kasutada ühe korra.",
+          )
+        }}
+      </p>
     </div>
     <p v-if="err" class="err" role="alert">{{ err }}</p>
   </div>

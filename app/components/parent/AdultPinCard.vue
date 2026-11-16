@@ -4,6 +4,7 @@
 const props = defineProps<{ hasPin?: boolean }>();
 const emit = defineEmits<{ saved: [] }>();
 const api = useParentApi();
+const { L } = useLang();
 const { busy, err, run } = useBusy();
 const pin = ref(""),
   saved = ref(false),
@@ -17,7 +18,8 @@ onMounted(() => {
 
 const savePin = () =>
   run(async () => {
-    if (!/^[0-9]{4,8}$/.test(pin.value)) throw new Error("PIN-koden ska vara 4–8 siffror.");
+    if (!/^[0-9]{4,8}$/.test(pin.value))
+      throw new Error(L("PIN-koden ska vara 4–8 siffror.", "PIN-koodis peab olema 4–8 numbrit."));
     await api.setAdultPin(pin.value);
     pin.value = "";
     saved.value = true;
@@ -25,13 +27,18 @@ const savePin = () =>
     emit("saved");
   });
 const label = computed(() =>
-  hasPin.value ? "Ny vuxen-PIN (4–8 siffror)" : "Välj en vuxen-PIN (4–8 siffror, gemensam för familjens vuxna)",
+  hasPin.value
+    ? L("Ny vuxen-PIN (4–8 siffror)", "Uus täiskasvanu PIN (4–8 numbrit)")
+    : L(
+        "Välj en vuxen-PIN (4–8 siffror, gemensam för familjens vuxna)",
+        "Vali täiskasvanu PIN (4–8 numbrit, ühine kõigile pere täiskasvanutele)",
+      ),
 );
 </script>
 
 <template>
   <div>
-    <p v-if="saved" class="ok" role="status">Vuxen-PIN sparad.</p>
+    <p v-if="saved" class="ok" role="status">{{ L("Vuxen-PIN sparad.", "Täiskasvanu PIN on salvestatud.") }}</p>
     <label class="flabel"
       >{{ label }}
       <input
@@ -45,7 +52,11 @@ const label = computed(() =>
         @keydown.enter="savePin"
     /></label>
     <button class="btn green wide" :disabled="busy || pin.length < 4" @click="savePin">
-      {{ hasPin ? "Spara ny vuxen-PIN" : "Spara vuxen-PIN" }}
+      {{
+        hasPin
+          ? L("Spara ny vuxen-PIN", "Salvesta uus täiskasvanu PIN")
+          : L("Spara vuxen-PIN", "Salvesta täiskasvanu PIN")
+      }}
     </button>
     <p v-if="err" class="err" role="alert">{{ err }}</p>
   </div>

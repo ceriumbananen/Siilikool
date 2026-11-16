@@ -56,7 +56,7 @@ export interface ChildProgress {
   /* de svåraste orden just nu (sv och em när ordet finns i spelet) */
   hard: { et: string; sv: string; em: string; misses: number }[];
   /* hur många ord som sitter, tema för tema (medalj vid 40/70/95 %) */
-  themes: { id: string; sv: string; em: string; strong: number; total: number; pct: number; medal: "" | "gold" | "silver" | "bronze" }[];
+  themes: { id: string; et: string; sv: string; em: string; strong: number; total: number; pct: number; medal: "" | "gold" | "silver" | "bronze" }[];
   school: { name: string; daysLeft: number; words: { et: string; sv: string; known: boolean }[] } | null;
   doneLists: number;
 }

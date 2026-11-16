@@ -2,15 +2,16 @@
 /* En medlem i Familjen: figur, namn, stjärnor och när spelet senast sparades. Öppnar medlemssidan. */
 const props = defineProps<{ member: Member; me: boolean; here: "" | "now" | "device" }>();
 defineEmits<{ open: [] }>();
+const { L } = useLang();
 
 const lastSeen = computed(() =>
-  new Date(props.member.updated_at).toLocaleDateString("sv-SE", { day: "numeric", month: "short" }),
+  new Date(props.member.updated_at).toLocaleDateString(L("sv-SE", "et-EE"), { day: "numeric", month: "short" }),
 );
 const tags = computed(() =>
   [
-    props.me ? "du" : props.member.kind === "adult" ? "vuxen" : "",
+    props.me ? L("du", "sina") : props.member.kind === "adult" ? L("vuxen", "täiskasvanu") : "",
     props.member.has_pin ? "🔒 PIN" : "",
-    props.here === "now" ? "spelar nu" : props.here === "device" ? "på enheten" : "",
+    props.here === "now" ? L("spelar nu", "mängib praegu") : props.here === "device" ? L("på enheten", "seadmes") : "",
   ].filter(Boolean),
 );
 </script>
@@ -18,7 +19,7 @@ const tags = computed(() =>
 <template>
   <button class="member" :class="{ 'member--now': here === 'now' }" @click="$emit('open')">
     <span class="member__av" aria-hidden="true">{{ member.avatar }}</span>
-    <b class="member__name">{{ member.name || "Vuxen" }}</b>
+    <b class="member__name">{{ member.name || L("Vuxen", "Täiskasvanu") }}</b>
     <small class="member__line">⭐ {{ member.stars ?? 0 }} · {{ lastSeen }}</small>
     <small v-if="tags.length" class="member__tags">{{ tags.join(" · ") }}</small>
   </button>

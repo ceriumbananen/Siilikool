@@ -3,6 +3,7 @@
    en ny lista ersätter den gamla nästa gång barnens enheter öppnar appen. */
 const props = defineProps<{ familyId: string; memberId: string | null; who: string }>();
 const api = useParentApi();
+const { L, isEt } = useLang();
 const { busy, err, run } = useBusy();
 
 const list = ref<WordList | null>(null);
@@ -16,10 +17,14 @@ const daysText = computed(() => {
   if (!list.value) return "";
   const added = Math.floor(new Date(list.value.created_at).getTime() / 86400000);
   const left = added + list.value.days - Math.floor(Date.now() / 86400000);
-  return `${list.value.words.length} ord · ${left > 0 ? left + " dagar kvar" : "har gått ut"}`;
+  return isEt()
+    ? `${list.value.words.length} sõna · ${left > 0 ? left + " päeva jäänud" : "aegunud"}`
+    : `${list.value.words.length} ord · ${left > 0 ? left + " dagar kvar" : "har gått ut"}`;
 });
 const badText = computed(() =>
-  parsed.value.bad.length ? ` · ${parsed.value.bad.length} rader går inte att läsa` : "",
+  parsed.value.bad.length
+    ? L(` · ${parsed.value.bad.length} rader går inte att läsa`, ` · loetamatuid ridu: ${parsed.value.bad.length}`)
+    : "",
 );
 
 const load = () =>
@@ -28,7 +33,13 @@ const load = () =>
   });
 const save = () =>
   run(async () => {
-    if (!parsed.value.words.length) throw new Error("Hittade inga ordpar. Skriv ett ord per rad: estniska = svenska.");
+    if (!parsed.value.words.length)
+      throw new Error(
+        L(
+          "Hittade inga ordpar. Skriv ett ord per rad: estniska = svenska.",
+          "Sõnapaare ei leitud. Kirjuta üks sõnapaar rea kohta: eesti keeles = rootsi keeles.",
+        ),
+      );
     await api.createList(
       props.familyId,
       props.memberId,
@@ -52,7 +63,7 @@ onMounted(load);
 <template>
   <div>
     <template v-if="list">
-      <h3 class="sub">Gäller nu: {{ list.name }}</h3>
+      <h3 class="sub">{{ L("Gäller nu:", "Praegu kehtib:") }} {{ list.name }}</h3>
       <p class="qsub">{{ daysText }}</p>
       <ul class="wlist">
         <li v-for="w in list.words" :key="w.et">
@@ -60,31 +71,49 @@ onMounted(load);
         </li>
       </ul>
       <ConfirmAction
-        label="Ta bort listan"
-        :question="`Ta bort ”${list.name}”? Den försvinner nästa gång appen öppnas.`"
-        yes="Ja, ta bort"
+        :label="L('Ta bort listan', 'Kustuta loend')"
+        :question="
+          L(
+            `Ta bort ”${list.name}”? Den försvinner nästa gång appen öppnas.`,
+            `Kas kustutada „${list.name}”? See kaob, kui äpp järgmine kord avatakse.`,
+          )
+        "
+        :yes="L('Ja, ta bort', 'Jah, kustuta')"
         danger
         :busy="busy"
         @confirm="remove"
       />
     </template>
-    <p v-else class="qsub">Inga glosor just nu.</p>
+    <p v-else class="qsub">{{ L("Inga glosor just nu.", "Praegu koolisõnu pole.") }}</p>
 
-    <h3 class="sub">Nya glosor för {{ who }}</h3>
-    <p class="qsub">Ett ord per rad: <b>estniska = svenska</b>. Den nya listan ersätter den gamla.</p>
+    <h3 class="sub">{{ L(`Nya glosor för ${who}`, `Uued koolisõnad – ${who}`) }}</h3>
+    <p v-if="isEt()" class="qsub">
+      Üks sõnapaar rea kohta: <b>eesti keeles = rootsi keeles</b>. Laps õpib rootsikeelset sõna, eestikeelne on
+      tähendus. Uus loend asendab vana.
+    </p>
+    <p v-else class="qsub">Ett ord per rad: <b>estniska = svenska</b>. Den nya listan ersätter den gamla.</p>
     <label class="flabel"
-      >Listans namn <input v-model="listName" class="field" type="text" placeholder="t.ex. Vecka 41" maxlength="40"
+      >{{ L("Listans namn", "Loendi nimi") }}
+      <input
+        v-model="listName"
+        class="field"
+        type="text"
+        :placeholder="L('t.ex. Vecka 41', 'nt Nädal 41')"
+        maxlength="40"
     /></label>
     <label class="flabel"
-      >Glosor <textarea v-model="listText" class="schooltext field" rows="7" placeholder="koer = hund&#10;maja = hus" />
+      >{{ L("Glosor", "Koolisõnad") }}
+      <textarea v-model="listText" class="schooltext field" rows="7" placeholder="koer = hund&#10;maja = hus" />
     </label>
     <label class="flabel inline">
-      Gäller i
+      {{ L("Gäller i", "Kehtib") }}
       <input v-model.number="listDays" class="field days" type="number" min="3" max="60" />
-      dagar
+      {{ L("dagar", "päeva") }}
     </label>
-    <p class="qsub">{{ parsed.words.length }} ord{{ badText }}</p>
-    <button class="btn green wide" :disabled="busy || !parsed.words.length" @click="save">Skicka till {{ who }}</button>
+    <p class="qsub">{{ parsed.words.length }} {{ L("ord", "sõna") }}{{ badText }}</p>
+    <button class="btn green wide" :disabled="busy || !parsed.words.length" @click="save">
+      {{ L(`Skicka till ${who}`, `Saada: ${who}`) }}
+    </button>
     <p v-if="err" class="err" role="alert">{{ err }}</p>
   </div>
 </template>

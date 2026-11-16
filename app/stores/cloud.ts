@@ -587,10 +587,11 @@ export const useCloudStore = defineStore("cloud", () => {
      eller sitt eget. Barnet registreras på enheten, så att spelet synkar även när enheten lämnas över.
      Allt som spelas räknas på medlemmen. Sidan laddas om med spelaren. */
   async function playAs(member: { id: string; kind: "adult" | "child" }) {
-    if (!sb || !isAdult.value) throw new Error("Logga in som vuxen först");
+    const { L } = useLang();
+    if (!sb || !isAdult.value) throw new Error(L("Logga in som vuxen först", "Logi kõigepealt täiskasvanuna sisse"));
     if (member.kind === "child") {
       const r = await chooseMember(member.id, null);
-      if (!r.ok) throw new Error("Det gick inte att välja barnet på enheten.");
+      if (!r.ok) throw new Error(L("Det gick inte att välja barnet på enheten.", "Last ei õnnestunud seadmes valida."));
     }
     markChosen();
     const key = memberKey(member.id);

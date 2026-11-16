@@ -72,9 +72,11 @@ watch(
   },
   { immediate: true },
 );
-function playName() {
+async function playName() {
   if (!nameClipUrl.value) return;
-  voice.say([GREETING_CLIP, `/${nameClipUrl.value}`]);
+  /* estniskt läge: Sofies "Hej," före namnet (LEADS.tere.sv i app.js) */
+  const lead = isEt() ? (await findSvClip("Hej,"))?.src : null;
+  voice.say([lead ? `/${lead.replace(/^\//, "")}` : GREETING_CLIP, `/${nameClipUrl.value}`]);
 }
 
 const themesDone = computed(

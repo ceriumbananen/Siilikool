@@ -105,7 +105,7 @@ def synth_edge(text, kind):
         mp3, wav = os.path.join(d, "in.mp3"), os.path.join(d, "out.wav")
         for attempt, (say, rate) in enumerate(tries):
             try:
-                asyncio.run(edge_tts.Communicate(say, VOICE, rate=rate).save(mp3))
+                asyncio.run(asyncio.wait_for(edge_tts.Communicate(say, VOICE, rate=rate).save(mp3), 30))  # hänger annars ibland
                 if os.path.getsize(mp3) > 0:
                     break
             except Exception as e:  # nätverk / tillfälligt fel

@@ -3,6 +3,7 @@
    när spelet startar och flera spelar på enheten, och när man byter spelare. Barn med PIN-kod
    behöver den – databasen kontrollerar den (för många fel → spärr). */
 const cloud = useCloudStore();
+const { L } = useLang();
 const { busy, err, run } = useBusy();
 
 const players = ref<DevicePlayer[]>([]);
@@ -22,9 +23,11 @@ watch(
   { deep: true, immediate: true },
 );
 
-const title = computed(() => cloud.familyName || "Familjen");
+const title = computed(() => cloud.familyName || L("Familjen", "Pere"));
 const untilText = (until?: string) =>
-  until ? new Date(until).toLocaleTimeString("sv-SE", { hour: "2-digit", minute: "2-digit" }) : "en stund";
+  until
+    ? new Date(until).toLocaleTimeString(L("sv-SE", "et-EE"), { hour: "2-digit", minute: "2-digit" })
+    : L("en stund", "natuke");
 
 async function pick(p: DevicePlayer) {
   err.value = "";
@@ -45,16 +48,24 @@ const play = (p: DevicePlayer) =>
     try {
       r = await cloud.switchPlayer(p.key, p.pin ? pin.value : null);
     } catch {
-      throw new Error("PIN-koden kan bara kontrolleras när enheten har nät.");
+      throw new Error(
+        L(
+          "PIN-koden kan bara kontrolleras när enheten har nät.",
+          "PIN-koodi saab kontrollida ainult siis, kui seadmel on internet.",
+        ),
+      );
     }
     pin.value = "";
     if (!r.ok)
       throw new Error(
         r.error === "wrong_pin"
-          ? "Fel PIN-kod. Försök igen."
+          ? L("Fel PIN-kod. Försök igen.", "Vale PIN-kood. Proovi uuesti.")
           : r.error === "locked"
-            ? `För många fel försök. Vänta till ${untilText(r.until)}.`
-            : "Det gick inte. Fråga en vuxen.",
+            ? L(
+                `För många fel försök. Vänta till ${untilText(r.until)}.`,
+                `Liiga palju valesid katseid. Oota: ${untilText(r.until)}.`,
+              )
+            : L("Det gick inte. Fråga en vuxen.", "See ei õnnestunud. Küsi täiskasvanult."),
       );
   });
 
@@ -69,7 +80,7 @@ function close() {
 <template>
   <div v-if="cloud.picker.open" class="overlay page whoplays">
     <div class="oc">
-      <p class="kicker">👥 Vem spelar?</p>
+      <p class="kicker">{{ L("👥 Vem spelar?", "👥 Kes mängib?") }}</p>
       <p class="qsub">{{ title }}</p>
       <div class="slotgrid">
         <button
@@ -81,18 +92,18 @@ function close() {
           @click="pick(p)"
         >
           <span class="sav">{{ p.avatar }}</span>
-          <b>{{ p.name || "Namnlös" }}</b>
-          <small>{{ p.pin ? "🔒 PIN" : p.current ? "spelade senast" : "" }}</small>
+          <b>{{ p.name || L("Namnlös", "Nimetu") }}</b>
+          <small>{{ p.pin ? "🔒 PIN" : p.current ? L("spelade senast", "mängis viimati") : "" }}</small>
         </button>
         <a class="slotbtn" href="/join">
           <span class="sav">➕</span>
-          <b>Lägg till</b>
-          <small>från familjen</small>
+          <b>{{ L("Lägg till", "Lisa") }}</b>
+          <small>{{ L("från familjen", "perest") }}</small>
         </a>
       </div>
       <template v-if="pinFor">
         <label class="flabel"
-          >{{ pinFor.name }}s PIN-kod
+          >{{ L(`${pinFor.name}s PIN-kod`, `PIN-kood: ${pinFor.name}`) }}
           <input
             ref="pinInput"
             v-model="pin"
@@ -105,10 +116,14 @@ function close() {
             placeholder="••••"
             @keydown.enter="play(pinFor)"
         /></label>
-        <button class="btn green wide" :disabled="busy || pin.length < 4" @click="play(pinFor)">Spela</button>
+        <button class="btn green wide" :disabled="busy || pin.length < 4" @click="play(pinFor)">
+          {{ L("Spela", "Mängi") }}
+        </button>
       </template>
       <p v-if="err" class="err">{{ err }}</p>
-      <button v-if="!cloud.picker.mandatory" class="btn ghost wide closebtn" @click="close">Stäng</button>
+      <button v-if="!cloud.picker.mandatory" class="btn ghost wide closebtn" @click="close">
+        {{ L("Stäng", "Sulge") }}
+      </button>
     </div>
   </div>
 </template>

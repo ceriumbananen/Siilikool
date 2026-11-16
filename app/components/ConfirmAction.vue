@@ -11,6 +11,7 @@ const props = defineProps<{
   wide?: boolean;
 }>();
 const emit = defineEmits<{ confirm: [] }>();
+const { L } = useLang();
 const open = ref(false),
   typed = ref("");
 const box = ref<HTMLElement | null>(null);
@@ -36,7 +37,7 @@ function confirm() {
   <div v-else ref="box" class="confirm" :class="{ danger }" role="group" :aria-label="label">
     <p>{{ question }}</p>
     <label v-if="word" class="flabel"
-      >Skriv {{ word }} för att bekräfta
+      >{{ L(`Skriv ${word} för att bekräfta`, `Kinnitamiseks kirjuta ${word}`) }}
       <input
         v-model="typed"
         class="field"
@@ -46,7 +47,7 @@ function confirm() {
         @keydown.enter="confirm"
     /></label>
     <div class="confirm-row">
-      <button class="btn ghost" @click="open = false">Avbryt</button>
+      <button class="btn ghost" @click="open = false">{{ L("Avbryt", "Loobu") }}</button>
       <button class="btn" :class="danger ? 'danger' : 'green'" :disabled="busy || !ok" @click="confirm">
         {{ yes }}
       </button>

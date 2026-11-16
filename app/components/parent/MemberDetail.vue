@@ -6,20 +6,21 @@ const props = defineProps<{ member: Member; familyId: string; me: boolean; here:
 const emit = defineEmits<{ changed: []; back: [] }>();
 const cloud = useCloudStore();
 const api = useParentApi();
+const { L, isEt } = useLang();
 const { busy, err, run } = useBusy();
 
 const isChild = computed(() => props.member.kind === "child");
-const name = computed(() => props.member.name || "Vuxen");
+const name = computed(() => props.member.name || L("Vuxen", "Täiskasvanu"));
 
 type Tab = "progress" | "lists" | "pin" | "devices" | "edit";
 const tabs = computed(() =>
   (
     [
-      { id: "progress", label: "Framsteg" },
-      { id: "lists", label: "Glosor", child: true },
+      { id: "progress", label: L("Framsteg", "Edusammud") },
+      { id: "lists", label: L("Glosor", "Koolisõnad"), child: true },
       { id: "pin", label: "PIN", child: true },
-      { id: "devices", label: "Enheter", child: true },
-      { id: "edit", label: "Ändra", own: true },
+      { id: "devices", label: L("Enheter", "Seadmed"), child: true },
+      { id: "edit", label: L("Ändra", "Muuda"), own: true },
     ] as { id: Tab; label: string; child?: boolean; own?: boolean }[]
   ).filter(t => (t.child ? isChild.value : t.own ? isChild.value || props.me : true)),
 );
@@ -33,14 +34,21 @@ onMounted(() => show("progress"));
 
 /* ---------- spela som ---------- */
 const playLabel = computed(() =>
-  props.here === "now" ? "▶ Till spelet" : props.me ? "▶ Spela mitt spel" : `▶ Spela som ${name.value}`,
+  props.here === "now"
+    ? L("▶ Till spelet", "▶ Mängu juurde")
+    : props.me
+      ? L("▶ Spela mitt spel", "▶ Mängi oma mängu")
+      : L(`▶ Spela som ${name.value}`, `▶ Mängi: ${name.value}`),
 );
 const playNote = computed(() =>
   props.here === "now"
-    ? `Enheten spelar som ${name.value} just nu.`
+    ? L(`Enheten spelar som ${name.value} just nu.`, `Seadmes mängib praegu: ${name.value}.`)
     : props.me
-      ? "Enheten byter till ditt eget spel."
-      : `Enheten byter till ${name.value}s spel – det som spelas räknas på ${name.value}. Du byter tillbaka under Profil → Spelare.`,
+      ? L("Enheten byter till ditt eget spel.", "Seade lülitub sinu enda mängule.")
+      : L(
+          `Enheten byter till ${name.value}s spel – det som spelas räknas på ${name.value}. Du byter tillbaka under Profil → Spelare.`,
+          `Seade lülitub selle mängija mängule: ${name.value}. Kõik, mida mängitakse, läheb tema arvele. Tagasi saad vahetada: Profiil → Mängijad.`,
+        ),
 );
 const play = () =>
   run(async () => {
@@ -55,8 +63,11 @@ const openProgress = async () => {
 };
 const notPlayed = computed(() =>
   isChild.value
-    ? `${name.value} har inte övat några ord än. Spelet syns här när ${name.value} har spelat på en enhet med familjekoden, eller när du spelar som ${name.value}.`
-    : `${name.value} har inte övat några ord än.`,
+    ? L(
+        `${name.value} har inte övat några ord än. Spelet syns här när ${name.value} har spelat på en enhet med familjekoden, eller när du spelar som ${name.value}.`,
+        `${name.value} pole veel ühtegi sõna harjutanud. Mäng ilmub siia, kui laps on mänginud perekoodiga seadmes või kui sina mängid tema nimel.`,
+      )
+    : L(`${name.value} har inte övat några ord än.`, `${name.value} pole veel ühtegi sõna harjutanud.`),
 );
 
 /* ---------- namn och figur (följer med in i spelet på medlemmens enheter) ---------- */
@@ -64,7 +75,7 @@ const editName = ref(props.member.name),
   editAvatar = ref(props.member.avatar);
 const saveEdit = () =>
   run(async () => {
-    if (!editName.value.trim()) throw new Error("Skriv ett namn.");
+    if (!editName.value.trim()) throw new Error(L("Skriv ett namn.", "Kirjuta nimi."));
     await api.updateMember(props.member.id, { name: editName.value.trim().slice(0, 40), avatar: editAvatar.value });
     emit("changed");
   });
@@ -73,12 +84,19 @@ const saveEdit = () =>
 const pin = ref("");
 const pinText = computed(() =>
   props.member.has_pin
-    ? `${name.value} har en PIN-kod. Den behövs när ${name.value} väljs på en barnenhet eller en överlämnad enhet.`
-    : `${name.value} har ingen PIN-kod – den som har familjekoden kan välja ${name.value}.`,
+    ? L(
+        `${name.value} har en PIN-kod. Den behövs när ${name.value} väljs på en barnenhet eller en överlämnad enhet.`,
+        `${name.value}: PIN-kood on olemas. Seda on vaja, kui last valitakse lapse seadmes või lastele üle antud seadmes.`,
+      )
+    : L(
+        `${name.value} har ingen PIN-kod – den som har familjekoden kan välja ${name.value}.`,
+        `${name.value}: PIN-koodi pole – igaüks, kellel on perekood, saab selle lapse valida.`,
+      ),
 );
 const savePin = () =>
   run(async () => {
-    if (!/^[0-9]{4,8}$/.test(pin.value)) throw new Error("PIN-koden ska vara 4–8 siffror.");
+    if (!/^[0-9]{4,8}$/.test(pin.value))
+      throw new Error(L("PIN-koden ska vara 4–8 siffror.", "PIN-koodis peab olema 4–8 numbrit."));
     await api.setChildPin(props.member.id, pin.value);
     pin.value = "";
     emit("changed");
@@ -100,7 +118,10 @@ const removeDevice = (d: Device) =>
     await openDevices();
   });
 const deviceQuestion = (d: Device) =>
-  `Ta bort ${name.value} från ”${d.label || "enheten"}”? Spelet finns kvar där men sparas inte längre.`;
+  L(
+    `Ta bort ${name.value} från ”${d.label || "enheten"}”? Spelet finns kvar där men sparas inte längre.`,
+    `Kas eemaldada laps (${name.value}) seadmest „${d.label || "seade"}”? Mäng jääb sinna alles, aga seda enam ei salvestata.`,
+  );
 
 /* ---------- ta bort barnet ---------- */
 const removeChild = () =>
@@ -109,21 +130,26 @@ const removeChild = () =>
     emit("changed");
     emit("back");
   });
-const removeQuestion = computed(
-  () =>
+const removeQuestion = computed(() =>
+  L(
     `Ta bort ${name.value} och allt sparat i kontot (poäng, ord, glosor)? Spel som finns kvar på enheter påverkas inte.`,
+    `Kas eemaldada laps (${name.value}) ja kõik kontole salvestatu (punktid, sõnad, koolisõnad)? Seadmetesse jäänud mänge see ei mõjuta.`,
+  ),
 );
 </script>
 
 <template>
   <div>
-    <button class="back mdetail__back" @click="$emit('back')">← Familjen</button>
+    <button class="back mdetail__back" @click="$emit('back')">{{ L("← Familjen", "← Pere") }}</button>
     <div class="card">
       <div class="childhead">
         <span class="av">{{ member.avatar }}</span>
         <span>
           <b>{{ name }}</b>
-          <small>{{ me ? "Du · vuxen" : isChild ? "Barn" : "Vuxen" }}{{ member.has_pin ? " · 🔒 PIN" : "" }}</small>
+          <small
+            >{{ me ? L("Du · vuxen", "Sina · täiskasvanu") : isChild ? L("Barn", "Laps") : L("Vuxen", "Täiskasvanu")
+            }}{{ member.has_pin ? " · 🔒 PIN" : "" }}</small
+          >
         </span>
       </div>
       <button v-if="isChild || me" class="btn green wide mdetail__play" :disabled="busy" @click="play">
@@ -131,7 +157,7 @@ const removeQuestion = computed(
       </button>
       <p v-if="isChild || me" class="qsub">{{ playNote }}</p>
 
-      <div class="tabs" role="tablist" :aria-label="`${name}: visa`">
+      <div class="tabs" role="tablist" :aria-label="`${name}: ${L('visa', 'näita')}`">
         <button
           v-for="t in tabs"
           :key="t.id"
@@ -147,7 +173,7 @@ const removeQuestion = computed(
 
       <!-- framsteg (bara läsning) -->
       <div v-if="tab === 'progress'" class="tabbody">
-        <p v-if="!progress" class="qsub">Hämtar …</p>
+        <p v-if="!progress" class="qsub">{{ L("Hämtar …", "Laadin …") }}</p>
         <ParentProgressView v-else :progress="progress" :name="name" :empty-text="notPlayed" />
       </div>
 
@@ -160,7 +186,7 @@ const removeQuestion = computed(
       <div v-if="tab === 'pin'" class="tabbody">
         <p class="qsub">{{ pinText }}</p>
         <label class="flabel"
-          >Ny PIN-kod (4–8 siffror)
+          >{{ L("Ny PIN-kod (4–8 siffror)", "Uus PIN-kood (4–8 numbrit)") }}
           <input
             v-model="pin"
             class="field code"
@@ -171,10 +197,10 @@ const removeQuestion = computed(
             maxlength="8"
         /></label>
         <button class="btn green wide" :disabled="busy || pin.length < 4" @click="savePin">
-          {{ member.has_pin ? "Byt PIN-kod" : "Sätt PIN-kod" }}
+          {{ member.has_pin ? L("Byt PIN-kod", "Vaheta PIN-kood") : L("Sätt PIN-kod", "Määra PIN-kood") }}
         </button>
         <button v-if="member.has_pin" class="btn ghost wide" :disabled="busy" @click="removePin">
-          Ta bort PIN-koden
+          {{ L("Ta bort PIN-koden", "Eemalda PIN-kood") }}
         </button>
       </div>
 
@@ -182,19 +208,25 @@ const removeQuestion = computed(
       <div v-if="tab === 'devices'" class="tabbody">
         <div v-for="d in devices" :key="d.session_id" class="devrow">
           <span>
-            📱 {{ d.label || "Enhet" }}
-            <small class="qsub">sedan {{ new Date(d.created_at).toLocaleDateString("sv-SE") }}</small>
+            📱 {{ d.label || L("Enhet", "Seade") }}
+            <small class="qsub"
+              >{{ L("sedan", "alates") }} {{ new Date(d.created_at).toLocaleDateString(L("sv-SE", "et-EE")) }}</small
+            >
           </span>
           <ConfirmAction
-            label="Ta bort"
+            :label="L('Ta bort', 'Eemalda')"
             :question="deviceQuestion(d)"
-            yes="Ja, ta bort"
+            :yes="L('Ja, ta bort', 'Jah, eemalda')"
             danger
             :busy="busy"
             @confirm="removeDevice(d)"
           />
         </div>
-        <p v-if="!devices.length" class="qsub">
+        <p v-if="!devices.length && isEt()" class="qsub">
+          {{ name }}: ei mängi veel üheski seadmes. Kirjuta seadmes perekood ja vali see laps või saada lapse isiklik
+          link (Koodid).
+        </p>
+        <p v-else-if="!devices.length" class="qsub">
           {{ name }} spelar inte på någon enhet än. Skriv familjekoden på enheten och välj {{ name }}, eller skicka
           {{ name }}s egen länk (Koder).
         </p>
@@ -202,17 +234,24 @@ const removeQuestion = computed(
 
       <!-- namn och figur -->
       <div v-if="tab === 'edit'" class="tabbody">
-        <label class="flabel">Namn <input v-model="editName" class="field" type="text" maxlength="40" /></label>
+        <label class="flabel"
+          >{{ L("Namn", "Nimi") }} <input v-model="editName" class="field" type="text" maxlength="40"
+        /></label>
         <AvatarPicker v-model="editAvatar" />
-        <button class="btn green wide" :disabled="busy" @click="saveEdit">Spara</button>
+        <button class="btn green wide" :disabled="busy" @click="saveEdit">{{ L("Spara", "Salvesta") }}</button>
         <p v-if="isChild" class="qsub">
-          Det nya namnet och figuren syns i spelet nästa gång {{ name }}s enheter öppnar appen.
+          {{
+            L(
+              `Det nya namnet och figuren syns i spelet nästa gång ${name}s enheter öppnar appen.`,
+              "Uus nimi ja tegelane ilmuvad mängu, kui lapse seadmed järgmine kord äpi avavad.",
+            )
+          }}
         </p>
         <div v-if="isChild" class="dangerzone">
           <ConfirmAction
-            :label="`Ta bort ${name} från familjen`"
+            :label="L(`Ta bort ${name} från familjen`, `Eemalda perest: ${name}`)"
             :question="removeQuestion"
-            yes="Ja, ta bort"
+            :yes="L('Ja, ta bort', 'Jah, eemalda')"
             danger
             wide
             :busy="busy"

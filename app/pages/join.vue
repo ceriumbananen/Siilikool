@@ -3,7 +3,8 @@
    familjekontot och glosorna från de vuxna kommer hit. Flera barn kan läggas till på samma enhet.
    En låst vuxen enhet ser familjens barn direkt, utan kod. */
 
-useHead({ title: "Familj · Siilikool" });
+const { L, isEt } = useLang();
+useHead({ title: () => L("Familj · Siilikool", "Pere · Siilikool") });
 const cloud = useCloudStore();
 const profile = useProfileStore();
 const { busy, err, run } = useBusy();
@@ -16,7 +17,9 @@ const pin = ref("");
 const needsChoice = ref(false);
 
 const untilText = (until?: string) =>
-  until ? new Date(until).toLocaleTimeString("sv-SE", { hour: "2-digit", minute: "2-digit" }) : "en stund";
+  until
+    ? new Date(until).toLocaleTimeString(L("sv-SE", "et-EE"), { hour: "2-digit", minute: "2-digit" })
+    : L("en stund", "natuke");
 /* i skriptet i stället för i mallen – långa uttryck i {{ }} bryts annars fel av Prettier */
 const codeOk = computed(() => code.value.replace(/[^A-Za-z0-9]/g, "").length >= 6);
 const taken = computed(() => new Set(Object.values(cloud.links).map(l => l.id)));
@@ -24,12 +27,21 @@ const taken = computed(() => new Set(Object.values(cloud.links).map(l => l.id)))
 const playingNow = computed(() => cloud.link?.id);
 const needsPin = (m: { id: string; has_pin: boolean }) => m.has_pin && m.id !== playingNow.value;
 const tagText = (m: { id: string; has_pin: boolean }) =>
-  m.id === playingNow.value ? "spelar nu" : taken.value.has(m.id) ? "på enheten" : m.has_pin ? "🔒 PIN" : "";
+  m.id === playingNow.value
+    ? L("spelar nu", "mängib praegu")
+    : taken.value.has(m.id)
+      ? L("på enheten", "seadmes")
+      : m.has_pin
+        ? "🔒 PIN"
+        : "";
 
 function lookupError(r: FamilyLookup) {
   return r.error === "locked"
-    ? `För många fel försök. Vänta till ${untilText(r.until)}.`
-    : "Hittar ingen familj med den koden. Fråga en vuxen.";
+    ? L(
+        `För många fel försök. Vänta till ${untilText(r.until)}.`,
+        `Liiga palju valesid katseid. Oota: ${untilText(r.until)}.`,
+      )
+    : L("Hittar ingen familj med den koden. Fråga en vuxen.", "Selle koodiga peret ei leitud. Küsi täiskasvanult.");
 }
 
 const findFamily = (c = code.value) =>
@@ -53,10 +65,13 @@ async function choose(m: { id: string; name: string; has_pin: boolean }, choice?
       pin.value = "";
       throw new Error(
         r.error === "wrong_pin"
-          ? "Fel PIN-kod. Försök igen."
+          ? L("Fel PIN-kod. Försök igen.", "Vale PIN-kood. Proovi uuesti.")
           : r.error === "locked"
-            ? `För många fel försök. Vänta till ${untilText(r.until)}.`
-            : "Det gick inte. Fråga en vuxen.",
+            ? L(
+                `För många fel försök. Vänta till ${untilText(r.until)}.`,
+                `Liiga palju valesid katseid. Oota: ${untilText(r.until)}.`,
+              )
+            : L("Det gick inte. Fråga en vuxen.", "See ei õnnestunud. Küsi täiskasvanult."),
       );
     }
     needsChoice.value = false;
@@ -90,35 +105,51 @@ onMounted(async () => {
 <template>
   <div class="wrap page">
     <header class="pagehead">
-      <a href="/" class="back">← Till spelet</a>
-      <h1>Familj</h1>
-      <p>Spela med familjen – spelet sparas och glosorna kommer hit</p>
+      <a href="/" class="back">{{ L("← Till spelet", "← Mängu juurde") }}</a>
+      <h1>{{ L("Familj", "Pere") }}</h1>
+      <p>
+        {{
+          L(
+            "Spela med familjen – spelet sparas och glosorna kommer hit",
+            "Mängi perega – mäng salvestatakse ja koolisõnad tulevad siia",
+          )
+        }}
+      </p>
     </header>
 
     <div v-if="!cloud.enabled" class="card">
-      <h2 class="q">Spelet fungerar utan familj</h2>
+      <h2 class="q">{{ L("Spelet fungerar utan familj", "Mäng töötab ka ilma pereta") }}</h2>
       <p class="qsub">
-        Den här versionen av Siilikool har inga familjekonton. Spela som vanligt – framstegen sparas på enheten.
+        {{
+          L(
+            "Den här versionen av Siilikool har inga familjekonton. Spela som vanligt – framstegen sparas på enheten.",
+            "Selles Siilikooli versioonis perekontosid pole. Mängi nagu tavaliselt – edusammud salvestatakse seadmesse.",
+          )
+        }}
       </p>
-      <a href="/" class="btn green wide">Till spelet</a>
+      <a href="/" class="btn green wide">{{ L("Till spelet", "Mängu juurde") }}</a>
     </div>
 
     <LinkChoice v-else-if="needsChoice && chosen" :name="chosen.name" :busy="busy" @choose="c => choose(chosen!, c)" />
 
     <!-- inloggad vuxen (olåst): familjekoden är till för barnens enheter -->
     <div v-else-if="cloud.isAdult" class="card">
-      <h2 class="q">Du är inloggad som vuxen</h2>
-      <p class="qsub">
+      <h2 class="q">{{ L("Du är inloggad som vuxen", "Oled sisse logitud täiskasvanuna") }}</h2>
+      <p v-if="isEt()" class="qsub">
+        Perekood on laste seadmete jaoks. Kas lapsed hakkavad siin mängima? Vali pere lehel <b>Anna lastele üle</b>,
+        siis saavad nad valida, kes mängib. Kui tahad ise lapsena mängida: ava pere lehel laps ja vajuta <b>▶ Mängi</b>.
+      </p>
+      <p v-else class="qsub">
         Familjekoden är till för barnens enheter. Ska barnen spela här? Välj <b>Lämna över till barnen</b> i Familjen,
         så får de välja vem som spelar. Vill du själv spela som ett barn: öppna barnet i Familjen och välj
         <b>Spela som</b>.
       </p>
-      <a href="/familj" class="btn green wide">Till Familjen</a>
+      <a href="/familj" class="btn green wide">{{ L("Till Familjen", "Pere lehele") }}</a>
     </div>
 
     <!-- vem spelar? -->
     <div v-else-if="lookup?.ok" class="card">
-      <h2 class="q">Vem spelar?</h2>
+      <h2 class="q">{{ L("Vem spelar?", "Kes mängib?") }}</h2>
       <p class="qsub">{{ lookup.family_name }}</p>
       <div class="slotgrid">
         <button
@@ -135,11 +166,16 @@ onMounted(async () => {
         </button>
       </div>
       <p v-if="!lookup.members?.length" class="qsub">
-        Familjen har inga barn än. En vuxen lägger till dem på sin enhet, under Familjen.
+        {{
+          L(
+            "Familjen har inga barn än. En vuxen lägger till dem på sin enhet, under Familjen.",
+            "Peres pole veel lapsi. Täiskasvanu lisab nad oma seadmes pere lehel.",
+          )
+        }}
       </p>
       <template v-if="chosen && needsPin(chosen)">
         <label class="flabel"
-          >{{ chosen.name }}s PIN-kod
+          >{{ L(`${chosen.name}s PIN-kod`, `PIN-kood: ${chosen.name}`) }}
           <input
             v-model="pin"
             class="field code"
@@ -151,17 +187,24 @@ onMounted(async () => {
             placeholder="••••"
             @keydown.enter="choose(chosen)"
         /></label>
-        <button class="btn green wide" :disabled="busy || pin.length < 4" @click="choose(chosen)">Spela</button>
+        <button class="btn green wide" :disabled="busy || pin.length < 4" @click="choose(chosen)">
+          {{ L("Spela", "Mängi") }}
+        </button>
       </template>
-      <p v-if="cloud.isLocked" class="qsub">🔒 Enheten är låst av en vuxen. <a href="/familj">Lås upp</a></p>
+      <p v-if="cloud.isLocked" class="qsub">
+        {{ L("🔒 Enheten är låst av en vuxen.", "🔒 Täiskasvanu on seadme lukustanud.") }}
+        <a href="/familj">{{ L("Lås upp", "Ava lukk") }}</a>
+      </p>
     </div>
 
     <!-- familjekod -->
     <div v-else-if="!cloud.isLocked" class="card">
-      <h2 class="q">Skriv familjekoden</h2>
-      <p class="qsub">En vuxen hittar koden i Familjen → Koder.</p>
+      <h2 class="q">{{ L("Skriv familjekoden", "Kirjuta perekood") }}</h2>
+      <p class="qsub">
+        {{ L("En vuxen hittar koden i Familjen → Koder.", "Täiskasvanu leiab koodi siit: Pere → Koodid.") }}
+      </p>
       <label class="flabel"
-        >Familjekod
+        >{{ L("Familjekod", "Perekood") }}
         <input
           v-model="code"
           class="field code"
@@ -171,10 +214,12 @@ onMounted(async () => {
           placeholder="ABC-234"
           @keydown.enter="findFamily()"
       /></label>
-      <button class="btn green big wide" :disabled="busy || !codeOk" @click="findFamily()">Fortsätt</button>
+      <button class="btn green big wide" :disabled="busy || !codeOk" @click="findFamily()">
+        {{ L("Fortsätt", "Jätka") }}
+      </button>
     </div>
 
     <p v-if="err" class="err" role="alert">{{ err }}</p>
-    <p v-if="done" class="ok" role="status">Klart! Nu spelar {{ done }}.</p>
+    <p v-if="done" class="ok" role="status">{{ L(`Klart! Nu spelar ${done}.`, `Valmis! Nüüd mängib: ${done}.`) }}</p>
   </div>
 </template>
