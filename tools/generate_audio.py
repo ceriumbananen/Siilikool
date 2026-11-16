@@ -106,7 +106,9 @@ def add_to_partmap(words, part):
 def main():
     if len(sys.argv) < 3:
         raise SystemExit(__doc__)
-    part, words = sys.argv[1], list(dict.fromkeys(sys.argv[2:]))
+    # strip: ord som kommer från en skriptad lista (t.ex. $(... | tr) ) kan bära med sig en
+    # avslutande radbrytning, och då blir nyckeln "kolm\n" som aldrig hittas
+    part, words = sys.argv[1], list(dict.fromkeys(w.strip() for w in sys.argv[2:] if w.strip()))
     os.chdir(PUBLIC)
     have = existing_banks()
     partfile = "audio/%s.js" % part

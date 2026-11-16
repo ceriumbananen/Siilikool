@@ -66,7 +66,13 @@ watch(
   },
 );
 
-const targets = computed(() => Object.values(PAK_TARGETS).filter(t => t.rects.length));
+/* när man ska vända på Siiri ligger mattans yta över hennes fötter (z-index ovanför henne) -
+   då tas den bort, annars räknas ett tryck på fötterna som en fel gissning */
+const targets = computed(() =>
+  Object.values(PAK_TARGETS).filter(
+    t => t.rects.length && !(t.id === "vaip" && pak.mode.value === "search" && pak.target.value?.id === "siiri"),
+  ),
+);
 const hint = computed(() => pak.wrong.value >= 2);
 
 /* den tomma julstrumpan: nissen kommer snart / nytt brev i morgon / god jul */

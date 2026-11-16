@@ -199,7 +199,11 @@ export function usePakapikk() {
   }
   /** Siiri vändes (room.vue) - rätt om lappen sa "Pööra Siiri ümber!". */
   function onSiiriFlip() {
-    if (mode.value === "search" && target.value?.id === "siiri") setTimeout(hit, 450);
+    if (mode.value === "search" && target.value?.id === "siiri")
+      /* två snabba vändningar ska inte ge två "Leidsid!" */
+      setTimeout(() => {
+        if (mode.value === "search" && target.value?.id === "siiri") hit();
+      }, 450);
   }
 
   function hit() {
